@@ -1,8 +1,8 @@
-;;; wal-line.el --- Yet another mode-line. -*- lexical-binding: t; -*-
+;;; wal-line.el --- A whale-based mode-line. -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
@@ -11,8 +11,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'wal-line-utils (expand-file-name "wal-line-utils.el")))
+(require 'wal-line-utils)
 
 (declare-function wal-line--set-selected-window "wal-line-utils.el")
 (declare-function wal-line--is-current-window-p "wal-line-utils.el")
@@ -22,6 +21,16 @@
 (defgroup wal-line nil
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
+
+(defcustom wal-line-segments
+  '(flycheck
+    project
+    icons
+    vc
+    whale)
+  "Optional segments to be added."
+  :group 'wal-line
+  :type '(repeat symbol))
 
 ;;;; Faces:
 
@@ -52,26 +61,36 @@
 
 ;;;; Functionality:
 
-(defun wal-line--segment-buffer-name ()
-  "Get the buffer name."
-  (buffer-name))
+(defvar wal-line--segments
+  '(:left ((icons . nil)
+           (buffer-name . t)
+           (buffer-status . t)
+           (vc . nil)
+           (project . nil))
+    :right ((global-mode-string . t)
+            (position . t)
+            (whale . nil))))
 
-(defun wal-line--segment-buffer-status ()
+(defun wal-line-buffer-name--segment ()
+  "Get the buffer name."
+  (concat (wal-line--spacer) (buffer-name)))
+
+(defun wal-line-buffer-status--segment ()
   "Display the buffer status."
   (cond
    (buffer-read-only
     (propertize "@" 'face 'wal-line-contrast))
    ((buffer-modified-p)
     (propertize "*" 'face 'wal-line-notify))
-    (t " ")))
+    (t "")))
 
-(defun wal-line--segment-position ()
+(defun wal-line-position--segment ()
   "Displays the current-position."
   (if (wal-line--is-current-window-p)
-      "%l %p%% "
+      (concat (wal-line--spacer) "%l %p%% ")
     ""))
 
-(defun wal-line--segment-global-mode-string ()
+(defun wal-line-global-mode-string--segment ()
   "Displays the `global-mode-string'."
   (if (wal-line--is-current-window-p)
       global-mode-string
@@ -79,18 +98,11 @@
 
 (defun wal-line--render-segments (segments)
   "Render SEGMENTS."
-  (mapcar (lambda (it) `(:eval (,it))) segments))
-
-(defvar wal-line--left-side
-  '(wal-line--spacer
-    wal-line--segment-buffer-name
-    wal-line--segment-buffer-status))
-
-(defvar wal-line--right-side
-  '(wal-line--segment-global-mode-string
-    wal-line--spacer
-    wal-line--segment-position
-    wal-line--spacer))
+  (delq nil
+        (mapcar (lambda (it)
+                  (when (cdr it)
+                    `(:eval (,(intern (concat "wal-line-" (symbol-name (car it)) "--segment"))))))
+                segments)))
 
 ;; Entrypoint.
 
@@ -117,8 +129,10 @@
         (setq-default mode-line-format
                       '((:eval
                          (wal-line--format
-                          (format-mode-line (wal-line--render-segments wal-line--left-side))
-                          (format-mode-line (wal-line--render-segments wal-line--right-side)))))))
+                          (format-mode-line
+                           (wal-line--render-segments (plist-get wal-line--segments :left)))
+                          (format-mode-line
+                           (wal-line--render-segments (plist-get wal-line--segments :right))))))))
     (progn
       ;; Tear down everything.
       (run-hooks 'wal-line-teardown-hook)
@@ -126,6 +140,9 @@
 
       ;; Restore the original mode-line format
       (setq-default mode-line-format wal-line--default-mode-line))))
+
+(dolist (it wal-line-segments)
+  (require (intern (concat "wal-line-" (symbol-name it)))))
 
 (provide 'wal-line)
 

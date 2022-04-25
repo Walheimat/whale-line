@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1")
 
 ;;; Commentary:
@@ -11,12 +11,11 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'wal-line-utils (expand-file-name "wal-line-utils")))
+(require 'wal-line-utils)
 
 (defvar-local wal-line-flycheck--face nil)
 
-(declare-function wal-line--segment-buffer-name "wal-line.el")
+(declare-function wal-line-buffer-name--segment "wal-line.el")
 (declare-function wal-line--spacer "wal-line-utils.el")
 (declare-function wal-line--is-current-window-p "wal-line-utils.el")
 
@@ -60,7 +59,7 @@
   (unless wal-line-whale--frame
     (wal-line-whale--animate))
   (if (wal-line--is-current-window-p)
-      wal-line-whale--frame
+      (concat (wal-line--spacer) wal-line-whale--frame)
     ""))
 
 ;;;; Entrypoint.
@@ -84,11 +83,8 @@
 (add-hook 'wal-line-setup-hook #'wal-line-whale--setup)
 (add-hook 'wal-line-teardown-hook #'wal-line-whale--teardown)
 
-(defvar wal-line--right-side)
-(wal-line-add-segment
- wal-line-whale--segment
- 'right
- 'wal-line--segment-position)
+(defvar wal-line--segments)
+(wal-line-add-segment whale)
 
 (provide 'wal-line-whale)
 

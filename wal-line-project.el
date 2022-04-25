@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
@@ -13,8 +13,7 @@
 
 (require 'projectile nil t)
 
-(eval-when-compile
-  (require 'wal-line-utils (expand-file-name "wal-line-utils.el")))
+(require 'wal-line-utils)
 
 (declare-function wal-line--spacer "wal-line-utils.el")
 (declare-function project-root "ext:project.el")
@@ -31,9 +30,9 @@
 
 ;;;; Functionality:
 
-(defvar wal-line--root-regexp ".+\\(\\/.+\\)\\/$")
+(defvar wal-line-project--regexp ".+\\(\\/.+\\)\\/$")
 
-(defun wal-line--segment-project ()
+(defun wal-line-project--segment ()
   "Get the project or root segment."
   (let ((p-root (cond
                  ((eq wal-line-project-provider 'projectile)
@@ -41,20 +40,17 @@
                  ((eq wal-line-project-provider 'project)
                   (project-root (project-current)))
                  (t nil))))
-    (if (and p-root (buffer-file-name) (string-match-p wal-line--root-regexp p-root))
+    (if (and p-root (buffer-file-name) (string-match-p wal-line-project--regexp p-root))
         (progn
-          (string-match wal-line--root-regexp p-root)
+          (string-match wal-line-project--regexp p-root)
           (concat
            (wal-line--spacer)
            (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)
            (wal-line--spacer)))
       "")))
 
-(defvar wal-line--left-side)
-(wal-line-add-segment
- wal-line--segment-project
- 'left
- 'wal-line--segment-buffer-status)
+(defvar wal-line--segments)
+(wal-line-add-segment project)
 
 (provide 'wal-line-project)
 

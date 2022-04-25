@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
@@ -10,6 +10,9 @@
 ;; Utility functions.
 
 ;;; Code:
+
+(eval-when-compile
+  (require 'cl-lib))
 
 (defun wal-line--spacer ()
   "A space used for padding."
@@ -68,21 +71,17 @@
 
 ;;;; Macros:
 
-(defmacro wal-line-add-segment (segment side &optional after)
-  "Add SEGMENT for SIDE AFTER other segment.
-
-Optionally, don't add a spacer if NO-SPACER is given."
-  `(if-let* ((side (pcase ,side
-                     ('left wal-line--left-side)
-                     ('right wal-line--right-side)))
-             (remainder (if ,after
-                            (nthcdr (cl-position ,after side) side)
-                          nil)))
-       (when (not (memq ',segment side))
-         (if remainder
-             (setcdr remainder (cons ',segment (cdr remainder)))
-           (setcar side (cons ',segment side))))
-     nil))
+(defvar wal-line--segments)
+(defmacro wal-line-add-segment (segment)
+  "Add SEGMENT to the list of segments."
+  `(let ((left? (assoc ',segment (plist-get wal-line--segments :left)))
+         (right? (assoc ',segment (plist-get wal-line--segments :right))))
+     (cond
+      (left?
+       (setcdr left? t))
+      (right?
+       (setcdr right? t))
+      (t (user-error "Unknown segment")))))
 
 (provide 'wal-line-utils)
 
