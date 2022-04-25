@@ -35,19 +35,18 @@
 
 (defun wal-line--segment-project ()
   "Get the project or root segment."
-  (let* ((p-root (cond
+  (let ((p-root (cond
                  ((eq wal-line-project-provider 'projectile)
                   (projectile-project-root))
                  ((eq wal-line-project-provider 'project)
                   (project-root (project-current)))
-                 (t nil)))
-         (f-root (or p-root default-directory)))
-    (if (and (buffer-file-name) (string-match-p wal-line--root-regexp f-root))
+                 (t nil))))
+    (if (and p-root (buffer-file-name) (string-match-p wal-line--root-regexp p-root))
         (progn
-          (string-match wal-line--root-regexp f-root)
+          (string-match wal-line--root-regexp p-root)
           (concat
            (wal-line--spacer)
-           (propertize (substring (match-string 1 f-root) 1) 'face 'wal-line-emphasis)
+           (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)
            (wal-line--spacer)))
       "")))
 

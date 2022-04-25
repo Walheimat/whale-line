@@ -42,7 +42,7 @@
 
 (defun wal-line-all-the-icons--advise-project (str)
   "Advise project segment to show a project icon before STR."
-  (if (and (buffer-file-name) (display-graphic-p))
+  (if (and (not (string-empty-p str)) (display-graphic-p))
       (concat
        (wal-line--spacer)
        (propertize
