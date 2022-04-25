@@ -45,6 +45,29 @@
         (list el)))
     list :initial-value nil)))
 
+(defvar wal-line--current-window nil)
+
+(defun wal-line--get-current-window ()
+  "Get the current window but should exclude the child windows."
+  (if (and (fboundp 'frame-parent) (frame-parent))
+      (frame-selected-window (frame-parent))
+    (frame-selected-window)))
+
+(defun wal-line--set-selected-window (&rest _)
+  "Set selected window appropriately."
+  (let ((win (wal-line--get-current-window)))
+    (setq wal-line--current-window
+          (if (minibuffer-window-active-p win)
+              (minibuffer-selected-window)
+            win))))
+
+(defun wal-line--is-current-window-p ()
+  "Check if the current window is the selected window."
+  (and wal-line--current-window
+       (eq (wal-line--get-current-window) wal-line--current-window)))
+
+;;;; Macros:
+
 (defmacro wal-line-add-segment (segment side &optional after)
   "Add SEGMENT for SIDE AFTER other segment.
 

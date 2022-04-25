@@ -14,6 +14,9 @@
 (eval-when-compile
   (require 'wal-line-utils (expand-file-name "wal-line-utils.el")))
 
+(declare-function wal-line--set-selected-window "wal-line-utils.el")
+(declare-function wal-line--is-current-window-p "wal-line-utils.el")
+
 ;;;; Customization:
 
 (defgroup wal-line nil
@@ -22,14 +25,14 @@
 
 ;;;; Faces:
 
-(defface wal-line-highlight
-  '((t (:inherit (mode-line-emphasis))))
-  "Face used for highlights."
-  :group 'wal-line)
-
 (defface wal-line-neutral
   '((t))
   "Neutral face."
+  :group 'wal-line)
+
+(defface wal-line-highlight
+  '((t (:inherit (mode-line-emphasis))))
+  "Face used for highlight."
   :group 'wal-line)
 
 (defface wal-line-emphasis
@@ -39,15 +42,15 @@
 
 (defface wal-line-contrast
   '((t (:inherit (warning))))
-  "Face used to warn."
+  "Face used for contrast."
   :group 'wal-line)
 
-(defface wal-line-notify
+(defface wal-line-notification
   '((t (:inherit (compilation-info))))
-  "Face used to notify."
+  "Face used for notification."
   :group 'wal-line)
 
-;; Functionality:
+;;;; Functionality:
 
 (defun wal-line--segment-buffer-name ()
   "Get the buffer name."
@@ -56,29 +59,38 @@
 (defun wal-line--segment-buffer-status ()
   "Display the buffer status."
   (cond
+   (buffer-read-only
+    (propertize "@" 'face 'wal-line-contrast))
    ((buffer-modified-p)
     (propertize "*" 'face 'wal-line-notify))
-   ((and buffer-read-only (buffer-file-name))
-    (propertize "@" 'face 'wal-line-contrast))
     (t " ")))
 
 (defun wal-line--segment-position ()
   "Displays the current-position."
-  "%l %p%%  ")
+  (if (wal-line--is-current-window-p)
+      "%l %p%% "
+    ""))
 
-(defun wal-line--global-mode-string ()
+(defun wal-line--segment-global-mode-string ()
   "Displays the `global-mode-string'."
-  global-mode-string)
-
+  (if (wal-line--is-current-window-p)
+      global-mode-string
+    ""))
 
 (defun wal-line--render-segments (segments)
   "Render SEGMENTS."
   (mapcar (lambda (it) `(:eval (,it))) segments))
 
 (defvar wal-line--left-side
-  '(wal-line--spacer wal-line--segment-buffer-name wal-line--segment-buffer-status))
+  '(wal-line--spacer
+    wal-line--segment-buffer-name
+    wal-line--segment-buffer-status))
+
 (defvar wal-line--right-side
-  '(wal-line--global-mode-string wal-line--spacer wal-line--segment-position wal-line--spacer))
+  '(wal-line--segment-global-mode-string
+    wal-line--spacer
+    wal-line--segment-position
+    wal-line--spacer))
 
 ;; Entrypoint.
 
@@ -99,6 +111,7 @@
 
         ;; Make setups do their thing.
         (run-hooks 'wal-line-setup-hook)
+        (add-hook 'pre-redisplay-functions #'wal-line--set-selected-window)
 
         ;; Set the new mode-line-format
         (setq-default mode-line-format
@@ -109,6 +122,7 @@
     (progn
       ;; Tear down everything.
       (run-hooks 'wal-line-teardown-hook)
+      (remove-hook 'pre-redisplay-functions #'wal-line--set-selected-window)
 
       ;; Restore the original mode-line format
       (setq-default mode-line-format wal-line--default-mode-line))))

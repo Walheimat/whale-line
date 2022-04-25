@@ -33,7 +33,6 @@
              nil))
           (_ nil))))
 
-
 (defun wal-line-flycheck--advise-buffer-name (str)
   "Advise the buffer name STR."
   (propertize str 'face (if wal-line-flycheck--face

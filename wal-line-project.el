@@ -42,7 +42,7 @@
                   (project-root (project-current)))
                  (t nil)))
          (f-root (or p-root default-directory)))
-    (if (string-match-p wal-line--root-regexp f-root)
+    (if (and (buffer-file-name) (string-match-p wal-line--root-regexp f-root))
         (progn
           (string-match wal-line--root-regexp f-root)
           (concat
