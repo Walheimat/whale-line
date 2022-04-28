@@ -44,7 +44,7 @@
       (concat
        str
        (propertize
-        (all-the-icons-faicon "folder-open-o")
+        (all-the-icons-faicon "folder-open")
         'face 'wal-line-emphasis
         'display '(raise 0.0))
        (wal-line--spacer))
