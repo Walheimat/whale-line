@@ -91,7 +91,7 @@
    (buffer-read-only
     (propertize "@" 'face 'wal-line-contrast))
    ((buffer-modified-p)
-    (propertize "*" 'face 'wal-line-notify))
+    (propertize "*" 'face 'wal-line-emphasis))
     (t "")))
 
 (defun wal-line-position--segment ()
