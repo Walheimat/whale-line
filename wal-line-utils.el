@@ -20,6 +20,7 @@
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
+;; Taken from `mood-line'.
 (defun wal-line--format (left right)
   "Return a string of `window-width' length containing LEFT and RIGHT."
   (let ((reserve (length right)))

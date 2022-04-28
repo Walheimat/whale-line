@@ -72,14 +72,20 @@
 ;;;; Functionality:
 
 (defvar wal-line--segments
-  '(:left ((icons . t)
+  '(:left ((margin . t)
+           (icons . nil)
            (buffer-name . t)
            (buffer-status . t)
            (position . t))
     :right ((global-mode-string . t)
-            (project . t)
-            (vc . t)
-            (whale . t))))
+            (project . nil)
+            (vc . nil)
+            (whale . nil)
+            (margin . t))))
+
+(defun wal-line-margin--segment ()
+  "Get a margin segment."
+  (wal-line--spacer))
 
 (defun wal-line-buffer-name--segment ()
   "Get the buffer name."

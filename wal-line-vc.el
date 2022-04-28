@@ -19,6 +19,8 @@
 (defvar wal-line-vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 (defvar-local wal-line-vc--info nil)
 (defvar-local wal-line-vc--state nil)
+
+;; Taken from `doom-modeline'.
 (defun wal-line-vc--update-info (&rest _)
   "Update the version control info."
   (setq-local wal-line-vc--info
@@ -40,8 +42,8 @@
   "Show version control info."
   (unless wal-line-vc--info
     (wal-line-vc--update-info))
-  (if (wal-line--is-current-window-p)
-      wal-line-vc--info
+  (if (and wal-line-vc--info (wal-line--is-current-window-p))
+      (concat (wal-line--spacer) wal-line-vc--info)
     ""))
 
 (defun wal-line-vc--face-for-state ()

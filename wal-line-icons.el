@@ -39,11 +39,11 @@
   "Display the file icon for the visited file."
   (unless wal-line-icons--icon
     (wal-line-icons--set-icon))
-  (concat (wal-line--spacer) wal-line-icons--icon))
+  wal-line-icons--icon)
 
 (defun wal-line-icons--advise-project (str)
   "Advise project segment to show a project icon before STR."
-  (if (and (not (string-empty-p str)) (display-graphic-p))
+  (if (and (not (string-empty-p (string-trim str))) (display-graphic-p))
       (concat
        (wal-line--spacer)
        (all-the-icons-faicon
@@ -51,20 +51,20 @@
         :face 'wal-line-emphasis
         :height 0.85
         :v-adjust 0.0)
-       str
-       (wal-line--spacer))
+       str)
     str))
-
 
 (defun wal-line-icons--advise-vc (str)
   "Advise version control segment to show an icon before STR."
-  (if (and (not (string-empty-p str)) buffer-file-name (display-graphic-p))
+  (if (and (not (string-empty-p (string-trim str)))
+           (buffer-file-name)
+           (display-graphic-p))
       (concat
+       (wal-line--spacer)
        (all-the-icons-faicon "code-fork"
                              :face (wal-line-vc--face-for-state)
                              :height 0.85
                              :v-adjust 0.0)
-       (wal-line--spacer)
        str)
     str))
 
