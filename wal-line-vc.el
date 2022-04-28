@@ -33,20 +33,27 @@
                          wal-line-vc--scope-regexp
                          ""
                          str)
-                        'mouse-face 'wal-line-emphasis
-                        'face (cond ((eq state 'needs-update)
-                                     'wal-line-contrast)
-                                    ((memq state '(removed conflict unregistered))
-                                     'wal-line-contrast)
-                                    (t 'wal-line-notification)))))))
+                        'mouse-face 'wal-line-highlight
+                        'face (wal-line-vc--face-for-state))))))
 
 (defun wal-line-vc--segment ()
   "Show version control info."
   (unless wal-line-vc--info
     (wal-line-vc--update-info))
   (if (wal-line--is-current-window-p)
-      (concat (wal-line--spacer) wal-line-vc--info)
+      wal-line-vc--info
     ""))
+
+(defun wal-line-vc--face-for-state ()
+  "Get the correct face for the state."
+  (let ((state wal-line-vc--state))
+    (cond ((eq state 'needs-update)
+           'wal-line-contrast)
+          ((eq state 'edited)
+           'wal-line-indicate)
+          ((memq state '(removed conflict unregistered))
+           'wal-line-contrast)
+          (t 'wal-line-neutral))))
 
 (defvar wal-line--segments)
 (wal-line-add-segment vc)

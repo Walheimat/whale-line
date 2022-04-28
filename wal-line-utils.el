@@ -14,16 +14,11 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(defun wal-line--spacer ()
-  "A space used for padding."
-  " ")
+(defun wal-line--spacer (&optional big)
+  "A space used for padding.
 
-(defun wal-line--pad (str pos)
-  "Pad string STR based on its position POS."
-  (pcase pos
-    ('left (concat str (wal-line--spacer)))
-    ('right (concat (wal-line--spacer) str))
-    (_ str)))
+Optionally, use a BIG spacer."
+  (if big "  " " "))
 
 (defun wal-line--format (left right)
   "Return a string of `window-width' length containing LEFT and RIGHT."
@@ -33,20 +28,6 @@
             (propertize " "
                         'display `((space :align-to (- right (- 0 right-margin) ,reserve))))
             right)))
-
-(defun wal-line--concat (left right)
-  "Concatenate LEFT and RIGHT with a divider."
-  (concat left (wal-line--spacer) right))
-
-(defun wal-line--intersperse-divider (list)
-  "Intersperse divider in LIST."
-  (reverse
-   (cl-reduce
-    (lambda (list el)
-      (if list
-          (cl-list* el (wal-line--spacer) list)
-        (list el)))
-    list :initial-value nil)))
 
 (defvar wal-line--current-window nil)
 

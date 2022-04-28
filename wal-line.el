@@ -39,13 +39,23 @@
   "Neutral face."
   :group 'wal-line)
 
+(defface wal-line-shadow
+  '((t (:inherit (shadow))))
+  "Shadow face."
+  :group 'wal-line)
+
 (defface wal-line-highlight
-  '((t (:inherit (mode-line-emphasis))))
+  '((t (:inherit (mode-line-highlight))))
   "Face used for highlight."
   :group 'wal-line)
 
+(defface wal-line-indicate
+  '((t :inherit success))
+  "Face used for indicating (something good)."
+  :group 'wal-line)
+
 (defface wal-line-emphasis
-  '((t (:inherit (mode-line-emphasis) :bold t)))
+  '((t (:inherit (mode-line-emphasis))))
   "Face used for emphasis."
   :group 'wal-line)
 
@@ -62,14 +72,14 @@
 ;;;; Functionality:
 
 (defvar wal-line--segments
-  '(:left ((icons . nil)
+  '(:left ((icons . t)
            (buffer-name . t)
            (buffer-status . t)
-           (vc . nil)
-           (project . nil))
+           (position . t))
     :right ((global-mode-string . t)
-            (position . t)
-            (whale . nil))))
+            (project . t)
+            (vc . t)
+            (whale . t))))
 
 (defun wal-line-buffer-name--segment ()
   "Get the buffer name."
@@ -87,7 +97,7 @@
 (defun wal-line-position--segment ()
   "Displays the current-position."
   (if (wal-line--is-current-window-p)
-      (concat (wal-line--spacer) "%l %p%% ")
+      (propertize (concat (wal-line--spacer) "%l %p%% ") 'face 'wal-line-shadow)
     ""))
 
 (defun wal-line-global-mode-string--segment ()

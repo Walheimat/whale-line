@@ -45,8 +45,7 @@
           (string-match wal-line-project--regexp p-root)
           (concat
            (wal-line--spacer)
-           (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)
-           (wal-line--spacer)))
+           (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)))
       "")))
 
 (defvar wal-line--segments)

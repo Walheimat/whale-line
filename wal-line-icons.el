@@ -16,6 +16,7 @@
 
 (declare-function wal-line--spacer "wal-line-utils.el")
 (declare-function wal-line-project--segment "wal-line-project.el")
+(declare-function wal-line-vc--face-for-state "wal-line-vc.el")
 
 ;;;; Functionality:
 
@@ -26,7 +27,9 @@
               (if (display-graphic-p)
                   (let ((icon (all-the-icons-icon-for-buffer)))
                     (propertize (if (or (null icon) (symbolp icon))
-                                    (all-the-icons-faicon "question-circle-o")
+                                    (all-the-icons-faicon
+                                     "question-circle"
+                                     :face 'wal-line-contrast)
                                   icon)
                                 'help-echo (format "%s" (format-mode-line mode-name))
                                 'display '(raise -0.135)))
@@ -42,12 +45,27 @@
   "Advise project segment to show a project icon before STR."
   (if (and (not (string-empty-p str)) (display-graphic-p))
       (concat
+       (wal-line--spacer)
+       (all-the-icons-faicon
+        "folder-open"
+        :face 'wal-line-emphasis
+        :height 0.85
+        :v-adjust 0.0)
        str
-       (propertize
-        (all-the-icons-faicon "folder-open")
-        'face 'wal-line-emphasis
-        'display '(raise 0.0))
        (wal-line--spacer))
+    str))
+
+
+(defun wal-line-icons--advise-vc (str)
+  "Advise version control segment to show an icon before STR."
+  (if (and (not (string-empty-p str)) buffer-file-name (display-graphic-p))
+      (concat
+       (all-the-icons-faicon "code-fork"
+                             :face (wal-line-vc--face-for-state)
+                             :height 0.85
+                             :v-adjust 0.0)
+       (wal-line--spacer)
+       str)
     str))
 
 ;; Setup/teardown:
@@ -57,6 +75,9 @@
   (advice-add
    #'wal-line-project--segment
    :filter-return #'wal-line-icons--advise-project)
+  (advice-add
+   #'wal-line-vc--segment
+   :filter-return #'wal-line-icons--advise-vc)
   (add-hook 'find-file-hook #'wal-line-icons--set-icon)
   (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
@@ -66,6 +87,9 @@
   (advice-remove
    #'wal-line-project--segment
    #'wal-line-icons--advise-project)
+  (advice-remove
+   #'wal-line-vc--segment
+   #'wal-line-icons--advise-vc)
   (remove-hook 'find-file-hook #'wal-line-icons--set-icon)
   (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))

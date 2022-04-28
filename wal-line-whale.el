@@ -46,7 +46,7 @@
 (defun wal-line-whale--animate ()
   "Animate the ASCII whale."
   (let* ((frame (aref wal-line-whale-key-frames wal-line-whale--frame-index))
-         (colored (propertize frame 'face 'wal-line-highlight)))
+         (colored (propertize frame 'face 'wal-line-emphasis)))
     (setq wal-line-whale--frame-index
           (mod
            (1+ wal-line-whale--frame-index)
@@ -59,7 +59,7 @@
   (unless wal-line-whale--frame
     (wal-line-whale--animate))
   (if (wal-line--is-current-window-p)
-      (concat (wal-line--spacer) wal-line-whale--frame)
+       (concat (wal-line--spacer) wal-line-whale--frame (wal-line--spacer))
     ""))
 
 ;;;; Entrypoint.
