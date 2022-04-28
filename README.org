@@ -1,0 +1,16 @@
+* wal-line.el
+
+This package is my personal mode line.
+
+** Configuration
+
+The base mode line has no dependencies but by default, all segments
+and augmentations are loaded which have dependencies (=all-the-icons=,
+=projectile= and =flycheck=). You can set the variable =wal-line-segments=
+to customize this.
+
+Even if you use =projectile= you can set =wal-line-project-provider= to
+=project= instead.
+
+You can provide your own animation by setting
+=wal-line-whale-key-frames=.
