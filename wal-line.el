@@ -23,14 +23,14 @@
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom wal-line-segments
+(defcustom wal-line-features
   '(flycheck
     project
     icons
     vc
     whale
     minions)
-  "Optional segments to be added."
+  "Optional features to add or enhance segments."
   :group 'wal-line
   :type '(repeat symbol))
 
@@ -160,7 +160,7 @@
       ;; Restore the original mode-line format
       (setq-default mode-line-format wal-line--default-mode-line))))
 
-(dolist (it wal-line-segments)
+(dolist (it wal-line-features)
   (require (intern (concat "wal-line-" (symbol-name it)))))
 
 (provide 'wal-line)
