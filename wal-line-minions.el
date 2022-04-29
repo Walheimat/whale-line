@@ -23,16 +23,17 @@
 
 (defvar minor-modes-alist)
 (defvar minions-mode-line-minor-modes-map)
+(defvar minions-mode-line-lighter)
 (defun wal-line-minions--advise-minor-modes (&rest _r)
   "Advise minor modes to use minions if present."
   (if (bound-and-true-p minions-mode)
       `((:propertize ("" ,(minions--prominent-modes))
                     face wal-line-shadow)
         ,(wal-line--spacer)
-        (:propertize ";-"
+        (:propertize ,minions-mode-line-lighter
+                     face wal-line-shadow
                      local-map ,minions-mode-line-minor-modes-map
-                     mouse-face wal-line-highlight
-                     ))
+                     mouse-face wal-line-highlight))
     minor-mode-alist))
 
 ;;;; Setup/teardown:

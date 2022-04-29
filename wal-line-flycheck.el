@@ -3,7 +3,7 @@
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
 ;; Version: 0.1
-;; Package-Requires: ((emacs "28.1")(flycheck "33-cvs"))
+;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 
@@ -11,14 +11,15 @@
 
 ;;; Code:
 
-(require 'flycheck)
-
 (defvar-local wal-line-flycheck--face nil)
 
+(declare-function flycheck-count-errors "ext:flycheck.el")
 (declare-function wal-line-buffer-name--segment "wal-line.el")
+(declare-function wal-line--spacer "wal-line-utils.el")
 
 ;;;; Functionality:
 
+(defvar flycheck-current-errors)
 (defun wal-line-flycheck--update (&optional status)
   "Update face used for buffer name dependent on STATUS."
   (setq-local wal-line-flycheck--face

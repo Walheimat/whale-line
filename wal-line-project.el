@@ -12,7 +12,6 @@
 ;;; Code:
 
 (require 'projectile nil t)
-
 (require 'wal-line-utils)
 
 (declare-function wal-line--spacer "wal-line-utils.el")
@@ -21,12 +20,13 @@
 ;;;; Customization:
 
 (defcustom wal-line-project-provider
-  (if (featurep 'projectile)
+  (if (bound-and-true-p projectile-mode)
       'projectile
     'project)
   "The project provider."
   :group 'wal-line
-  :type 'symbol)
+  :type '(choice (const projectile)
+                 (const project)))
 
 ;;;; Functionality:
 

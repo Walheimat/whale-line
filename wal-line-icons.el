@@ -17,6 +17,7 @@
 (declare-function wal-line--spacer "wal-line-utils.el")
 (declare-function wal-line-project--segment "wal-line-project.el")
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
+(declare-function wal-line-vc--segment "wal-line-vc.el")
 
 ;;;; Functionality:
 
