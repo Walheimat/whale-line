@@ -142,13 +142,7 @@
         (add-hook 'pre-redisplay-functions #'wal-line--set-selected-window)
 
         ;; Set the new mode-line-format
-        (setq-default mode-line-format
-                      '((:eval
-                         (wal-line--format
-                          (format-mode-line
-                           (wal-line--render-segments (plist-get wal-line--segments :left)))
-                          (format-mode-line
-                           (wal-line--render-segments (plist-get wal-line--segments :right))))))))
+        (setq-default mode-line-format '("%e" (:eval (wal-line--format)))))
     (progn
       ;; Tear down everything.
       (run-hooks 'wal-line-teardown-hook)

@@ -14,21 +14,25 @@
 (eval-when-compile
   (require 'cl-lib))
 
+(declare-function wal-line--render-segments "wal-line.el")
+
 (defun wal-line--spacer (&optional big)
   "A space used for padding.
 
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
-;; Taken from `mood-line'.
-(defun wal-line--format (left right)
-  "Return a string of `window-width' length containing LEFT and RIGHT."
-  (let ((reserve (length right)))
-    (concat left
-            " "
-            (propertize " "
-                        'display `((space :align-to (- right (- 0 right-margin) ,reserve))))
-            right)))
+(defvar wal-line--segments)
+(defun wal-line--format ()
+  "Return a list of aligned left and right segments."
+  (let* ((rhs (wal-line--render-segments (plist-get wal-line--segments :right)))
+         (lhs (wal-line--render-segments (plist-get wal-line--segments :left)))
+         (reserve (length (format-mode-line rhs))))
+    `(,@lhs
+      ,(propertize
+        " "
+        'display`((space :align-to (- right (- 0 right-margin) ,reserve))))
+      ,@rhs)))
 
 (defvar wal-line--current-window nil)
 
