@@ -23,13 +23,13 @@
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom wal-line-features
-  '(flycheck
-    project
-    icons
-    vc
-    whale
-    minions)
+(defconst wal-line--all-features '(flycheck
+                                   project
+                                   icons
+                                   vc
+                                   whale
+                                   minions))
+(defcustom wal-line-features (copy-tree wal-line--all-features)
   "Optional features to add or enhance segments."
   :group 'wal-line
   :type '(repeat symbol))
@@ -126,11 +126,45 @@
                     `(:eval (,(intern (concat "wal-line-" (symbol-name (car it)) "--segment"))))))
                 segments)))
 
+(defun wal-line--disabled-features ()
+  "Get the disabled features."
+  (seq-filter (lambda (it) (not (memq it wal-line-features)))
+              wal-line--all-features))
+
+(defun wal-line--enable-or-disable-feature (feature enable)
+  "If ENABLE is t, enable FEATURE, otherwise disable."
+  (let* ((symbol? (if (symbolp feature) feature (intern feature)))
+         (left? (assoc symbol? (plist-get wal-line--segments :left)))
+         (right? (assoc symbol? (plist-get wal-line--segments :right))))
+    (cond
+     (left?
+      (setcdr left? enable))
+     (right?
+      (setcdr right? enable))
+     (t nil))
+    (setq wal-line-features (if enable
+                                (append wal-line-features `(,symbol?))
+                              (delete symbol? wal-line-features)))
+    (let* ((suffix (if enable "--setup" "--teardown"))
+           (teardown (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
+      (when (fboundp teardown)
+        (funcall teardown)))))
+
 ;; Entrypoint.
 
 (defvar wal-line--default-mode-line nil)
 (defvar wal-line-setup-hook nil)
 (defvar wal-line-teardown-hook nil)
+
+(defun wal-line-disable-feature (feature)
+  "Disable FEATURE."
+  (interactive (list (completing-read "Disable feature: " wal-line-features)))
+  (wal-line--enable-or-disable-feature feature nil))
+
+(defun wal-line-enable-feature (feature)
+  "Enable disabled FEATURE."
+  (interactive (list (completing-read "Enable feature: " (wal-line--disabled-features))))
+  (wal-line--enable-or-disable-feature feature t))
 
 ;;;###autoload
 (define-minor-mode wal-line-mode
