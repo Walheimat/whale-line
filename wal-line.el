@@ -15,6 +15,7 @@
 
 (declare-function wal-line--set-selected-window "wal-line-utils.el")
 (declare-function wal-line--is-current-window-p "wal-line-utils.el")
+(declare-function wal-line--spacer "wal-line-utils.el")
 
 ;;;; Customization:
 
@@ -27,7 +28,8 @@
     project
     icons
     vc
-    whale)
+    whale
+    minions)
   "Optional segments to be added."
   :group 'wal-line
   :type '(repeat symbol))
@@ -77,7 +79,8 @@
            (buffer-name . t)
            (buffer-status . t)
            (position . t))
-    :right ((global-mode-string . t)
+    :right ((minor-modes . t)
+            (global-mode-string . t)
             (project . nil)
             (vc . nil)
             (whale . nil)
@@ -103,13 +106,19 @@
 (defun wal-line-position--segment ()
   "Displays the current-position."
   (if (wal-line--is-current-window-p)
-      (propertize (concat (wal-line--spacer) "%l %p%% ") 'face 'wal-line-shadow)
+      (propertize (concat (wal-line--spacer) "%l %p% ") 'face 'wal-line-shadow)
     ""))
 
 (defun wal-line-global-mode-string--segment ()
   "Displays the `global-mode-string'."
   (if (wal-line--is-current-window-p)
-      global-mode-string
+      (cons (wal-line--spacer) (cdr global-mode-string))
+    ""))
+
+(defun wal-line-minor-modes--segment ()
+  "Displays the minor modes."
+  (if (wal-line--is-current-window-p)
+      minor-mode-alist
     ""))
 
 (defun wal-line--render-segments (segments)
