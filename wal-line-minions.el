@@ -42,7 +42,7 @@
   "Set up minions."
   (advice-add
    #'wal-line-minor-modes--segment
-   :override #'wal-line-minions--advise-minor-modes))
+   :after-while #'wal-line-minions--advise-minor-modes))
 
 (defun wal-line-minions--teardown ()
   "Set up minions."

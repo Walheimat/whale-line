@@ -42,9 +42,8 @@
   "Show version control info."
   (unless wal-line-vc--info
     (wal-line-vc--update-info))
-  (if (and wal-line-vc--info (wal-line--is-current-window-p))
-      (concat (wal-line--spacer) wal-line-vc--info)
-    ""))
+  (when wal-line-vc--info
+      (concat (wal-line--spacer) wal-line-vc--info)))
 
 (defun wal-line-vc--face-for-state ()
   "Get the correct face for the state."

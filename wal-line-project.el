@@ -40,13 +40,14 @@
                  ((eq wal-line-project-provider 'project)
                   (project-root (project-current)))
                  (t nil))))
-    (if (and p-root (buffer-file-name) (string-match-p wal-line-project--regexp p-root))
-        (progn
-          (string-match wal-line-project--regexp p-root)
-          (concat
-           (wal-line--spacer)
-           (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)))
-      "")))
+    (when (and p-root
+               (buffer-file-name)
+               (string-match-p wal-line-project--regexp p-root))
+      (progn
+        (string-match wal-line-project--regexp p-root)
+        (concat
+         (wal-line--spacer)
+         (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis))))))
 
 (defvar wal-line--segments)
 (wal-line-add-segment project)
