@@ -81,6 +81,8 @@
            (buffer-status . t)
            (position . t)
            (mc . t))
+           (mc . t)
+           (process . t))
     :right ((minor-modes . t)
             (global-mode-string . t)
             (project . nil)
@@ -123,6 +125,12 @@
   "Displays the minor modes."
   (if (wal-line--is-current-window-p)
       minor-mode-alist
+    ""))
+
+(defun wal-line-process--segment ()
+  "Display the process."
+  (if (and (wal-line--is-current-window-p) mode-line-process)
+      mode-line-process
     ""))
 
 (defun wal-line--render-segments (segments)
