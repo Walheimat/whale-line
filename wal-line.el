@@ -28,7 +28,8 @@
                                    icons
                                    vc
                                    whale
-                                   minions))
+                                   minions
+                                   mc))
 (defcustom wal-line-features (copy-tree wal-line--all-features)
   "Optional features to add or enhance segments."
   :group 'wal-line
@@ -78,7 +79,8 @@
            (icons . nil)
            (buffer-name . t)
            (buffer-status . t)
-           (position . t))
+           (position . t)
+           (mc . t))
     :right ((minor-modes . t)
             (global-mode-string . t)
             (project . nil)
