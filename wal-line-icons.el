@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.1
+;; Version: 0.1.0
 ;; Package-Requires: ((emacs "28.1")(all-the-icons "5.0.0"))
 
 ;;; Commentary:

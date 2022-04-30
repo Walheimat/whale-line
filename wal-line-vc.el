@@ -2,8 +2,8 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Keywords: mode-line
-;; Version: 0.1
-;; Package-Requires: ((emacs "28.1")(flycheck "33-cvs"))
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 
