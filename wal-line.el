@@ -107,9 +107,11 @@
 
 (defun wal-line-position--segment ()
   "Displays the current-position."
-  (if (wal-line--is-current-window-p)
-      (propertize (concat (wal-line--spacer) "%l %p% ") 'face 'wal-line-shadow)
-    ""))
+  (let* ((following (bound-and-true-p follow-mode))
+         (str (if following "f: %l %p%" "%l %p%")))
+    (if (or (wal-line--is-current-window-p) following)
+        (propertize (concat (wal-line--spacer) str) 'face 'wal-line-shadow)
+      "")))
 
 (defun wal-line-global-mode-string--segment ()
   "Displays the `global-mode-string'."
