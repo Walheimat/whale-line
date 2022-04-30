@@ -105,18 +105,21 @@
 
 (defun wal-line-position--segment ()
   "Displays the current-position."
-  (when (wal-line--is-current-window-p)
-    (propertize (concat (wal-line--spacer) "%l %p% ") 'face 'wal-line-shadow)))
+  (if (wal-line--is-current-window-p)
+      (propertize (concat (wal-line--spacer) "%l %p% ") 'face 'wal-line-shadow)
+    ""))
 
 (defun wal-line-global-mode-string--segment ()
   "Displays the `global-mode-string'."
-  (when(wal-line--is-current-window-p)
-    (cons (wal-line--spacer) (cdr global-mode-string))))
+  (if (wal-line--is-current-window-p)
+      (cons (wal-line--spacer) (cdr global-mode-string))
+    ""))
 
 (defun wal-line-minor-modes--segment ()
   "Displays the minor modes."
-  (when (wal-line--is-current-window-p)
-    minor-mode-alist))
+  (if (wal-line--is-current-window-p)
+      minor-mode-alist
+    ""))
 
 (defun wal-line--render-segments (segments)
   "Render SEGMENTS."

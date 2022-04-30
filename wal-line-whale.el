@@ -59,7 +59,7 @@
   (unless wal-line-whale--frame
     (wal-line-whale--animate))
   (if (wal-line--is-current-window-p)
-       (concat (wal-line--spacer) wal-line-whale--frame)
+      (concat (wal-line--spacer) wal-line-whale--frame)
     ""))
 
 ;;;; Entrypoint.
