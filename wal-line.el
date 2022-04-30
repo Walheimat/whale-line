@@ -80,7 +80,7 @@
            (buffer-name . t)
            (buffer-status . t)
            (position . t)
-           (mc . t))
+           (selection . t)
            (mc . t)
            (process . t))
     :right ((minor-modes . t)
@@ -131,6 +131,27 @@
   "Display the process."
   (if (and (wal-line--is-current-window-p) mode-line-process)
       mode-line-process
+    ""))
+
+(defun wal-line-selection--get-columns (beg end)
+  "Get the columns from BEG to END for displaying `rectangle-mode'."
+  (abs (- (save-excursion (goto-char end)
+                          (current-column))
+          (save-excursion (goto-char beg)
+                          (current-column)))))
+
+(defun wal-line-selection--segment ()
+  "Display the selection."
+  (if mark-active
+      (let* ((beg (region-beginning))
+             (end (region-end))
+             (lines (count-lines beg (min end (point-max)))))
+        (concat (wal-line--spacer)
+                (propertize (if (bound-and-true-p rectangle-mark-mode)
+                                (let ((columns (wal-line-selection--get-columns beg end)))
+                                  (format " %dx%d " lines columns))
+                              (format " %d " lines))
+                            'face 'region)))
     ""))
 
 (defun wal-line--render-segments (segments)
