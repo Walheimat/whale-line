@@ -1,9 +1,10 @@
-;;; wal-line-mc.el --- Mulitple cursors. -*- lexical-binding: t; -*-
+;;; wal-line-mc.el --- Indicate multiple cursors -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -11,7 +12,7 @@
 
 ;;; Code:
 
-(require 'wal-line-utils)
+(require 'wal-line)
 
 (declare-function mc/num-cursors "ext:multiple-cursors.el")
 

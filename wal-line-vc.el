@@ -1,9 +1,10 @@
-;;; wal-line-vc.el --- Version control integration. -*- lexical-binding: t; -*-
+;;; wal-line-vc.el --- Indicate version control info -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -11,10 +12,10 @@
 
 ;;; Code:
 
-(require 'wal-line-utils)
+(require 'wal-line)
 
-(declare-function wal-line--is-current-window-p "wal-line-utils.el")
-(declare-function wal-line--spacer "wal-line-utils.el")
+(declare-function wal-line--is-current-window-p "wal-line.el")
+(declare-function wal-line--spacer "wal-line.el")
 
 (defvar wal-line-vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 (defvar-local wal-line-vc--info nil)

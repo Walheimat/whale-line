@@ -1,9 +1,10 @@
-;;; wal-line-icons.el --- Icons for the modeline. -*- lexical-binding: t; -*-
+;;; wal-line-icons.el --- Icons for the modeline -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
-;; Package-Requires: ((emacs "28.1")(all-the-icons "5.0.0"))
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
+;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -12,9 +13,9 @@
 ;;; Code:
 
 (require 'all-the-icons)
-(require 'wal-line-utils)
+(require 'wal-line)
 
-(declare-function wal-line--spacer "wal-line-utils.el")
+(declare-function wal-line--spacer "wal-line.el")
 (declare-function wal-line-project--segment "wal-line-project.el")
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
 (declare-function wal-line-vc--segment "wal-line-vc.el")

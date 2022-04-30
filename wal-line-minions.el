@@ -1,9 +1,10 @@
-;;; wal-line-minions.el --- Integration of minions. -*- lexical-binding: t; -*-
+;;; wal-line-minions.el --- Minimize with minions -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -11,11 +12,11 @@
 
 ;;; Code:
 
-(require 'wal-line-utils)
+(require 'wal-line)
 
-(declare-function wal-line--set-selected-window "wal-line-utils.el")
-(declare-function wal-line--is-current-window-p "wal-line-utils.el")
-(declare-function wal-line--spacer "wal-line-utils.el")
+(declare-function wal-line--set-selected-window "wal-line.el")
+(declare-function wal-line--is-current-window-p "wal-line.el")
+(declare-function wal-line--spacer "wal-line.el")
 (declare-function wal-line-minor-modes--segment "wal-line.el")
 (declare-function minions--prominent-modes "ext:minions.el")
 

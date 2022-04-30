@@ -1,9 +1,10 @@
-;;; wal-line-whale.el --- Whale animation. -*- lexical-binding: t; -*-
+;;; wal-line-whale.el --- Animated whale -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
-;; Package-Requires: ((emacs "28.1")
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
+;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -11,13 +12,11 @@
 
 ;;; Code:
 
-(require 'wal-line-utils)
-
-(defvar-local wal-line-flycheck--face nil)
+(require 'wal-line)
 
 (declare-function wal-line-buffer-name--segment "wal-line.el")
-(declare-function wal-line--spacer "wal-line-utils.el")
-(declare-function wal-line--is-current-window-p "wal-line-utils.el")
+(declare-function wal-line--spacer "wal-line.el")
+(declare-function wal-line--is-current-window-p "wal-line.el")
 
 ;;;; Customization:
 

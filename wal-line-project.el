@@ -1,9 +1,10 @@
-;;; wal-line-project.el --- Project integration. -*- lexical-binding: t; -*-
+;;; wal-line-project.el --- Indicate project -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Keywords: mode-line
-;; Version: 0.1.0
+;; Homepage: https://github.com/Walheimat/wal-line
+;; Version: 0.1.1
 ;; Package-Requires: ((emacs "28.1"))
+;; Keywords: faces mode-line
 
 ;;; Commentary:
 
@@ -12,9 +13,9 @@
 ;;; Code:
 
 (require 'projectile nil t)
-(require 'wal-line-utils)
+(require 'wal-line)
 
-(declare-function wal-line--spacer "wal-line-utils.el")
+(declare-function wal-line--spacer "wal-line.el")
 (declare-function project-root "ext:project.el")
 
 ;;;; Customization:
