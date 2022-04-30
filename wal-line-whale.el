@@ -65,7 +65,6 @@
 
 (defun wal-line-whale--setup ()
   "Set up the animated whale."
-  (add-hook 'kill-buffer-hook #'wal-line-whale--teardown nil t)
   (unless wal-line-whale--timer
     (setq wal-line-whale--timer (run-with-timer
                                  0
@@ -76,8 +75,7 @@
   "Clean up the animation."
   (when wal-line-whale--timer
     (cancel-timer wal-line-whale--timer)
-    (setq wal-line-whale--timer nil))
-  (remove-hook 'kill-buffer-hook #'wal-line-whale--teardown t))
+    (setq wal-line-whale--timer nil)))
 
 (add-hook 'wal-line-setup-hook #'wal-line-whale--setup)
 (add-hook 'wal-line-teardown-hook #'wal-line-whale--teardown)

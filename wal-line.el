@@ -181,7 +181,7 @@ Optionally, use a BIG spacer."
 (defun wal-line-process--segment ()
   "Display the process."
   (if (and (wal-line--is-current-window-p) mode-line-process)
-      mode-line-process
+      (cons (wal-line--spacer) (cdr mode-line-process))
     ""))
 
 (defun wal-line-selection--get-columns (beg end)
