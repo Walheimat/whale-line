@@ -154,6 +154,8 @@ Optionally, use a BIG spacer."
   (cond
    (buffer-read-only
     (propertize "@" 'face 'wal-line-contrast))
+   ((not (buffer-file-name))
+    (propertize "&" 'face 'wal-line-shadow))
    ((buffer-modified-p)
     (propertize "*" 'face 'wal-line-emphasis))
     (t "")))

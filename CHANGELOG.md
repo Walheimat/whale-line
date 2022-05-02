@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Buffer with no underlying file now use `&` for the buffer status.
+
+### Fixed
+
 - No longer runs `kill-buffer-hook` to tear down the whale segment.
 
 ### Fixed
