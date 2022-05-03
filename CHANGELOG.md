@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- LSP status is now indicated using either the icon or the buffer name.
+
 ### Changed
 
 - Buffer with no underlying file now use `&` for the buffer status.
