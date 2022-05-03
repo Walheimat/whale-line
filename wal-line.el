@@ -27,7 +27,8 @@
                                    vc
                                    whale
                                    minions
-                                   mc))
+                                   mc
+                                   lsp))
 (defcustom wal-line-features (copy-tree wal-line--all-features)
   "Optional features to add or enhance segments."
   :group 'wal-line
@@ -217,9 +218,13 @@ Optionally, use a BIG spacer."
 
 ;;;; Disabling/enabling:
 
+(defun wal-line--enabled-feature-p (feature)
+  "Check if FEATURE is enabled."
+  (memq feature wal-line-features))
+
 (defun wal-line--disabled-features ()
   "Get the disabled features."
-  (seq-filter (lambda (it) (not (memq it wal-line-features)))
+  (seq-filter (lambda (it) (not (wal-line--enabled-feature-p it)))
               wal-line--all-features))
 
 (defun wal-line--enable-or-disable-feature (feature enable)
