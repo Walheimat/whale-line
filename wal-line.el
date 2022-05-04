@@ -52,7 +52,7 @@
   :group 'wal-line)
 
 (defface wal-line-indicate
-  '((t :inherit success))
+  '((t :inherit (success)))
   "Face used for indicating (something good)."
   :group 'wal-line)
 
@@ -242,9 +242,9 @@ Optionally, use a BIG spacer."
                                 (append wal-line-features `(,symbol?))
                               (delete symbol? wal-line-features)))
     (let* ((suffix (if enable "--setup" "--teardown"))
-           (teardown (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
-      (when (fboundp teardown)
-        (funcall teardown)))))
+           (func (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
+      (when (fboundp func)
+        (funcall func)))))
 
 ;; Entrypoint.
 
