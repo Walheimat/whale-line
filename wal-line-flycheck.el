@@ -20,11 +20,19 @@
 
 ;;;; Functionality:
 
+(defface wal-line-flycheck-running
+  '((t (:underline (:style wave)
+        :inherit (shadow)
+        )))
+  "Face used to indicate running state."
+  :group 'wal-line)
+
 (defvar flycheck-current-errors)
 (defun wal-line-flycheck--update (&optional status)
   "Update face used for buffer name dependent on STATUS."
   (setq-local wal-line-flycheck--face
         (pcase status
+          ('running 'wal-line-flycheck-running)
           ('finished
            (if flycheck-current-errors
                (let-alist (flycheck-count-errors flycheck-current-errors)

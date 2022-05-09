@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Buffer with no underlying file now use `&` for the buffer status.
+- While `flycheck` is running, the buffer name is shown underlined but
+  shadowed.
 
 ### Fixed
 
