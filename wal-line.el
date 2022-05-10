@@ -79,17 +79,31 @@
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
+(defun wal-line--enough-space-p (lhs rhs)
+  "Calculate whether there is enough space between LHS and RHS."
+  (let* ((f-pixel (window-font-width))
+         (left (* f-pixel lhs))
+         (right (* f-pixel rhs)))
+    (> (- (window-pixel-width) (+ left right)) 0)))
+
 (defvar wal-line--segments)
 (defun wal-line--format ()
-  "Return a list of aligned left and right segments."
+  "Return a list of aligned left and right segments.
+
+If there's not enough space, only shows the left segments and an
+ellipsis."
   (let* ((rhs (wal-line--render-segments (plist-get wal-line--segments :right)))
          (lhs (wal-line--render-segments (plist-get wal-line--segments :left)))
-         (reserve (length (format-mode-line rhs))))
+         (rlen (length (format-mode-line rhs)))
+         (llen (length (format-mode-line lhs)))
+         (space? (wal-line--enough-space-p rlen llen)))
     `(,@lhs
       ,(propertize
         " "
-        'display`((space :align-to (- right (- 0 right-margin) ,reserve))))
-      ,@rhs)))
+        'display `((space :align-to (- right (- 0 right-margin) ,(if space? rlen 5)))))
+      ,@(if space?
+            rhs
+          '((:eval (propertize (concat (wal-line--spacer) "..." (wal-line--spacer)) 'face 'wal-line-shadow)))))))
 
 (defvar wal-line--current-window nil)
 
