@@ -81,7 +81,7 @@
 (add-hook 'wal-line-teardown-hook #'wal-line-whale--teardown)
 
 (defvar wal-line--segments)
-(wal-line-add-segment whale)
+(wal-line-add-segment whale 'low)
 
 (provide 'wal-line-whale)
 

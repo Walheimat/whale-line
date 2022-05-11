@@ -15,12 +15,6 @@
 (eval-when-compile
   (require 'cl-lib))
 
-;;;; Customization:
-
-(defgroup wal-line nil
-  "A minimal mode-line configuration inspired by doom-modeline."
-  :group 'mode-line)
-
 (defconst wal-line--all-features '(flycheck
                                    project
                                    icons
@@ -29,10 +23,29 @@
                                    minions
                                    mc
                                    lsp))
+
+;;;; Customization:
+
+(defgroup wal-line nil
+  "A minimal mode-line configuration inspired by doom-modeline."
+  :group 'mode-line)
+
 (defcustom wal-line-features (copy-tree wal-line--all-features)
   "Optional features to add or enhance segments."
   :group 'wal-line
   :type '(repeat symbol))
+
+(defcustom wal-line-segment-strategy 'prioritize
+  "Strategy used when lack of space prohibits displaying all segments.
+
+Strategy `prioritize' filters out segments with low priority.
+Strategy `elide' only displays the left side. Strategy `ignore'
+will display both sides unchanged no matter the space
+constraints."
+  :group 'wal-line
+  :type '(choice (const prioritize)
+                 (const elide)
+                 (const ignore)))
 
 ;;;; Faces:
 
@@ -79,31 +92,80 @@
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
-(defun wal-line--enough-space-p (lhs rhs)
-  "Calculate whether there is enough space between LHS and RHS."
+(defvar wal-line--segments)
+
+(defun wal-line--render (side &optional filter)
+  "Render SIDE.
+
+Optionally FILTER out low priority segments."
+  (let ((segments (plist-get wal-line--segments side)))
+    (if filter
+        (wal-line--render-segments
+         (seq-filter (lambda (it) (not (eq (cdr it) 'low))) segments))
+      (wal-line--render-segments segments))))
+
+(defun wal-line--format-side (side &optional filter)
+  "Get the formatted SIDE.
+
+Optionally FILTER out low priority segments."
+  (format-mode-line (wal-line--render side filter)))
+
+(defun wal-line--enough-space-p ()
+  "Calculate whether there is enough space to display both sides' segments."
   (let* ((f-pixel (window-font-width))
-         (left (* f-pixel lhs))
-         (right (* f-pixel rhs)))
+         (left (* f-pixel (length (wal-line--format-side :left))))
+         (right (* f-pixel (length (wal-line--format-side :right)))))
     (> (- (window-pixel-width) (+ left right)) 0)))
 
-(defvar wal-line--segments)
-(defun wal-line--format ()
-  "Return a list of aligned left and right segments.
+(defun wal-line--format-ignore ()
+  "Format mode line ignoring space constraints."
+  (let ((lhs (wal-line--render :left))
+        (rhs (wal-line--render :right))
+        (rlen (length (wal-line--format-side :right))))
+    `(,@lhs
+      ,(propertize " " 'display
+                   `((space :align-to (- right (- 0 right-margin) ,rlen))))
+      ,@rhs)))
 
-If there's not enough space, only shows the left segments and an
-ellipsis."
-  (let* ((rhs (wal-line--render-segments (plist-get wal-line--segments :right)))
-         (lhs (wal-line--render-segments (plist-get wal-line--segments :left)))
-         (rlen (length (format-mode-line rhs)))
-         (llen (length (format-mode-line lhs)))
-         (space? (wal-line--enough-space-p rlen llen)))
+(defun wal-line--format-elide ()
+  "Format mode line, eliding right side if space is lacking."
+  (let ((lhs (wal-line--render :left))
+        (rhs (wal-line--render :right))
+        (rlen (length (wal-line--format-side :right)))
+        (space? (wal-line--enough-space-p)))
     `(,@lhs
       ,(propertize
         " "
         'display `((space :align-to (- right (- 0 right-margin) ,(if space? rlen 5)))))
       ,@(if space?
             rhs
-          '((:eval (propertize (concat (wal-line--spacer) "..." (wal-line--spacer)) 'face 'wal-line-shadow)))))))
+          '((:eval (propertize (concat (wal-line--spacer) "..." (wal-line--spacer))
+                               'face 'wal-line-shadow)))))))
+
+(defun wal-line--format-prioritize ()
+  "Format mode line, prioritizing certain segments if space is lacking."
+  (if (wal-line--enough-space-p)
+      (wal-line--format-ignore)
+    (let ((lhs (wal-line--render :left t))
+          (rhs (wal-line--render :right t))
+          (rlen (length (wal-line--format-side :right t))))
+      `(,@lhs
+        ,(propertize " " 'display
+                     `((space :align-to (- right (- 0 right-margin) ,rlen))))
+        ,@rhs))))
+
+(defun wal-line--format ()
+  "Return a list of aligned left and right segments.
+
+If there's not enough space, only shows the left segments and an
+ellipsis."
+  (pcase wal-line-segment-strategy
+    ('ignore
+     (wal-line--format-ignore))
+    ('elide
+     (wal-line--format-elide))
+    ('prioritize
+     (wal-line--format-prioritize))))
 
 (defvar wal-line--current-window nil)
 
@@ -134,26 +196,28 @@ ellipsis."
            (buffer-name . t)
            (buffer-status . t)
            (position . t)
-           (selection . t)
-           (mc . t)
-           (process . t))
+           (selection . low)
+           (mc . nil)
+           (process . low))
     :right ((minor-modes . t)
-            (global-mode-string . t)
+            (global-mode-string . low)
             (project . nil)
             (vc . nil)
             (whale . nil)
             (margin . t))))
 
 (defvar wal-line--segments)
-(defmacro wal-line-add-segment (segment)
-  "Add SEGMENT to the list of segments."
+(defmacro wal-line-add-segment (segment &optional priority)
+  "Add SEGMENT to the list of segments.
+
+Optionally with a PRIORITY."
   `(let ((left? (assoc ',segment (plist-get wal-line--segments :left)))
          (right? (assoc ',segment (plist-get wal-line--segments :right))))
      (cond
       (left?
-       (setcdr left? t))
+       (setcdr left? ,(or priority t)))
       (right?
-       (setcdr right? t))
+       (setcdr right? ,(or priority t)))
       (t (user-error "Unknown segment")))))
 
 (defun wal-line-margin--segment ()

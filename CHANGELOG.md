@@ -10,14 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - LSP status is now indicated using either the icon or the buffer name.
+- A strategy can be selected that decides what to do when there's not
+  enough space to display both sides' segments. Segments now are
+  either `t`, `low` or `nil` indicating their priority. The default
+  strategy only shows segments that are `t`. Strategy `elide` only
+  shows the left hand side. Strategy `ignore` is the previous behavior
+  of displaying everything whether there's enough space or not.
 
 ### Changed
 
 - Buffer with no underlying file now use `&` for the buffer status.
 - While `flycheck` is running, the buffer name is shown underlined but
   shadowed.
-- When there's not enough space to show both sides, only the left side
-  is displayed, indicating the elision with an ellipsis.
 
 ### Fixed
 
