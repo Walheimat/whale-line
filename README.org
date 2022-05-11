@@ -25,6 +25,8 @@ be required. Afterwards they can be turned on/off by calling
                        whale
                        minions
                        mc))
+  ;; Strategy to use when there's not enough space to render all segments.
+  (wal-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
   ;; Whale animation.
   (wal-line-whale-key-frames [
                               "(__.- >{"
