@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0]
+
 ### Added
 
 - LSP status is now indicated using either the icon or the buffer name.
@@ -26,9 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - No longer runs `kill-buffer-hook` to tear down the whale segment.
-
-### Fixed
-
 - Use `wal-line--spacer` before `process` segment.
 
 ## [0.1.1] - 2021-04-30

@@ -36,7 +36,9 @@ be required. Afterwards they can be turned on/off by calling
                               ])
   (wal-line-whale-animation-speed 0.4)
   ;; Project provider.
-  (wal-line-project-provider 'projectile)) ; Other option is `project'.
+  (wal-line-project-provider 'projectile) ; Other option is `project'.
+  ;; Installation using `quelpa' and `quelpa-use-package'.
+  :quelpa (wal-line :fetcher github :repo "Walheimat/wal-line"))
 #+END_SRC
 
 ** Example Screenshot
