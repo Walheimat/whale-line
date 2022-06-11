@@ -24,6 +24,22 @@
                                    mc
                                    lsp))
 
+(defvar wal-line--segments
+  '(:left ((margin . t)
+           (icons . nil)
+           (buffer-name . t)
+           (buffer-status . t)
+           (position . t)
+           (selection . low)
+           (mc . nil)
+           (process . low))
+    :right ((minor-modes . t)
+            (global-mode-string . low)
+            (project . nil)
+            (vc . nil)
+            (whale . nil)
+            (margin . t))))
+
 ;;;; Customization:
 
 (defgroup wal-line nil
@@ -91,8 +107,6 @@ constraints."
 
 Optionally, use a BIG spacer."
   (if big "  " " "))
-
-(defvar wal-line--segments)
 
 (defun wal-line--render (side &optional filter)
   "Render SIDE.
@@ -190,23 +204,6 @@ ellipsis."
 
 ;;;; Segments:
 
-(defvar wal-line--segments
-  '(:left ((margin . t)
-           (icons . nil)
-           (buffer-name . t)
-           (buffer-status . t)
-           (position . t)
-           (selection . low)
-           (mc . nil)
-           (process . low))
-    :right ((minor-modes . t)
-            (global-mode-string . low)
-            (project . nil)
-            (vc . nil)
-            (whale . nil)
-            (margin . t))))
-
-(defvar wal-line--segments)
 (defmacro wal-line-add-segment (segment &optional priority)
   "Add SEGMENT to the list of segments.
 
@@ -261,9 +258,16 @@ Optionally with a PRIORITY."
 
 (defun wal-line-process--segment ()
   "Display the process."
-  (if (and (wal-line--is-current-window-p) mode-line-process)
-      (cons (wal-line--spacer) (cdr mode-line-process))
-    ""))
+  (let ((mlp mode-line-process))
+    (if (and (wal-line--is-current-window-p) mlp)
+      (cond
+       ((listp mlp)
+        (cons (wal-line--spacer) (cdr mlp)))
+       ((stringp mlp)
+        (propertize (concat (wal-line--spacer) mlp) 'face 'wal-line-shadow))
+       (t
+        ""))
+    "")))
 
 (defun wal-line-selection--get-columns (beg end)
   "Get the columns from BEG to END for displaying `rectangle-mode'."

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Process segment can handle `mode-line-process` being a string. It is
+  then displayed using the `wal-line-shadow` face.
+
 ## [0.2.0]
 
 ### Added
