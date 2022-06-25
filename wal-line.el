@@ -239,7 +239,7 @@ Optionally with a PRIORITY."
 (defun wal-line-position--segment ()
   "Displays the current-position."
   (let* ((following (bound-and-true-p follow-mode))
-         (str (if following "f: %l %p%" "%l %p%")))
+         (str (if following "f: %l:%c %p%" "%l:%c %p%")))
     (if (or (wal-line--is-current-window-p) following)
         (propertize (concat (wal-line--spacer) str) 'face 'wal-line-shadow)
       "")))
