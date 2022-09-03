@@ -46,9 +46,10 @@
 
 (defun wal-line-org--maybe-truncate (heading)
   "Maybe truncate HEADING."
-  (let ((len (string-width heading)))
-    (if (> len wal-line-org-max-heading-length)
-        (concat (substring heading 0 (max (- len 3) 1)) "...")
+  (let ((max-len wal-line-org-max-heading-length)
+        (len (string-width heading)))
+    (if (> len max-len)
+        (concat (substring heading 0 (max (- max-len 3) 1)) "...")
       heading)))
 
 (defun wal-line-org--get-next-heading ()
