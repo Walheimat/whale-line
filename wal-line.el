@@ -22,12 +22,14 @@
                                    whale
                                    minions
                                    mc
-                                   lsp))
+                                   lsp
+                                   org))
 
 (defvar wal-line--segments
   '(:left ((margin . t)
            (icons . nil)
            (buffer-name . t)
+           (org . t)
            (buffer-status . t)
            (position . t)
            (selection . low)

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New segment for `org-mode` to display the most recent heading before
+  window start.
+
 ### Changed
 
 - Position segment shows column number.
