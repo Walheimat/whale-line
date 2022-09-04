@@ -31,13 +31,18 @@
   :group 'wal-line
   :type 'string)
 
+(defcustom wal-line-org-ellipsis "…"
+  "The string indicating truncation."
+  :group 'wal-line
+  :type 'string)
+
 (defcustom wal-line-org-include 'current-and-root
   "The heading depth to show."
   :group 'wal-line
   :type '(choice (const current-and-root)
                  (const current)))
 
-(defcustom wal-line-org-max-heading-length 8
+(defcustom wal-line-org-max-heading-length 12
   "The max length of a heading before truncation."
   :group 'wal-line
   :type 'integer)
@@ -47,9 +52,11 @@
 (defun wal-line-org--maybe-truncate (heading)
   "Maybe truncate HEADING."
   (let ((max-len wal-line-org-max-heading-length)
-        (len (string-width heading)))
+        (len (string-width heading))
+        (ellipsis-len (string-width wal-line-org-ellipsis)))
     (if (> len max-len)
-        (concat (substring heading 0 (max (- max-len 3) 1)) "...")
+        (concat (substring heading 0 (max (- max-len ellipsis-len) 1))
+                wal-line-org-ellipsis)
       heading)))
 
 (defun wal-line-org--get-next-heading ()
