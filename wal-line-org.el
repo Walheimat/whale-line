@@ -78,25 +78,29 @@
   "Build the segment from included segments."
   (org-with-wide-buffer
    (goto-char (window-start))
-   (let ((headings (wal-line-org--collect-headings)))
-     (if (null headings)
-         ""
-       (pcase wal-line-org-include
-         ('current (nth 0 headings))
-         ('current-and-root
-          (if (> (length headings) 1)
-              (concat
-               (wal-line-org--maybe-truncate (car (last headings)))
-               (wal-line--spacer)
-               (nth 0 headings))
-            (nth 0 headings))))))))
+   (unless (org-before-first-heading-p)
+     (let ((headings (wal-line-org--collect-headings)))
+       (if (null headings)
+           ""
+         (pcase wal-line-org-include
+           ('current (nth 0 headings))
+           ('current-and-root
+            (if (> (length headings) 1)
+                (concat
+                 (wal-line-org--maybe-truncate (car (last headings)))
+                 (wal-line--spacer)
+                 (nth 0 headings))
+              (nth 0 headings)))))))))
 
 (defun wal-line-org--segment ()
   "Displays the current heading."
   (if (eq major-mode 'org-mode)
-      (concat
-       wal-line-org-delimiter
-       (wal-line-org--build-segment))
+      (let ((segment (wal-line-org--build-segment)))
+        (if segment
+            (concat
+             wal-line-org-delimiter
+             (wal-line-org--build-segment))
+          ""))
     ""))
 
 (defvar wal-line--segments)
