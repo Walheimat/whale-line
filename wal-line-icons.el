@@ -20,6 +20,13 @@
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
 (declare-function wal-line-vc--segment "wal-line-vc.el")
 
+;; Customization:
+
+(defcustom wal-line-icons-prettify-buffer-status nil
+  "Whether to use icons for the buffer status."
+  :group 'wal-line
+  :type 'boolean)
+
 ;; Segment:
 
 (defvar-local wal-line-icons--icon nil)
@@ -73,6 +80,26 @@
        str)
     str))
 
+(defun wal-line-icons--advise-buffer-status-segment ()
+  "Advise buffer line segment to use icons."
+  (let* ((icon-and-face (cond
+                         (buffer-read-only (cons "lock" 'wal-line-contrast))
+                         ((not (buffer-file-name))
+                          (cons "sticky-note-o" 'wal-line-shadow))
+                         ((buffer-modified-p)
+                          (cons "pencil" 'wal-line-emphasis))
+                         (t (cons "" nil))))
+         (icon (car icon-and-face))
+         (face (cdr icon-and-face)))
+    (if (string-empty-p icon)
+        ""
+      (concat
+       (wal-line--spacer)
+       (propertize (all-the-icons-faicon icon
+                                         :face face
+                                         :height 0.85
+                                         :v-adjust 0.0))))))
+
 ;; Setup/teardown:
 
 (defun wal-line-icons--setup ()
@@ -83,6 +110,10 @@
   (advice-add
    #'wal-line-vc--segment
    :filter-return #'wal-line-icons--advise-vc)
+  (when wal-line-icons-prettify-buffer-status
+    (advice-add
+     #'wal-line-buffer-status--segment
+     :override #'wal-line-icons--advise-buffer-status-segment))
   (add-hook 'find-file-hook #'wal-line-icons--set-icon)
   (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
@@ -95,6 +126,10 @@
   (advice-remove
    #'wal-line-vc--segment
    #'wal-line-icons--advise-vc)
+  (when wal-line-icons-prettify-buffer-status
+    (advice-remove
+     #'wal-line-buffer-status--segment
+     #'wal-line-icons--advise-buffer-status-segment))
   (remove-hook 'find-file-hook #'wal-line-icons--set-icon)
   (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))

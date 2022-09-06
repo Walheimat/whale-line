@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New segment for `org-mode` to display the most recent heading before
   window start.
+- `icons` package has new custom variable
+  `wal-line-icons-prettify-buffer-status` to do just that.
 
 ### Changed
 
