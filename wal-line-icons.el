@@ -20,9 +20,16 @@
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
 (declare-function wal-line-vc--segment "wal-line-vc.el")
 
-;;;; Functionality:
+;; Segment:
 
 (defvar-local wal-line-icons--icon nil)
+
+(defun wal-line-icons--segment ()
+  "Display the file icon for the visited file."
+  (unless wal-line-icons--icon
+    (wal-line-icons--set-icon))
+  wal-line-icons--icon)
+
 (defun wal-line-icons--set-icon (&rest _)
   "Update file icon in mode-line."
   (setq-local wal-line-icons--icon
@@ -37,11 +44,7 @@
                                 'display '(raise -0.135)))
                 mode-name)))
 
-(defun wal-line-icons--segment ()
-  "Display the file icon for the visited file."
-  (unless wal-line-icons--icon
-    (wal-line-icons--set-icon))
-  wal-line-icons--icon)
+;; Additional icons:
 
 (defun wal-line-icons--advise-project (str)
   "Advise project segment to show a project icon before STR."
