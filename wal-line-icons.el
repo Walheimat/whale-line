@@ -32,27 +32,26 @@
 
 ;; Segment:
 
-(defvar-local wal-line-icons--icon nil)
-
-(defun wal-line-icons--segment ()
-  "Display the file icon for the visited file."
-  (unless wal-line-icons--icon
-    (wal-line-icons--set-icon))
-  wal-line-icons--icon)
+(defvar-local wal-line-icons--segment nil)
 
 (defun wal-line-icons--set-icon (&rest _)
+  "Set the buffer icon."
+  (when-let ((icon (wal-line-icons--get-icon)))
+
+    (setq-local wal-line-icons--segment icon)))
+
+(defun wal-line-icons--get-icon ()
   "Update file icon in mode-line."
-  (setq-local wal-line-icons--icon
-              (if (display-graphic-p)
-                  (let ((icon (all-the-icons-icon-for-buffer)))
-                    (propertize (if (or (null icon) (symbolp icon))
-                                    (all-the-icons-faicon
-                                     "question-circle"
-                                     :face 'wal-line-contrast)
-                                  icon)
-                                'help-echo (format "%s" (format-mode-line mode-name))
-                                'display '(raise -0.135)))
-                mode-name)))
+  (when (display-graphic-p)
+    (let ((icon (all-the-icons-icon-for-buffer)))
+
+      (propertize (if (or (null icon) (symbolp icon))
+                      (all-the-icons-faicon
+                       "question-circle"
+                       :face 'wal-line-contrast)
+                    icon)
+                  'help-echo (format "%s" (format-mode-line mode-name))
+                  'display '(raise -0.135)))))
 
 ;; Additional icons:
 
