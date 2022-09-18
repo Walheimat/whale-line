@@ -53,17 +53,16 @@
 
 ;; Additional icons:
 
-(defun wal-line-icons--advise-project (str)
-  "Advise project segment to show a project icon before STR."
-  (if (and (not (string-empty-p (string-trim str))) (display-graphic-p))
-      (concat
-       (wal-line--spacer)
-       (all-the-icons-faicon
-        "folder-open"
-        :face 'wal-line-emphasis
-        :height 0.85
-        :v-adjust 0.0)
-       str)
+(defun wal-line-icons--prepend-icon-to-project-segment (str)
+  "Advise info getter to prepend an icon before STR."
+  (if (and (stringp str)
+           (display-graphic-p))
+      (concat (all-the-icons-faicon "folder-open"
+                                    :face 'wal-line-emphasis
+                                    :height 0.85
+                                    :v-adjust 0.0)
+              (wal-line--spacer)
+              str)
     str))
 
 (defun wal-line-icons--prepend-icon-to-vc-segment (str)
@@ -104,9 +103,10 @@
 
 (defun wal-line-icons--setup ()
   "Set up icons."
+  ;;  Advise project segment.
   (advice-add
-   #'wal-line-project--segment
-   :filter-return #'wal-line-icons--advise-project)
+   #'wal-line-project--get-info :filter-return
+   #'wal-line-icons--prepend-icon-to-project-segment)
 
   ;; Advise version control segment.
   (advice-add
@@ -124,7 +124,7 @@
 (defun wal-line-icons--teardown ()
   "Tear down icons."
   (advice-remove
-   #'wal-line-project--segment
+   #'wal-line-project--get-info
    #'wal-line-icons--advise-project)
   (advice-remove
    #'wal-line-vc--get-info
