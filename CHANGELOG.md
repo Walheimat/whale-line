@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Position segment shows column number.
+- Version control segment code was refactored to make augmenting the
+  segment easier.
 
 ### Fixed
 

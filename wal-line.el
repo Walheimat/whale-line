@@ -294,11 +294,15 @@ Optionally with a PRIORITY."
 
 (defun wal-line--render-segments (segments)
   "Render SEGMENTS."
-  (delq nil
-        (mapcar (lambda (it)
-                  (when (cdr it)
-                    `(:eval (,(intern (concat "wal-line-" (symbol-name (car it)) "--segment"))))))
-                segments)))
+  (delq nil (mapcar
+             (lambda (it)
+               (when-let* ((should-use (cdr it))
+                           (symbol (intern (concat "wal-line-" (symbol-name (car it)) "--segment"))))
+
+                 (if (functionp symbol)
+                     `(:eval (,symbol))
+                   `(:eval ,symbol))))
+             segments)))
 
 ;;;; Disabling/enabling:
 

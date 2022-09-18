@@ -66,17 +66,17 @@
        str)
     str))
 
-(defun wal-line-icons--advise-vc (str)
-  "Advise version control segment to show an icon before STR."
-  (if (and (not (string-empty-p (string-trim str)))
-           (buffer-file-name)
-           (display-graphic-p))
+(defun wal-line-icons--prepend-icon-to-vc-segment (str)
+  "Advise info getter to prepend an icon before STR."
+  (if (and (stringp str)
+           (display-graphic-p)
+           (buffer-file-name))
       (concat
-       (wal-line--spacer)
        (all-the-icons-faicon "code-fork"
                              :face (wal-line-vc--face-for-state)
                              :height 0.85
                              :v-adjust 0.0)
+       (wal-line--spacer)
        str)
     str))
 
@@ -107,9 +107,12 @@
   (advice-add
    #'wal-line-project--segment
    :filter-return #'wal-line-icons--advise-project)
+
+  ;; Advise version control segment.
   (advice-add
-   #'wal-line-vc--segment
-   :filter-return #'wal-line-icons--advise-vc)
+   #'wal-line-vc--get-info :filter-return
+   #'wal-line-icons--prepend-icon-to-vc-segment)
+
   (when wal-line-icons-prettify-buffer-status
     (advice-add
      #'wal-line-buffer-status--segment
@@ -118,14 +121,14 @@
   (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
 
-(defun wal-line-icons--teardown()
+(defun wal-line-icons--teardown ()
   "Tear down icons."
   (advice-remove
    #'wal-line-project--segment
    #'wal-line-icons--advise-project)
   (advice-remove
-   #'wal-line-vc--segment
-   #'wal-line-icons--advise-vc)
+   #'wal-line-vc--get-info
+   #'wal-line-icons--prepend-icon-to-vc-segment)
   (when wal-line-icons-prettify-buffer-status
     (advice-remove
      #'wal-line-buffer-status--segment
