@@ -12,11 +12,11 @@
 
 ;;; Code:
 
-(declare-function wal-line-icons--segment "wal-line-icons.el")
-(declare-function wal-line-buffer-name--segment "wal-line.el")
-(declare-function wal-line--is-current-window-p "wal-line.el")
 (declare-function wal-line--enabled-feature-p "wal-line.el")
+(declare-function wal-line--is-current-window-p "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
+(declare-function wal-line-buffer-name--segment "wal-line.el")
+(declare-function wal-line-icons--get-icon "wal-line-icons.el")
 
 ;;;; Customization:
 
@@ -30,9 +30,9 @@
   "Check if an LSP mode is active."
   (or (bound-and-true-p lsp-mode) (bound-and-true-p eglot--managed-mode)))
 
-(defun wal-line-lsp--advise-icon (icon)
+(defun wal-line-lsp--color-icon (icon)
   "Advise the ICON segment to indicate LSP status."
-  (if (wal-line-lsp--active-p)
+  (if (and icon (wal-line-lsp--active-p))
       (let* ((f-props (get-text-property 0 'face icon))
              (f-new (copy-tree f-props)))
         (plist-put f-new :inherit 'wal-line-indicate)
@@ -56,8 +56,8 @@
   (cond
    ((wal-line--enabled-feature-p 'icons)
     (advice-add
-     #'wal-line-icons--segment
-     :filter-return #'wal-line-lsp--advise-icon))
+     'wal-line-icons--get-icon :filter-return
+     #'wal-line-lsp--color-icon))
    (t
     (advice-add
      #'wal-line-buffer-name--segment
@@ -66,8 +66,8 @@
 (defun wal-line-lsp--teardown ()
   "Tear down LSP integration."
   (advice-remove
-   #'wal-line-icons--segment
-   #'wal-line-lsp--advise-icon)
+   'wal-line-icons--get-icon
+   #'wal-line-lsp--color-icon)
   (advice-remove
    #'wal-line-buffer-name--segment
    #'wal-line-lsp--advise-buffer-name))
