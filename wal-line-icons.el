@@ -15,10 +15,13 @@
 (require 'all-the-icons)
 (require 'wal-line)
 
+(declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
+(declare-function all-the-icons-faicon "ext:all-the-icons.el")
 (declare-function wal-line--spacer "wal-line.el")
-(declare-function wal-line-project--segment "wal-line-project.el")
+(declare-function wal-line-buffer-status--segment "wal-line.el")
+(declare-function wal-line-project--get-info "wal-line-project.el")
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
-(declare-function wal-line-vc--segment "wal-line-vc.el")
+(declare-function wal-line-vc--get-info "wal-line-vc.el")
 
 ;; Customization:
 
@@ -117,6 +120,7 @@
     (advice-add
      #'wal-line-buffer-status--segment
      :override #'wal-line-icons--advise-buffer-status-segment))
+
   (add-hook 'find-file-hook #'wal-line-icons--set-icon)
   (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
@@ -125,7 +129,7 @@
   "Tear down icons."
   (advice-remove
    #'wal-line-project--get-info
-   #'wal-line-icons--advise-project)
+   #'wal-line-icons--prepend-icon-to-project-segment)
   (advice-remove
    #'wal-line-vc--get-info
    #'wal-line-icons--prepend-icon-to-vc-segment)
@@ -133,6 +137,7 @@
     (advice-remove
      #'wal-line-buffer-status--segment
      #'wal-line-icons--advise-buffer-status-segment))
+
   (remove-hook 'find-file-hook #'wal-line-icons--set-icon)
   (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
   (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
