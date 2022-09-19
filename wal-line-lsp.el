@@ -12,6 +12,7 @@
 
 ;;; Code:
 
+(declare-function lsp-workspaces "ext:lsp-mode.el")
 (declare-function wal-line--enabled-feature-p "wal-line.el")
 (declare-function wal-line--is-current-window-p "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
@@ -28,16 +29,22 @@
 ;;;; Functionality:
 (defun wal-line-lsp--active-p ()
   "Check if an LSP mode is active."
-  (or (bound-and-true-p lsp-mode) (bound-and-true-p eglot--managed-mode)))
+  (cond
+   ((featurep 'lsp-mode)
+    (lsp-workspaces))
+   ((featurep 'eglot)
+    (bound-and-true-p eglot--managed-mode))))
 
-(defun wal-line-lsp--color-icon (icon)
-  "Advise the ICON segment to indicate LSP status."
-  (if (and icon (wal-line-lsp--active-p))
-      (let* ((f-props (get-text-property 0 'face icon))
-             (f-new (copy-tree f-props)))
-        (plist-put f-new :inherit 'wal-line-indicate)
-        (propertize icon 'face f-new))
-    icon))
+(defun wal-line-lsp--color-icon (&rest _)
+  "Color the icon segment to indicate LSP status."
+  (when-let* ((icon (wal-line-icons--get-icon))
+              (f-props (get-text-property 0 'face icon))
+              (f-new (copy-tree f-props)))
+    (if (wal-line-lsp--active-p)
+        (progn
+          (plist-put f-new :inherit 'wal-line-indicate)
+          (setq-local wal-line-icons--segment (propertize icon 'face f-new)))
+      (setq-local wal-line-icons--segment icon))))
 
 (defun wal-line-lsp--advise-buffer-name (str)
   "Advise buffer STR to indicate LSP status."
@@ -55,9 +62,12 @@
   "Set up LSP integration."
   (cond
    ((wal-line--enabled-feature-p 'icons)
-    (advice-add
-     'wal-line-icons--get-icon :filter-return
-     #'wal-line-lsp--color-icon))
+    (add-hook 'lsp-after-initialize-hook #'wal-line-lsp--color-icon)
+    (add-hook 'lsp-after-uninitialized-functions #'wal-line-lsp--color-icon)
+    (add-hook 'lsp-after-open-hook #'wal-line-lsp--color-icon)
+
+    (add-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
+    (add-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon))
    (t
     (advice-add
      #'wal-line-buffer-name--segment
@@ -65,9 +75,13 @@
 
 (defun wal-line-lsp--teardown ()
   "Tear down LSP integration."
-  (advice-remove
-   'wal-line-icons--get-icon
-   #'wal-line-lsp--color-icon)
+  (remove-hook 'lsp-after-initialize-hook #'wal-line-lsp--color-icon)
+  (remove-hook 'lsp-after-uninitialized-functions #'wal-line-lsp--color-icon)
+  (remove-hook 'lsp-after-open-hook #'wal-line-lsp--color-icon)
+
+  (remove-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon)
+  (remove-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
+
   (advice-remove
    #'wal-line-buffer-name--segment
    #'wal-line-lsp--advise-buffer-name))

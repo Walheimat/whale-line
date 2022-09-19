@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   segment easier.
 - Same was done for the project segment.
 - Same was done for the buffer icon segment.
+- Same was done for the LSP package.
 
 ### Fixed
 
