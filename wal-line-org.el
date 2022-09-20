@@ -104,7 +104,7 @@
     ""))
 
 (defvar wal-line--segments)
-(wal-line-add-segment org)
+(wal-line-add-segment 'org)
 
 (provide 'wal-line-org)
 

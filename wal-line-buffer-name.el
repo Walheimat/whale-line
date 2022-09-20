@@ -40,7 +40,7 @@
     (advice-remove #'pop-to-buffer #'wal-line-buffer-name--set-segment)
     (advice-remove #'undo #'wal-line-buffer-name--set-segment)))
 
-(wal-line-add-segment buffer-name)
+(wal-line-add-segment 'buffer-name)
 
 (provide 'wal-line-buffer-name)
 

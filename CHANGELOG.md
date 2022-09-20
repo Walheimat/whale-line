@@ -19,7 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Position segment shows column number..
+- Position segment shows column number.
+- Macro `wal-line-add-segment` is now a function.
 
 ### Fixed
 

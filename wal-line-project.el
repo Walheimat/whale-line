@@ -52,7 +52,7 @@
   :teardown
   (lambda () (remove-hook 'find-file-hook #'wal-line-project--set-segment)))
 
-(wal-line-add-segment project)
+(wal-line-add-segment 'project)
 
 (provide 'wal-line-project)
 

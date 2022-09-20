@@ -208,18 +208,19 @@ ellipsis."
 
 ;;;; Segments:
 
-(defmacro wal-line-add-segment (segment &optional priority)
+(defun wal-line-add-segment (segment &optional priority)
   "Add SEGMENT to the list of segments.
 
 Optionally with a PRIORITY."
-  `(let ((left? (assoc ',segment (plist-get wal-line--segments :left)))
-         (right? (assoc ',segment (plist-get wal-line--segments :right))))
-     (cond
-      (left?
-       (setcdr left? ,(or priority t)))
-      (right?
-       (setcdr right? ,(or priority t)))
-      (t (user-error "Unknown segment")))))
+  (let ((left? (assoc segment (plist-get wal-line--segments :left)))
+        (right? (assoc segment (plist-get wal-line--segments :right)))
+        (prio (or priority t)))
+    (cond
+     (left?
+      (setcdr left? prio))
+     (right?
+      (setcdr right? prio))
+     (t (user-error "Unknown segment")))))
 
 (defvar wal-line-segment-fstring "wal-line-%s--segment")
 (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")

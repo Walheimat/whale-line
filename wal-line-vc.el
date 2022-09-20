@@ -83,7 +83,7 @@
     (remove-hook 'after-save-hook #'wal-line-vc--set-segment)
     (advice-remove 'vc-refresh-state #'wal-line-vc--set-segment)))
 
-(wal-line-add-segment vc)
+(wal-line-add-segment 'vc)
 
 (provide 'wal-line-vc)
 

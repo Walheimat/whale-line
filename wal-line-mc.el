@@ -26,7 +26,7 @@
     ""))
 
 (defvar wal-line--segments)
-(wal-line-add-segment mc)
+(wal-line-add-segment 'mc)
 
 (provide 'wal-line-mc)
 
