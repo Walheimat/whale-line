@@ -1,4 +1,4 @@
-;;; wal-line-lsp.el --- Show LSP-related information. -*- lexical-binding: t; -*-
+;;; wal-line-lsp.el --- Show LSP-related information -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
@@ -16,8 +16,8 @@
 (declare-function wal-line--enabled-feature-p "wal-line.el")
 (declare-function wal-line--is-current-window-p "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
-(declare-function wal-line-buffer-name--segment "wal-line.el")
-(declare-function wal-line-icons--get-icon "wal-line-icons.el")
+(declare-function wal-line-buffer-name--get-segment "wal-line.el")
+(declare-function wal-line-icons--get-segment "wal-line-icons.el")
 
 ;;;; Customization:
 
@@ -37,7 +37,7 @@
 
 (defun wal-line-lsp--color-icon (&rest _)
   "Color the icon segment to indicate LSP status."
-  (when-let* ((icon (wal-line-icons--get-icon))
+  (when-let* ((icon (wal-line-icons--get-segment))
               (f-props (get-text-property 0 'face icon))
               (f-new (copy-tree f-props)))
     (if (wal-line-lsp--active-p)
@@ -70,8 +70,8 @@
     (add-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon))
    (t
     (advice-add
-     #'wal-line-buffer-name--segment
-     :filter-return #'wal-line-lsp--advise-buffer-name))))
+     #'wal-line-buffer-name--get-segment :filter-return
+     #'wal-line-lsp--advise-buffer-name))))
 
 (defun wal-line-lsp--teardown ()
   "Tear down LSP integration."
@@ -83,7 +83,7 @@
   (remove-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
 
   (advice-remove
-   #'wal-line-buffer-name--segment
+   #'wal-line-buffer-name--get-segment
    #'wal-line-lsp--advise-buffer-name))
 
 (add-hook 'wal-line-setup-hook #'wal-line-lsp--setup)

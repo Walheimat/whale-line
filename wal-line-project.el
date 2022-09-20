@@ -34,15 +34,8 @@
 
 (defvar wal-line-project--regexp ".+\\(\\/.+\\)\\/$")
 
-(defvar-local wal-line-project--segment nil)
-
-(defun wal-line-project--set-segment ()
-  "Set the segment."
-  (when-let ((info (wal-line-project--get-info)))
-    (setq-local wal-line-project--segment (concat (wal-line--spacer) info))))
-
-(defun wal-line-project--get-info ()
-  "Get the project or root segment."
+(wal-line-create-static-segment project
+  :getter
   (let ((p-root (cond
                  ((eq wal-line-project-provider 'projectile)
                   (projectile-project-root))
@@ -53,21 +46,13 @@
                (buffer-file-name)
                (string-match-p wal-line-project--regexp p-root))
       (string-match wal-line-project--regexp p-root)
-      (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis))))
+      (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)))
+  :setup
+  (lambda () (add-hook 'find-file-hook #'wal-line-project--set-segment))
+  :teardown
+  (lambda () (remove-hook 'find-file-hook #'wal-line-project--set-segment)))
 
-(defvar wal-line--segments)
 (wal-line-add-segment project)
-
-(defun wal-line-project--setup ()
-  "Set up project segment."
-  (add-hook 'find-file-hook #'wal-line-project--set-segment))
-
-(defun wal-line-project--teardown ()
-  "Set up project segment."
-  (remove-hook 'find-file-hook #'wal-line-project--set-segment))
-
-(add-hook 'wal-line-setup-hook #'wal-line-project--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-project--teardown)
 
 (provide 'wal-line-project)
 

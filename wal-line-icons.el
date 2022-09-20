@@ -30,29 +30,6 @@
   :group 'wal-line
   :type 'boolean)
 
-;; Segment:
-
-(defvar-local wal-line-icons--segment nil)
-
-(defun wal-line-icons--set-icon (&rest _)
-  "Set the buffer icon."
-  (when-let ((icon (wal-line-icons--get-icon)))
-
-    (setq-local wal-line-icons--segment icon)))
-
-(defun wal-line-icons--get-icon ()
-  "Update file icon in mode-line."
-  (when (display-graphic-p)
-    (let ((icon (all-the-icons-icon-for-buffer)))
-
-      (propertize (if (or (null icon) (symbolp icon))
-                      (all-the-icons-faicon
-                       "question-circle"
-                       :face 'wal-line-contrast)
-                    icon)
-                  'help-echo (format "%s" (format-mode-line mode-name))
-                  'display '(raise -0.135)))))
-
 ;; Additional icons:
 
 (defun wal-line-icons--prepend-icon-to-project-segment (str)
@@ -101,51 +78,60 @@
                                          :height 0.85
                                          :v-adjust 0.0))))))
 
-;; Setup/teardown:
 
-(defun wal-line-icons--setup ()
-  "Set up icons."
-  ;;  Advise project segment.
-  (advice-add
-   #'wal-line-project--get-info :filter-return
-   #'wal-line-icons--prepend-icon-to-project-segment)
+;; Segment:
 
-  ;; Advise version control segment.
-  (advice-add
-   #'wal-line-vc--get-info :filter-return
-   #'wal-line-icons--prepend-icon-to-vc-segment)
+(wal-line-create-static-segment icons
+  :dense t
+  :getter
+  (when (display-graphic-p)
+    (let ((icon (all-the-icons-icon-for-buffer)))
 
-  (when wal-line-icons-prettify-buffer-status
+      (propertize (if (or (null icon) (symbolp icon))
+                      (all-the-icons-faicon
+                       "question-circle"
+                       :face 'wal-line-contrast)
+                    icon)
+                  'help-echo (format "%s" (format-mode-line mode-name))
+                  'display '(raise -0.135))))
+  :setup
+  (lambda ()
     (advice-add
-     #'wal-line-buffer-status--segment
-     :override #'wal-line-icons--advise-buffer-status-segment))
+     #'wal-line-project--get-segment :filter-return
+     #'wal-line-icons--prepend-icon-to-project-segment)
 
-  (add-hook 'find-file-hook #'wal-line-icons--set-icon)
-  (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
-  (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
+    (advice-add
+     #'wal-line-vc--get-segment :filter-return
+     #'wal-line-icons--prepend-icon-to-vc-segment)
 
-(defun wal-line-icons--teardown ()
-  "Tear down icons."
-  (advice-remove
-   #'wal-line-project--get-info
-   #'wal-line-icons--prepend-icon-to-project-segment)
-  (advice-remove
-   #'wal-line-vc--get-info
-   #'wal-line-icons--prepend-icon-to-vc-segment)
-  (when wal-line-icons-prettify-buffer-status
+    (when wal-line-icons-prettify-buffer-status
+      (advice-add
+       #'wal-line-buffer-status--segment
+       :override #'wal-line-icons--advise-buffer-status-segment))
+
+    (add-hook 'find-file-hook #'wal-line-icons--set-segment)
+    (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-segment)
+    (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-segment))
+  :teardown
+  (lambda ()
     (advice-remove
-     #'wal-line-buffer-status--segment
-     #'wal-line-icons--advise-buffer-status-segment))
+     #'wal-line-project--get-segment
+     #'wal-line-icons--prepend-icon-to-project-segment)
 
-  (remove-hook 'find-file-hook #'wal-line-icons--set-icon)
-  (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-icon)
-  (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-icon))
+    (advice-remove
+     #'wal-line-vc--get-segment
+     #'wal-line-icons--prepend-icon-to-vc-segment)
 
-(defvar wal-line--segments)
+    (when wal-line-icons-prettify-buffer-status
+      (advice-remove
+       #'wal-line-buffer-status--segment
+       #'wal-line-icons--advise-buffer-status-segment))
+
+    (remove-hook 'find-file-hook #'wal-line-icons--set-segment)
+    (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-segment)
+    (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-segment)))
+
 (wal-line-add-segment icons)
-
-(add-hook 'wal-line-setup-hook #'wal-line-icons--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-icons--teardown)
 
 (provide 'wal-line-icons)
 

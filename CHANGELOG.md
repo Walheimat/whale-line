@@ -13,15 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   window start.
 - `icons` package has new custom variable
   `wal-line-icons-prettify-buffer-status` to do just that.
+- New macro `wal-line-create-static-segment` to create `defvar`-based
+  segments that don't need to be created often.
+- Segments `buffer-name`, `project`, `icons` and `vc` use this macro.
 
 ### Changed
 
-- Position segment shows column number.
-- Version control segment code was refactored to make augmenting the
-  segment easier.
-- Same was done for the project segment.
-- Same was done for the buffer icon segment.
-- Same was done for the LSP package.
+- Position segment shows column number..
 
 ### Fixed
 

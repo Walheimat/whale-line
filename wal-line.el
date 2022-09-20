@@ -25,6 +25,8 @@
                                    lsp
                                    org))
 
+(defconst wal-line--feature-like '(buffer-name))
+
 (defvar wal-line--segments
   '(:left ((margin . t)
            (icons . nil)
@@ -35,12 +37,12 @@
            (selection . low)
            (mc . nil)
            (process . low))
-    :right ((minor-modes . t)
-            (global-mode-string . low)
-            (project . nil)
-            (vc . nil)
-            (whale . nil)
-            (margin . t))))
+          :right ((minor-modes . t)
+                  (global-mode-string . low)
+                  (project . nil)
+                  (vc . nil)
+                  (whale . nil)
+                  (margin . t))))
 
 ;;;; Customization:
 
@@ -219,13 +221,42 @@ Optionally with a PRIORITY."
        (setcdr right? ,(or priority t)))
       (t (user-error "Unknown segment")))))
 
-(defun wal-line-margin--segment ()
-  "Get a margin segment."
-  (wal-line--spacer))
+(defvar wal-line-segment-fstring "wal-line-%s--segment")
+(defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
+(defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
 
-(defun wal-line-buffer-name--segment ()
-  "Get the buffer name."
-  (concat (wal-line--spacer) (buffer-name)))
+(cl-defmacro wal-line-create-static-segment (name &key getter setup teardown dense)
+  "Create a static segment named NAME.
+
+GETTER is the form to evaluate to get the string (the setter is
+constructed by the macro).
+
+SETUP is the function called on setup, TEARDOWN that during teardown.
+
+A left margin is added unless DENSE is t."
+  (declare (indent defun))
+
+  (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
+        (setter (intern (format wal-line-set-segment-fstring (symbol-name name))))
+        (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name)))))
+
+    `(progn
+       (defvar ,segment 'initial)
+
+       (defun ,getter-sym ()
+         ,(format "Get the %s segment." name)
+         ,getter)
+
+       (defun ,setter (&rest _)
+         ,(format "Set %s segment." name)
+         (if-let ((str (,getter-sym)))
+             (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
+           (setq-local ,segment nil)))
+
+       ,(when setup `(add-hook 'wal-line-setup-hook ,setup))
+       ,(when teardown `(add-hook 'wal-line-teardown-hook ,teardown)))))
+
+(defvar wal-line-margin--segment (wal-line--spacer))
 
 (defun wal-line-buffer-status--segment ()
   "Display the buffer status."
@@ -297,11 +328,15 @@ Optionally with a PRIORITY."
   (delq nil (mapcar
              (lambda (it)
                (when-let* ((should-use (cdr it))
-                           (symbol (intern (concat "wal-line-" (symbol-name (car it)) "--segment"))))
+                           (name (symbol-name (car it)))
+                           (segment (intern (format wal-line-segment-fstring name)))
+                           (setter (intern (format wal-line-set-segment-fstring name))))
 
-                 (if (functionp symbol)
-                     `(:eval (,symbol))
-                   `(:eval ,symbol))))
+                 (if (functionp segment)
+                     `(:eval (,segment))
+                   `(:eval (pcase ,segment
+                             ('initial (,setter))
+                             (_ ,segment))))))
              segments)))
 
 ;;;; Disabling/enabling:
@@ -358,7 +393,7 @@ Optionally with a PRIORITY."
   :lighter " wll"
   (if wal-line-mode
       (progn
-        (dolist (it wal-line-features)
+        (dolist (it (append wal-line-features wal-line--feature-like))
           (require (intern (concat "wal-line-" (symbol-name it)))))
         ;; Save a copy of the previous mode-line.
         (setq wal-line--default-mode-line mode-line-format)

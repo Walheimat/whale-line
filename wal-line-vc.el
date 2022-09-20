@@ -17,13 +17,9 @@
 (declare-function wal-line--is-current-window-p "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
 
-(defvar wal-line-vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
+;; State:
 
 (defvar-local wal-line-vc--state nil)
-(defvar-local wal-line-vc--info nil)
-(defvar-local wal-line-vc--segment nil)
-
-;; State:
 
 (defun wal-line-vc--update-state ()
   "Update the version control state."
@@ -32,7 +28,7 @@
 
 (defun wal-line-vc--get-state ()
   "Get the version control state."
-  (let ((backend (vc-backend buffer-file-name)))
+  (when-let ((backend (vc-backend buffer-file-name)))
     (vc-state (file-local-name buffer-file-name) backend)))
 
 (defun wal-line-vc--face-for-state ()
@@ -47,6 +43,9 @@
           (t 'wal-line-neutral))))
 
 ;; Info:
+
+(defvar wal-line-vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
+(defvar-local wal-line-vc--info nil)
 
 (defun wal-line-vc--update-info ()
   "Update version control info."
@@ -67,30 +66,24 @@
 
 ;; Segment:
 
-(defun wal-line-vc--update (&rest _)
-  "Update and (re-)set the segment."
-  (wal-line-vc--update-state)
-  (wal-line-vc--update-info)
+(wal-line-create-static-segment vc
+  :getter
+  (progn
+    (wal-line-vc--update-state)
+    (wal-line-vc--update-info)
+    wal-line-vc--info)
+  :setup
+  (lambda ()
+    (add-hook 'find-file-hook #'wal-line-vc--set-segment)
+    (add-hook 'after-save-hook #'wal-line-vc--set-segment)
+    (advice-add 'vc-refresh-state :after #'wal-line-vc--set-segment))
+  :teardown
+  (lambda ()
+    (remove-hook 'find-file-hook #'wal-line-vc--set-segment)
+    (remove-hook 'after-save-hook #'wal-line-vc--set-segment)
+    (advice-remove 'vc-refresh-state #'wal-line-vc--set-segment)))
 
-  (setq-local wal-line-vc--segment (concat (wal-line--spacer) wal-line-vc--info)))
-
-(defvar wal-line--segments)
 (wal-line-add-segment vc)
-
-(defun wal-line-vc--setup ()
-  "Set up version control segment."
-  (add-hook 'find-file-hook #'wal-line-vc--update)
-  (add-hook 'after-save-hook #'wal-line-vc--update)
-  (advice-add #'vc-refresh-state :after #'wal-line-vc--update))
-
-(defun wal-line-vc--teardown ()
-  "Tear down version control segment."
-  (remove-hook 'find-file-hook #'wal-line-vc--update)
-  (remove-hook 'after-save-hook #'wal-line-vc--update)
-  (advice-remove #'vc-refresh-state #'wal-line-vc--update))
-
-(add-hook 'wal-line-setup-hook #'wal-line-vc--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-vc--teardown)
 
 (provide 'wal-line-vc)
 
