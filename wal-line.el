@@ -224,6 +224,8 @@ Optionally with a PRIORITY."
 (defvar wal-line-segment-fstring "wal-line-%s--segment")
 (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
 (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
+(defvar wal-line-setup-fstring "wal-line-%s--setup")
+(defvar wal-line-teardown-fstring "wal-line-%s--teardown")
 
 (cl-defmacro wal-line-create-static-segment (name &key getter setup teardown dense)
   "Create a static segment named NAME.
@@ -238,6 +240,8 @@ A left margin is added unless DENSE is t."
 
   (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
         (setter (intern (format wal-line-set-segment-fstring (symbol-name name))))
+        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name))))
         (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name)))))
 
     `(progn
@@ -253,8 +257,21 @@ A left margin is added unless DENSE is t."
              (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
            (setq-local ,segment nil)))
 
-       ,(when setup `(add-hook 'wal-line-setup-hook ,setup))
-       ,(when teardown `(add-hook 'wal-line-teardown-hook ,teardown)))))
+       ,(when setup
+          `(progn
+             (defun ,setup-sym (&rest _)
+               ,(format "Set up %s segment." name)
+               (funcall ,setup))
+
+             (add-hook 'wal-line-setup-hook #',setup-sym)))
+
+       ,(when teardown
+          `(progn
+             (defun ,teardown-sym (&rest _)
+               ,(format "Tear down %s segment." name)
+               (funcall ,teardown))
+
+             (add-hook 'wal-line-teardown-hook #',teardown-sym))))))
 
 (defvar wal-line-margin--segment (wal-line--spacer))
 
