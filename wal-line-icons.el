@@ -135,8 +135,6 @@
     (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-segment)
     (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-segment)))
 
-(wal-line-add-segment 'icons)
-
 (provide 'wal-line-icons)
 
 ;;; wal-line-icons.el ends here
