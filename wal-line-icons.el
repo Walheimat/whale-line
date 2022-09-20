@@ -99,10 +99,12 @@
     (advice-add
      #'wal-line-project--get-segment :filter-return
      #'wal-line-icons--prepend-icon-to-project-segment)
+    (wal-line-project--set-segment)
 
     (advice-add
      #'wal-line-vc--get-segment :filter-return
      #'wal-line-icons--prepend-icon-to-vc-segment)
+    (wal-line-vc--set-segment)
 
     (when wal-line-icons-prettify-buffer-status
       (advice-add
@@ -117,10 +119,12 @@
     (advice-remove
      #'wal-line-project--get-segment
      #'wal-line-icons--prepend-icon-to-project-segment)
+    (wal-line-project--set-segment)
 
     (advice-remove
      #'wal-line-vc--get-segment
      #'wal-line-icons--prepend-icon-to-vc-segment)
+    (wal-line-vc--set-segment)
 
     (when wal-line-icons-prettify-buffer-status
       (advice-remove
