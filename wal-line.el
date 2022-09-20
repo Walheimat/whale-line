@@ -208,19 +208,23 @@ ellipsis."
 
 ;;;; Segments:
 
+(defun wal-line--set-segment-priority (segment priority)
+  "Set PRIORITY of a SEGMENT."
+  (let ((left? (assoc segment (plist-get wal-line--segments :left)))
+        (right? (assoc segment (plist-get wal-line--segments :right))))
+    (cond
+     (left?
+      (setcdr left? priority))
+     (right?
+      (setcdr right? priority))
+     (t (user-error "Unknown segment")))))
+
 (defun wal-line-add-segment (segment &optional priority)
   "Add SEGMENT to the list of segments.
 
 Optionally with a PRIORITY."
-  (let ((left? (assoc segment (plist-get wal-line--segments :left)))
-        (right? (assoc segment (plist-get wal-line--segments :right)))
-        (prio (or priority t)))
-    (cond
-     (left?
-      (setcdr left? prio))
-     (right?
-      (setcdr right? prio))
-     (t (user-error "Unknown segment")))))
+  (let ((prio (or priority t)))
+    (wal-line--set-segment-priority segment prio)))
 
 (defvar wal-line-segment-fstring "wal-line-%s--segment")
 (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
@@ -285,7 +289,7 @@ A left margin is added unless DENSE is t."
     (propertize "&" 'face 'wal-line-shadow))
    ((buffer-modified-p)
     (propertize "*" 'face 'wal-line-emphasis))
-    (t "")))
+   (t "")))
 
 (defun wal-line-position--segment ()
   "Displays the current-position."
@@ -371,21 +375,16 @@ A left margin is added unless DENSE is t."
 (defun wal-line--enable-or-disable-feature (feature enable)
   "If ENABLE is t, enable FEATURE, otherwise disable."
   (let* ((symbol? (if (symbolp feature) feature (intern feature)))
-         (left? (assoc symbol? (plist-get wal-line--segments :left)))
-         (right? (assoc symbol? (plist-get wal-line--segments :right))))
-    (cond
-     (left?
-      (setcdr left? enable))
-     (right?
-      (setcdr right? enable))
-     (t nil))
+         (suffix (if enable "--setup" "--teardown"))
+         (func (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
+
+    (wal-line--set-segment-priority symbol? enable)
+
     (setq wal-line-features (if enable
-                                (append wal-line-features `(,symbol?))
+                                (append wal-line-features (list symbol?))
                               (delete symbol? wal-line-features)))
-    (let* ((suffix (if enable "--setup" "--teardown"))
-           (func (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
-      (when (fboundp func)
-        (funcall func)))))
+    (when (fboundp func)
+      (funcall func))))
 
 ;; Entrypoint.
 
