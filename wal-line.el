@@ -112,15 +112,28 @@ constraints."
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
+(defun wal-line--filter (segments &optional no-low)
+  "Filter SEGMENTS.
+
+This always filters out `current' elements if this is not the
+selected window.
+
+If NO-LOW is t, segments that have a `low' priority are filtered."
+  (let* ((min-filter (if (wal-line--is-current-window-p)
+                         '()
+                       '(current)))
+         (max-filter (if no-low
+                         (append min-filter '(low))
+                       min-filter)))
+    (seq-filter (lambda (it) (not (memq (cdr it) max-filter))) segments)))
+
 (defun wal-line--render (side &optional filter)
   "Render SIDE.
 
 Optionally FILTER out low priority segments."
-  (let ((segments (plist-get wal-line--segments side)))
-    (if filter
-        (wal-line--render-segments
-         (seq-filter (lambda (it) (not (eq (cdr it) 'low))) segments))
-      (wal-line--render-segments segments))))
+  (let* ((segments (plist-get wal-line--segments side))
+         (filtered (wal-line--filter segments filter)))
+    (wal-line--render-segments filtered)))
 
 (defun wal-line--format-side (side &optional filter)
   "Get the formatted SIDE.
@@ -285,6 +298,57 @@ This will also add the segment with PRIORITY or t."
 
        (wal-line-add-segment ',name ,prio))))
 
+(cl-defmacro wal-line-create-dynamic-segment (name &key getter condition setup teardown dense priority)
+  "Create a dynamic segment name NAME.
+
+GETTER is the function to call on re-render.
+
+CONDITION is the conndition to evaluate before calling the
+renderer. If NEEDS-CURRENT is truthy, it will be an additional
+condition.
+
+SETUP is the function called on setup, TEARDOWN that during teardown.
+
+A left margin is added unless DENSE is t.
+
+The segment will be added with PRIORITY or t."
+  (declare (indent defun))
+
+  (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
+        (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name))))
+        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name))))
+        (prio (or priority t)))
+
+    `(progn
+       (defun ,getter-sym ()
+         ,(format "Get the `%s' segment." name)
+         ,getter)
+
+       (defun ,segment ()
+         ,(format "Render `%s' segment." name)
+         (or (when ,condition
+               ,(if dense `(,getter-sym) `(concat (wal-line--spacer) (,getter-sym))))
+             ""))
+
+       ,(when setup
+          `(progn
+             (defun ,setup-sym (&rest _)
+               ,(format "Set up %s segment." name)
+               (funcall ,setup))
+
+             (add-hook 'wal-line-setup-hook #',setup-sym)))
+
+       ,(when teardown
+          `(progn
+             (defun ,teardown-sym (&rest _)
+               ,(format "Tear down %s segment." name)
+               (funcall ,teardown))
+
+             (add-hook 'wal-line-teardown-hook #',teardown-sym)))
+
+       (wal-line-add-segment ',name ,prio))))
+
 (defvar wal-line-margin--segment (wal-line--spacer))
 
 (defun wal-line-buffer-status--segment ()
@@ -363,9 +427,12 @@ This will also add the segment with PRIORITY or t."
 
                  (if (functionp segment)
                      `(:eval (,segment))
-                   `(:eval (pcase ,segment
-                             ('initial (,setter))
-                             (_ ,segment))))))
+                   (let* ((val (symbol-value segment))
+                          (eval (pcase val
+                                  ('initial `(,setter))
+                                  (_ segment))))
+
+                     `(:eval ,eval)))))
              segments)))
 
 ;;;; Disabling/enabling:

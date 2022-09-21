@@ -17,14 +17,14 @@
 
 (require 'wal-line)
 
-(declare-function wal-line-buffer-name--segment "wal-line.el")
-(declare-function wal-line--spacer "wal-line.el")
 (declare-function org-back-to-heading "ext:org.el")
 (declare-function org-before-first-heading-p "ext:org.el")
 (declare-function org-heading-components "ext:org.el")
 (declare-function org-link-display-format "ext:org.el")
+(declare-function wal-line-buffer-name--segment "wal-line.el")
+(declare-function wal-line--spacer "wal-line.el")
 
-;;;; Customization:
+;; Customization:
 
 (defcustom wal-line-org-delimiter "/"
   "The delimiter between file name and heading name."
@@ -47,7 +47,7 @@
   :group 'wal-line
   :type 'integer)
 
-;;;; Functionality:
+;; Functionality:
 
 (defun wal-line-org--maybe-truncate (heading)
   "Maybe truncate HEADING."
@@ -92,19 +92,18 @@
                  (nth 0 headings))
               (nth 0 headings)))))))))
 
-(defun wal-line-org--segment ()
-  "Displays the current heading."
-  (if (eq major-mode 'org-mode)
-      (let ((segment (wal-line-org--build-segment)))
-        (if segment
-            (concat
-             wal-line-org-delimiter
-             (wal-line-org--build-segment))
-          ""))
-    ""))
+;; Segment:
 
-(defvar wal-line--segments)
-(wal-line-add-segment 'org)
+(wal-line-create-dynamic-segment org
+  :getter
+  (let ((segment (wal-line-org--build-segment)))
+    (when segment
+      (concat
+       wal-line-org-delimiter
+       (wal-line-org--build-segment))))
+  :condition
+  (eq major-mode 'org-mode)
+  :dense t)
 
 (provide 'wal-line-org)
 

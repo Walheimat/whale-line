@@ -15,7 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `wal-line-icons-prettify-buffer-status` to do just that.
 - New macro `wal-line-create-static-segment` to create `defvar`-based
   segments that don't need to be created often.
-- Segments `buffer-name`, `project`, `icons` and `vc` use this macro.
+- Segments `buffer-name`, `project`, `icons`, `vc` and `whale` use
+  this macro.
+- New macro `wal-line-create-dynamic-segment` to create `defun`-based
+  segments that need to be updated all the time.
+- Segments `org` and `mc` use this macro.
 
 ### Changed
 

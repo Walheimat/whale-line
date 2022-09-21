@@ -20,13 +20,10 @@
 
 ;;;; Customization:
 
-(defcustom wal-line-whale-key-frames
-  [
-   "(__.- >{"
-   "(__.' >{"
-   "(__.- >{"
-   "(__., >{"
-   ]
+(defcustom wal-line-whale-key-frames ["(__.- >{"
+                                      "(__.' >{"
+                                      "(__.- >{"
+                                      "(__., >{"]
   "Animation key frames."
   :group 'wal-line
   :type '(vector string))
@@ -40,48 +37,31 @@
 
 (defvar wal-line-whale--frame-index 0)
 (defvar wal-line-whale--timer nil)
-(defvar wal-line-whale--frame nil)
 
-(defun wal-line-whale--animate ()
-  "Animate the ASCII whale."
+(wal-line-create-static-segment whale
+  :getter
   (let* ((frame (aref wal-line-whale-key-frames wal-line-whale--frame-index))
          (colored (propertize frame 'face 'wal-line-emphasis)))
     (setq wal-line-whale--frame-index
           (mod
            (1+ wal-line-whale--frame-index)
            (length wal-line-whale-key-frames))
-          wal-line-whale--frame colored)
-    (force-mode-line-update)))
-
-(defun wal-line-whale--segment ()
-  "Show the current animation frame."
-  (unless wal-line-whale--frame
-    (wal-line-whale--animate))
-  (if (wal-line--is-current-window-p)
-      (concat (wal-line--spacer) wal-line-whale--frame)
-    ""))
-
-;;;; Entrypoint.
-
-(defun wal-line-whale--setup ()
-  "Set up the animated whale."
-  (unless wal-line-whale--timer
-    (setq wal-line-whale--timer (run-with-timer
-                                 0
-                                 wal-line-whale-animation-speed
-                                 #'wal-line-whale--animate))))
-
-(defun wal-line-whale--teardown ()
-  "Clean up the animation."
-  (when wal-line-whale--timer
-    (cancel-timer wal-line-whale--timer)
-    (setq wal-line-whale--timer nil)))
-
-(add-hook 'wal-line-setup-hook #'wal-line-whale--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-whale--teardown)
-
-(defvar wal-line--segments)
-(wal-line-add-segment 'whale 'low)
+          wal-line-whale--segment (concat (wal-line--spacer) colored))
+    (force-mode-line-update)
+    wal-line-whale--segment)
+  :setup
+  (lambda ()
+    (unless wal-line-whale--timer
+      (setq wal-line-whale--timer (run-with-timer
+                                   0
+                                   wal-line-whale-animation-speed
+                                   #'wal-line-whale--get-segment))))
+  :teardown
+  (lambda ()
+    (when wal-line-whale--timer
+      (cancel-timer wal-line-whale--timer)
+      (setq wal-line-whale--timer nil)))
+  :priority 'current)
 
 (provide 'wal-line-whale)
 

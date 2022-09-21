@@ -16,17 +16,13 @@
 
 (declare-function mc/num-cursors "ext:multiple-cursors.el")
 
-(defun wal-line-mc--segment ()
-  "Show the number of multiple cursors."
-  (if (and (wal-line--is-current-window-p)
-           (bound-and-true-p multiple-cursors-mode))
-      (let ((cursors (mc/num-cursors)))
-        (concat (wal-line--spacer)
-                (propertize (format " %d " cursors) 'face 'wal-line-highlight)))
-    ""))
-
-(defvar wal-line--segments)
-(wal-line-add-segment 'mc)
+(wal-line-create-dynamic-segment mc
+  :getter
+  (let ((cursors (mc/num-cursors)))
+    (propertize (format " %d " cursors) 'face 'wal-line-highlight))
+  :condition
+  (bound-and-true-p multiple-cursors-mode)
+  :priority 'current)
 
 (provide 'wal-line-mc)
 
