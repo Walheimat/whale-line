@@ -1,4 +1,4 @@
-(define-package "wal-line" "0.2.0" "A whale-based mode-line"
+(define-package "wal-line" "0.3.0" "A whale-based mode-line"
   '((emacs "28.1"))
   :authors
   '(("Krister Schuchardt" . "krister.schuchardt@gmail.com"))

@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
-;; Version: 0.2.0
+;; Version: 0.3.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: faces mode-line
 
@@ -174,6 +174,8 @@ ellipsis."
     ('prioritize
      (wal-line--format-prioritize))))
 
+;; Windows:
+
 (defvar wal-line--current-window nil)
 
 (defun wal-line--get-current-window ()
@@ -195,7 +197,7 @@ ellipsis."
   (and wal-line--current-window
        (eq (wal-line--get-current-window) wal-line--current-window)))
 
-;;;; Segments:
+;; Priorities:
 
 (defun wal-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
@@ -215,13 +217,13 @@ Optionally with a PRIORITY."
   (let ((prio (or priority t)))
     (wal-line--set-segment-priority segment prio)))
 
+;; Macros:
+
 (defvar wal-line-segment-fstring "wal-line-%s--segment")
 (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
 (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
 (defvar wal-line-setup-fstring "wal-line-%s--setup")
 (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
-
-;; Macros:
 
 (cl-defmacro wal-line-create-static-segment (name &key getter setup teardown dense priority)
   "Create a static segment named NAME.
