@@ -18,15 +18,17 @@
 (declare-function wal-line--spacer "wal-line.el")
 (declare-function wal-line-buffer-name--get-segment "wal-line.el")
 (declare-function wal-line-icons--get-segment "wal-line-icons.el")
+(declare-function wal-line-icons--set-segment "wal-line-icons.el")
 
-;;;; Customization:
+;; Customization:
 
 (defcustom wal-line-lsp-delimiters '("[" "]")
   "The delimiters to indicate LSP status for buffer names."
   :group 'wal-line
   :type '(repeat string))
 
-;;;; Functionality:
+;; Functionality:
+
 (defun wal-line-lsp--active-p ()
   "Check if an LSP mode is active."
   (cond
@@ -60,18 +62,17 @@
 
 (defun wal-line-lsp--setup ()
   "Set up LSP integration."
-  (cond
-   ((wal-line--enabled-feature-p 'icons)
-    (add-hook 'lsp-after-initialize-hook #'wal-line-lsp--color-icon)
-    (add-hook 'lsp-after-uninitialized-functions #'wal-line-lsp--color-icon)
-    (add-hook 'lsp-after-open-hook #'wal-line-lsp--color-icon)
+  (if (wal-line--enabled-feature-p 'icons)
+      (progn
+        (add-hook 'lsp-after-initialize-hook #'wal-line-lsp--color-icon)
+        (add-hook 'lsp-after-uninitialized-functions #'wal-line-lsp--color-icon)
+        (add-hook 'lsp-after-open-hook #'wal-line-lsp--color-icon)
 
-    (add-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
-    (add-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon))
-   (t
+        (add-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
+        (add-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon))
     (advice-add
      #'wal-line-buffer-name--get-segment :filter-return
-     #'wal-line-lsp--advise-buffer-name))))
+     #'wal-line-lsp--advise-buffer-name)))
 
 (defun wal-line-lsp--teardown ()
   "Tear down LSP integration."
@@ -81,6 +82,9 @@
 
   (remove-hook 'eglot-managed-mode-hook #'wal-line-lsp--color-icon)
   (remove-hook 'eglot-server-initialized-hook #'wal-line-lsp--color-icon)
+
+  (when (wal-line--enabled-feature-p 'icons)
+    (wal-line-icons--set-segment))
 
   (advice-remove
    #'wal-line-buffer-name--get-segment
