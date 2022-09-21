@@ -25,24 +25,21 @@
                                    lsp
                                    org))
 
-(defconst wal-line--feature-like '(buffer-name))
-
-(defvar wal-line--segments
-  '(:left ((margin . t)
-           (icons . nil)
-           (buffer-name . t)
-           (org . t)
-           (buffer-status . t)
-           (position . t)
-           (selection . low)
-           (mc . nil)
-           (process . low))
-          :right ((minor-modes . t)
-                  (global-mode-string . low)
-                  (project . nil)
-                  (vc . nil)
-                  (whale . nil)
-                  (margin . t))))
+(defvar wal-line--segments '(:left ((margin . t)
+                                    (icons . nil)
+                                    (buffer-name . t)
+                                    (org . t)
+                                    (buffer-status . t)
+                                    (position . t)
+                                    (selection . low)
+                                    (mc . nil)
+                                    (process . low))
+                             :right ((minor-modes . t)
+                                     (global-mode-string . low)
+                                     (project . nil)
+                                     (vc . nil)
+                                     (whale . nil)
+                                     (margin . t))))
 
 ;;;; Customization:
 
@@ -112,28 +109,7 @@ constraints."
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
-(defun wal-line--filter (segments &optional no-low)
-  "Filter SEGMENTS.
-
-This always filters out `current' elements if this is not the
-selected window.
-
-If NO-LOW is t, segments that have a `low' priority are filtered."
-  (let* ((min-filter (if (wal-line--is-current-window-p)
-                         '()
-                       '(current)))
-         (max-filter (if no-low
-                         (append min-filter '(low))
-                       min-filter)))
-    (seq-filter (lambda (it) (not (memq (cdr it) max-filter))) segments)))
-
-(defun wal-line--render (side &optional filter)
-  "Render SIDE.
-
-Optionally FILTER out low priority segments."
-  (let* ((segments (plist-get wal-line--segments side))
-         (filtered (wal-line--filter segments filter)))
-    (wal-line--render-segments filtered)))
+;; Formatting:
 
 (defun wal-line--format-side (side &optional filter)
   "Get the formatted SIDE.
@@ -260,6 +236,12 @@ A left margin is added unless DENSE is t.
 This will also add the segment with PRIORITY or t."
   (declare (indent defun))
 
+  (defvar wal-line-segment-fstring "wal-line-%s--segment")
+  (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
+  (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
+  (defvar wal-line-setup-fstring "wal-line-%s--setup")
+  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+
   (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
         (setter (intern (format wal-line-set-segment-fstring (symbol-name name))))
         (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
@@ -314,11 +296,17 @@ A left margin is added unless DENSE is t.
 The segment will be added with PRIORITY or t."
   (declare (indent defun))
 
+  (defvar wal-line-segment-fstring "wal-line-%s--segment")
+  (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
+  (defvar wal-line-setup-fstring "wal-line-%s--setup")
+  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+
   (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
         (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name))))
         (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
         (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name))))
-        (prio (or priority t)))
+        (prio (or priority t))
+        (con (or condition t)))
 
     `(progn
        (defun ,getter-sym ()
@@ -327,7 +315,7 @@ The segment will be added with PRIORITY or t."
 
        (defun ,segment ()
          ,(format "Render `%s' segment." name)
-         (or (when ,condition
+         (or (when ,con
                ,(if dense `(,getter-sym) `(concat (wal-line--spacer) (,getter-sym))))
              ""))
 
@@ -349,10 +337,38 @@ The segment will be added with PRIORITY or t."
 
        (wal-line-add-segment ',name ,prio))))
 
+;; Segments:
+
 (defvar wal-line-margin--segment (wal-line--spacer))
 
-(defun wal-line-buffer-status--segment ()
-  "Display the buffer status."
+(wal-line-create-static-segment buffer-name
+  :getter
+  (buffer-name)
+  :setup
+  (lambda ()
+    (add-hook 'find-file-hook #'wal-line-buffer-name--set-segment)
+    (add-hook 'after-save-hook #'wal-line-buffer-name--set-segment)
+    (add-hook 'clone-indirect-buffer-hook #'wal-line-buffer-name--set-segment)
+
+    (advice-add #'not-modified :after #'wal-line-buffer-name--set-segment)
+    (advice-add #'rename-buffer :after #'wal-line-buffer-name--set-segment)
+    (advice-add #'set-visited-file-name :after #'wal-line-buffer-name--set-segment)
+    (advice-add #'pop-to-buffer :after #'wal-line-buffer-name--set-segment)
+    (advice-add #'undo :after #'wal-line-buffer-name--set-segment))
+  :teardown
+  (lambda ()
+    (remove-hook 'find-file-hook #'wal-line-buffer-name--set-segment)
+    (remove-hook 'after-save-hook #'wal-line-buffer-name--set-segment)
+    (remove-hook 'clone-indirect-buffer-hook #'wal-line-buffer-name--set-segment)
+
+    (advice-remove #'not-modified #'wal-line-buffer-name--set-segment)
+    (advice-remove #'rename-buffer #'wal-line-buffer-name--set-segment)
+    (advice-remove #'set-visited-file-name #'wal-line-buffer-name--set-segment)
+    (advice-remove #'pop-to-buffer #'wal-line-buffer-name--set-segment)
+    (advice-remove #'undo #'wal-line-buffer-name--set-segment)))
+
+(wal-line-create-dynamic-segment buffer-status
+  :getter
   (cond
    (buffer-read-only
     (propertize "@" 'face 'wal-line-contrast))
@@ -360,40 +376,41 @@ The segment will be added with PRIORITY or t."
     (propertize "&" 'face 'wal-line-shadow))
    ((buffer-modified-p)
     (propertize "*" 'face 'wal-line-emphasis))
-   (t "")))
+   (t ""))
+  :dense t)
 
-(defun wal-line-position--segment ()
-  "Displays the current-position."
+(wal-line-create-dynamic-segment position
+  :getter
   (let* ((following (bound-and-true-p follow-mode))
          (str (if following "f: %l:%c %p%" "%l:%c %p%")))
-    (if (or (wal-line--is-current-window-p) following)
-        (propertize (concat (wal-line--spacer) str) 'face 'wal-line-shadow)
-      "")))
+    (propertize str 'face 'wal-line-shadow))
+  :priority 'current)
 
-(defun wal-line-global-mode-string--segment ()
-  "Displays the `global-mode-string'."
-  (if (wal-line--is-current-window-p)
-      (cons (wal-line--spacer) (cdr global-mode-string))
-    ""))
+(wal-line-create-dynamic-segment global-mode-string
+  :getter
+  (cons (wal-line--spacer) (cdr global-mode-string))
+  :dense t
+  :priority 'current)
 
-(defun wal-line-minor-modes--segment ()
-  "Displays the minor modes."
-  (if (wal-line--is-current-window-p)
-      minor-mode-alist
-    ""))
+(wal-line-create-dynamic-segment minor-modes
+  :getter
+  minor-mode-alist
+  :dense t
+  :priority 'current)
 
-(defun wal-line-process--segment ()
-  "Display the process."
+(wal-line-create-dynamic-segment process
+  :getter
   (let ((mlp mode-line-process))
-    (if (and (wal-line--is-current-window-p) mlp)
-      (cond
-       ((listp mlp)
-        (cons (wal-line--spacer) (cdr mlp)))
-       ((stringp mlp)
-        (propertize (concat (wal-line--spacer) mlp) 'face 'wal-line-shadow))
-       (t
-        ""))
-    "")))
+    (cond
+     ((listp mlp)
+      (cons (wal-line--spacer) (cdr mlp)))
+     ((stringp mlp)
+      (propertize (concat (wal-line--spacer) mlp) 'face 'wal-line-shadow))
+     (t "")))
+  :condition
+  mode-line-process
+  :dense t
+  :priority 'current)
 
 (defun wal-line-selection--get-columns (beg end)
   "Get the columns from BEG to END for displaying `rectangle-mode'."
@@ -402,19 +419,42 @@ The segment will be added with PRIORITY or t."
           (save-excursion (goto-char beg)
                           (current-column)))))
 
-(defun wal-line-selection--segment ()
-  "Display the selection."
-  (if mark-active
-      (let* ((beg (region-beginning))
-             (end (region-end))
-             (lines (count-lines beg (min end (point-max)))))
-        (concat (wal-line--spacer)
-                (propertize (if (bound-and-true-p rectangle-mark-mode)
-                                (let ((columns (wal-line-selection--get-columns beg end)))
-                                  (format " %dx%d " lines columns))
-                              (format " %d " lines))
-                            'face 'region)))
-    ""))
+(wal-line-create-dynamic-segment selection
+  :condition mark-active
+  :getter
+  (let* ((beg (region-beginning))
+         (end (region-end))
+         (lines (count-lines beg (min end (point-max)))))
+    (propertize (if (bound-and-true-p rectangle-mark-mode)
+                    (let ((columns (wal-line-selection--get-columns beg end)))
+                      (format " %dx%d " lines columns))
+                  (format " %d " lines))
+                'face 'region)))
+
+;; Rendering
+
+(defun wal-line--filter (segments &optional no-low)
+  "Filter SEGMENTS.
+
+This always filters out `current' elements if this is not the
+selected window.
+
+If NO-LOW is t, segments that have a `low' priority are filtered."
+  (let* ((min-filter (if (wal-line--is-current-window-p)
+                         '()
+                       '(current)))
+         (max-filter (if no-low
+                         (append min-filter '(low))
+                       min-filter)))
+    (seq-filter (lambda (it) (not (memq (cdr it) max-filter))) segments)))
+
+(defun wal-line--render (side &optional filter)
+  "Render SIDE.
+
+Optionally FILTER out low priority segments."
+  (let* ((segments (plist-get wal-line--segments side))
+         (filtered (wal-line--filter segments filter)))
+    (wal-line--render-segments filtered)))
 
 (defun wal-line--render-segments (segments)
   "Render SEGMENTS."
@@ -484,7 +524,7 @@ The segment will be added with PRIORITY or t."
   :lighter " wll"
   (if wal-line-mode
       (progn
-        (dolist (it (append wal-line-features wal-line--feature-like))
+        (dolist (it wal-line-features)
           (require (intern (concat "wal-line-" (symbol-name it)))))
         ;; Save a copy of the previous mode-line.
         (setq wal-line--default-mode-line mode-line-format)
