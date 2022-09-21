@@ -12,10 +12,8 @@
 
 ;;; Code:
 
-(defvar-local wal-line-flycheck--face nil)
-
 (declare-function flycheck-count-errors "ext:flycheck.el")
-(declare-function wal-line-buffer-name--segment "wal-line.el")
+(declare-function wal-line-buffer-name--get-segment "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
 
 ;;;; Functionality:
@@ -28,41 +26,33 @@
   :group 'wal-line)
 
 (defvar flycheck-current-errors)
-(defun wal-line-flycheck--update (&optional status)
-  "Update face used for buffer name dependent on STATUS."
-  (setq-local wal-line-flycheck--face
-        (pcase status
-          ('running 'wal-line-flycheck-running)
-          ('finished
-           (if flycheck-current-errors
-               (let-alist (flycheck-count-errors flycheck-current-errors)
-                 (cond
-                  (.error 'flycheck-error)
-                  (.warning 'flycheck-warning)
-                  (.info 'flycheck-info)))
-             nil))
-          (_ nil))))
+(defun wal-line-flycheck--get-face-for-status (status)
+  "Get the face to use for STATUS."
+  (pcase status
+    ('running 'wal-line-flycheck-running)
+    ('finished
+     (if flycheck-current-errors
+         (let-alist (flycheck-count-errors flycheck-current-errors)
+           (cond
+            (.error 'flycheck-error)
+            (.warning 'flycheck-warning)
+            (.info 'flycheck-info)))
+       'wal-line-neutral))
+    (_ 'wal-line-neutral)))
 
-(defun wal-line-flycheck--advise-buffer-name (str)
-  "Advise the buffer name STR."
-  (concat (wal-line--spacer)
-          (propertize (substring str 1) 'face (if wal-line-flycheck--face
-                                                  wal-line-flycheck--face
-                                                'wal-line-neutral))))
+(defun wal-line-flycheck--underline-buffer-name (status)
+  "Underline the buffer name depending on STATUS."
+  (let ((face (wal-line-flycheck--get-face-for-status status))
+        (segment (wal-line-buffer-name--get-segment)))
+    (setq-local wal-line-buffer-name--segment (concat (wal-line--spacer) (propertize segment 'face face)))))
 
 (defun wal-line-flycheck--setup ()
   "Set up flycheck integration."
-  (add-hook 'flycheck-status-changed-functions #'wal-line-flycheck--update)
-  (advice-add
-   #'wal-line-buffer-name--segment
-   :filter-return #'wal-line-flycheck--advise-buffer-name))
+  (add-hook 'flycheck-status-changed-functions #'wal-line-flycheck--underline-buffer-name))
 
 (defun wal-line-flycheck--teardown ()
   "Tear down flycheck integration."
-  (remove-hook 'flycheck-status-changed-functions #'wal-line-flycheck--update)
-  (advice-remove
-   #'wal-line-buffer-name--segment
-   #'wal-line-flycheck--advise-buffer-name))
+  (remove-hook 'flycheck-status-changed-functions #'wal-line-flycheck--underline-buffer-name))
 
 (add-hook 'wal-line-setup-hook #'wal-line-flycheck--setup)
 (add-hook 'wal-line-teardown-hook #'wal-line-flycheck--teardown)
