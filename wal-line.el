@@ -219,6 +219,7 @@ Optionally with a PRIORITY."
 
 ;; Macros:
 
+(defvar wal-line-augment-fstring "wal-line-%s--augment")
 (defvar wal-line-segment-fstring "wal-line-%s--segment")
 (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
 (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
@@ -338,6 +339,59 @@ The segment will be added with PRIORITY or t."
              (add-hook 'wal-line-teardown-hook #',teardown-sym)))
 
        (wal-line-add-segment ',name ,prio))))
+
+(cl-defmacro wal-line-create-augment (name &key action hooks advice setup teardown)
+  "Create augment(-or) named NAME.
+
+ACTION is the function to call for HOOKS.
+
+ADVICE is an cons cell of the form combinator .
+functions-to-advise to call ACTION.
+
+Additional SETUP and TEARDOWN function can be added for more control."
+  (declare (indent defun))
+
+  (defvar wal-line-augment-fstring "wal-line-%s--augment")
+  (defvar wal-line-setup-fstring "wal-line-%s--setup")
+  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+
+  (let ((augment (intern (format wal-line-augment-fstring (symbol-name name))))
+        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name)))))
+    `(progn
+
+       (defun ,augment (&rest args)
+         ,(format "Augment function for `%s'" name)
+         ,action)
+
+       ,(when (or hooks advice setup)
+          `(progn
+             (defun ,setup-sym (&rest _)
+               ,(format "Set up %s segment." name)
+               ,@(mapcar (lambda (it)
+                           `(add-hook ',it #',augment)) hooks)
+
+               ,@(mapcar (lambda (it)
+                           `(advice-add ',it ,(car advice) #',augment)) (cdr advice))
+
+               ,(when setup `(funcall ,setup)))
+
+             (add-hook 'wal-line-setup-hook #',setup-sym)))
+
+       ,(when (or hooks advice setup)
+          `(progn
+             (defun ,teardown-sym (&rest _)
+               ,(format "Tear down %s segment." name)
+
+               ,@(mapcar (lambda (it)
+                           `(remove-hook ',it #',augment)) hooks)
+
+               ,@(mapcar (lambda (it)
+                           `(advice-remove ',it #',augment)) (cdr advice))
+
+               ,(when teardown `(funcall ,teardown)))
+
+             (add-hook 'wal-line-teardown-hook #',teardown-sym))))))
 
 ;; Segments:
 

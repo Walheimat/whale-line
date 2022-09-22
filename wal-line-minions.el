@@ -20,39 +20,23 @@
 (declare-function wal-line-minor-modes--segment "wal-line.el")
 (declare-function minions--prominent-modes "ext:minions.el")
 
-;;;; Functionality:
-
 (defvar minor-modes-alist)
 (defvar minions-mode-line-minor-modes-map)
 (defvar minions-mode-line-lighter)
-(defun wal-line-minions--advise-minor-modes (&rest _r)
-  "Advise minor modes to use minions if present."
+
+(wal-line-create-augment minions
+  :action
   (if (bound-and-true-p minions-mode)
       `((:propertize ("" ,(minions--prominent-modes))
-                    face wal-line-shadow)
+                     face wal-line-shadow)
         ,(wal-line--spacer)
         (:propertize ,minions-mode-line-lighter
                      face wal-line-shadow
                      local-map ,minions-mode-line-minor-modes-map
                      mouse-face wal-line-highlight))
-    minor-mode-alist))
-
-;;;; Setup/teardown:
-
-(defun wal-line-minions--setup ()
-  "Set up minions."
-  (advice-add
-   #'wal-line-minor-modes--segment
-   :after-while #'wal-line-minions--advise-minor-modes))
-
-(defun wal-line-minions--teardown ()
-  "Set up minions."
-  (advice-remove
-   #'wal-line-minor-modes--segment
-   #'wal-line-minions--advise-minor-modes))
-
-(add-hook 'wal-line-setup-hook #'wal-line-minions--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-minions--teardown)
+    minor-mode-alist)
+  :advice
+  (:after-while . (wal-line-minor-modes--segment)))
 
 (provide 'wal-line-minions)
 

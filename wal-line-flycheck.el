@@ -12,6 +12,8 @@
 
 ;;; Code:
 
+(require 'wal-line)
+
 (declare-function flycheck-count-errors "ext:flycheck.el")
 (declare-function wal-line-buffer-name--get-segment "wal-line.el")
 (declare-function wal-line--spacer "wal-line.el")
@@ -40,22 +42,15 @@
        'wal-line-neutral))
     (_ 'wal-line-neutral)))
 
-(defun wal-line-flycheck--underline-buffer-name (status)
-  "Underline the buffer name depending on STATUS."
-  (let ((face (wal-line-flycheck--get-face-for-status status))
+(wal-line-create-augment flycheck
+  :action
+  (let ((face (wal-line-flycheck--get-face-for-status (car args)))
         (segment (wal-line-buffer-name--get-segment)))
-    (setq-local wal-line-buffer-name--segment (concat (wal-line--spacer) (propertize segment 'face face)))))
-
-(defun wal-line-flycheck--setup ()
-  "Set up flycheck integration."
-  (add-hook 'flycheck-status-changed-functions #'wal-line-flycheck--underline-buffer-name))
-
-(defun wal-line-flycheck--teardown ()
-  "Tear down flycheck integration."
-  (remove-hook 'flycheck-status-changed-functions #'wal-line-flycheck--underline-buffer-name))
-
-(add-hook 'wal-line-setup-hook #'wal-line-flycheck--setup)
-(add-hook 'wal-line-teardown-hook #'wal-line-flycheck--teardown)
+    (setq-local wal-line-buffer-name--segment (concat
+                                               (wal-line--spacer)
+                                               (propertize segment 'face face))))
+  :hooks
+  (flycheck-status-changed-function))
 
 (provide 'wal-line-flycheck)
 
