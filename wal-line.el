@@ -226,11 +226,16 @@ Optionally with a PRIORITY."
 (defvar wal-line-setup-fstring "wal-line-%s--setup")
 (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
 
-(cl-defmacro wal-line-create-static-segment (name &key getter setup teardown dense priority)
+(cl-defmacro wal-line-create-static-segment (name &key getter hooks advice setup teardown dense priority)
   "Create a static segment named NAME.
 
 GETTER is the form to evaluate to get the string (the setter is
 constructed by the macro).
+
+HOOKS is a list of functions that will call the setter.
+
+ADVICE is a const cell of the form combinator .
+functions-to-advise that will also call the setter.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
@@ -265,19 +270,35 @@ This will also add the segment with PRIORITY or t."
              (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
            (setq-local ,segment nil)))
 
-       ,(when setup
+       ,(when (or setup hooks advice)
           `(progn
              (defun ,setup-sym (&rest _)
                ,(format "Set up %s segment." name)
-               (funcall ,setup))
+
+               ,@(mapcar (lambda (it)
+                           `(add-hook ',it #',setter)) hooks)
+
+               ,@(mapcar (lambda (it)
+                           `(advice-add ',it ,(car advice) #',setter)
+                           ) (cdr advice))
+
+               ,(when setup `(funcall ,setup)))
 
              (add-hook 'wal-line-setup-hook #',setup-sym)))
 
-       ,(when teardown
+       ,(when (or teardown hooks advice)
           `(progn
              (defun ,teardown-sym (&rest _)
                ,(format "Tear down %s segment." name)
-               (funcall ,teardown))
+
+               ,@(mapcar (lambda (it)
+                           `(remove-hook ',it #',setter)) hooks)
+
+               ,@(mapcar (lambda (it)
+                           `(advice-remove ',it #',setter)
+                           ) (cdr advice))
+
+               ,(when teardown `(funcall ,teardown)))
 
              (add-hook 'wal-line-teardown-hook #',teardown-sym)))
 
@@ -400,28 +421,12 @@ Additional SETUP and TEARDOWN function can be added for more control."
 (wal-line-create-static-segment buffer-name
   :getter
   (buffer-name)
-  :setup
-  (lambda ()
-    (add-hook 'find-file-hook #'wal-line-buffer-name--set-segment)
-    (add-hook 'after-save-hook #'wal-line-buffer-name--set-segment)
-    (add-hook 'clone-indirect-buffer-hook #'wal-line-buffer-name--set-segment)
-
-    (advice-add #'not-modified :after #'wal-line-buffer-name--set-segment)
-    (advice-add #'rename-buffer :after #'wal-line-buffer-name--set-segment)
-    (advice-add #'set-visited-file-name :after #'wal-line-buffer-name--set-segment)
-    (advice-add #'pop-to-buffer :after #'wal-line-buffer-name--set-segment)
-    (advice-add #'undo :after #'wal-line-buffer-name--set-segment))
-  :teardown
-  (lambda ()
-    (remove-hook 'find-file-hook #'wal-line-buffer-name--set-segment)
-    (remove-hook 'after-save-hook #'wal-line-buffer-name--set-segment)
-    (remove-hook 'clone-indirect-buffer-hook #'wal-line-buffer-name--set-segment)
-
-    (advice-remove #'not-modified #'wal-line-buffer-name--set-segment)
-    (advice-remove #'rename-buffer #'wal-line-buffer-name--set-segment)
-    (advice-remove #'set-visited-file-name #'wal-line-buffer-name--set-segment)
-    (advice-remove #'pop-to-buffer #'wal-line-buffer-name--set-segment)
-    (advice-remove #'undo #'wal-line-buffer-name--set-segment)))
+  :hooks
+  (find-file-hook
+   after-save-hook
+   clone-indirect-buffer-hook)
+  :advice
+  (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
 (wal-line-create-dynamic-segment buffer-status
   :getter
