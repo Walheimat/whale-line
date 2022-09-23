@@ -26,15 +26,16 @@
 
 (wal-line-create-augment minions
   :action
-  (if (bound-and-true-p minions-mode)
-      `((:propertize ("" ,(minions--prominent-modes))
-                     face wal-line-shadow)
-        ,(wal-line--spacer)
-        (:propertize ,minions-mode-line-lighter
-                     face wal-line-shadow
-                     local-map ,minions-mode-line-minor-modes-map
-                     mouse-face wal-line-highlight))
-    minor-mode-alist)
+  (lambda (&rest _args)
+    (if (bound-and-true-p minions-mode)
+        `((:propertize ("" ,(minions--prominent-modes))
+                       face wal-line-shadow)
+          ,(wal-line--spacer)
+          (:propertize ,minions-mode-line-lighter
+                       face wal-line-shadow
+                       local-map ,minions-mode-line-minor-modes-map
+                       mouse-face wal-line-highlight))
+      minor-mode-alist))
   :advice
   (:after-while . (wal-line-minor-modes--segment)))
 

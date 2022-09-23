@@ -41,23 +41,25 @@
 
 (wal-line-create-augment lsp
   :action
-  (if (wal-line--enabled-feature-p 'icons)
-      (when-let* ((icon (wal-line-icons--get-segment))
-                  (f-props (get-text-property 0 'face icon))
-                  (f-new (copy-tree f-props)))
-        (if (wal-line-lsp--active-p)
-            (progn
-              (plist-put f-new :inherit 'wal-line-indicate)
-              (setq-local wal-line-icons--segment (propertize icon 'face f-new)))
-          (setq-local wal-line-icons--segment icon)))
-    (when (wal-line-lsp--active-p)
-      (let ((left (nth 0 wal-line-lsp-delimiters))
-            (right (nth 1 wal-line-lsp-delimiters)))
-        (setq wal-line-buffer-name--segment (concat
-                                             (wal-line--spacer)
-                                             (propertize left 'face 'wal-line-indicate)
-                                             (string-trim str)
-                                             (propertize right 'face 'wal-line-indicate))))))
+  (lambda (&rest _args)
+    (if (wal-line--enabled-feature-p 'icons)
+        (when-let* ((icon (wal-line-icons--get-segment))
+                    (f-props (get-text-property 0 'face icon))
+                    (f-new (copy-tree f-props)))
+          (if (wal-line-lsp--active-p)
+              (progn
+                (plist-put f-new :inherit 'wal-line-indicate)
+                (setq-local wal-line-icons--segment (propertize icon 'face f-new)))
+            (setq-local wal-line-icons--segment icon)))
+      (when (wal-line-lsp--active-p)
+        (let ((left (nth 0 wal-line-lsp-delimiters))
+              (right (nth 1 wal-line-lsp-delimiters))
+              (str (or (wal-line-buffer-name--get-segment) "")))
+          (setq wal-line-buffer-name--segment (concat
+                                               (wal-line--spacer)
+                                               (propertize left 'face 'wal-line-indicate)
+                                               (string-trim str)
+                                               (propertize right 'face 'wal-line-indicate)))))))
   :hooks
   (lsp-after-initialize-hook
    lsp-after-uninitialized-functions
