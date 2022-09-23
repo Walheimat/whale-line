@@ -50,7 +50,7 @@
                                                (wal-line--spacer)
                                                (propertize segment 'face face))))
   :hooks
-  (flycheck-status-changed-function))
+  (flycheck-status-changed-functions))
 
 (provide 'wal-line-flycheck)
 
