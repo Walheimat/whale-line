@@ -383,7 +383,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
        (defun ,augment (&rest args)
          ,(format "Augment function for `%s'" name)
-         (funcall ,action args))
+         (apply ,action args))
 
        ,(when (or hooks advice setup)
           `(progn
