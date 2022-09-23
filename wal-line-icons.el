@@ -18,9 +18,11 @@
 (declare-function all-the-icons-faicon "ext:all-the-icons.el")
 (declare-function wal-line--spacer "wal-line.el")
 (declare-function wal-line-buffer-status--segment "wal-line.el")
-(declare-function wal-line-project--get-info "wal-line-project.el")
+(declare-function wal-line-project--get-segment "wal-line-project.el")
+(declare-function wal-line-project--set-segment "wal-line-project.el")
 (declare-function wal-line-vc--face-for-state "wal-line-vc.el")
-(declare-function wal-line-vc--get-info "wal-line-vc.el")
+(declare-function wal-line-vc--get-segment "wal-line-vc.el")
+(declare-function wal-line-vc--set-segment "wal-line-vc.el")
 
 ;; Customization:
 

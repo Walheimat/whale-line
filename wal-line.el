@@ -381,7 +381,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
         (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name)))))
     `(progn
 
-       (defun ,augment (&rest args)
+       (defun ,augment (&rest _args)
          ,(format "Augment function for `%s'" name)
          ,action)
 

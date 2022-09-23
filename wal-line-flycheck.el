@@ -44,7 +44,7 @@
 
 (wal-line-create-augment flycheck
   :action
-  (let ((face (wal-line-flycheck--get-face-for-status (car args)))
+  (let ((face (wal-line-flycheck--get-face-for-status (car _args)))
         (segment (wal-line-buffer-name--get-segment)))
     (setq-local wal-line-buffer-name--segment (concat
                                                (wal-line--spacer)

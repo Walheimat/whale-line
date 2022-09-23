@@ -70,9 +70,10 @@
 
 (defun wal-line-org--collect-headings ()
   "Collect headings until it's no longer safe."
-  (save-excursion
-    (cl-loop collect (wal-line-org--get-next-heading)
-             while (org-up-heading-safe))))
+  (when (fboundp 'org-up-heading-safe)
+    (save-excursion
+      (cl-loop collect (wal-line-org--get-next-heading)
+               while (org-up-heading-safe)))))
 
 (defun wal-line-org--build-segment ()
   "Build the segment from included segments."
