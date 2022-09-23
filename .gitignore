@@ -1,2 +1,6 @@
 *.elc
 *.tar
+
+# cask
+dist/
+.cask/
