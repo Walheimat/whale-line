@@ -12,7 +12,6 @@
 
 ;;; Code:
 
-(require 'all-the-icons)
 (require 'wal-line)
 
 (declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
