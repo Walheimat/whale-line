@@ -20,7 +20,7 @@ jobs:
 
       - uses: conao3/setup-cask@master
         with:
-          version: 0.8.6
+          version: 0.8.9
 
       - name: install
         run: "cask install"
