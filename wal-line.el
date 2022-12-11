@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: faces mode-line
 
@@ -226,7 +226,7 @@ Optionally with a PRIORITY."
 (defvar wal-line-setup-fstring "wal-line-%s--setup")
 (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
 
-(cl-defmacro wal-line-create-static-segment (name &key getter hooks advice setup teardown dense priority)
+(cl-defmacro wal-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
   "Create a static segment named NAME.
 
 GETTER is the form to evaluate to get the string (the setter is
@@ -236,6 +236,9 @@ HOOKS is a list of functions that will call the setter.
 
 ADVICE is a const cell of the form combinator .
 functions-to-advise that will also call the setter.
+
+VERIFY is a function called before setup. If it returns nil, the
+segment will not be added.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
@@ -257,54 +260,60 @@ This will also add the segment with PRIORITY or t."
         (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name))))
         (prio (or priority t)))
 
-    `(progn
-       (defvar ,segment 'initial)
+    (if (or (null verify) (funcall verify))
+        `(progn
+           (defvar ,segment 'initial)
 
-       (defun ,getter-sym ()
-         ,(format "Get the %s segment." name)
-         ,getter)
+           (defun ,getter-sym ()
+             ,(format "Get the %s segment." name)
+             ,getter)
 
-       (defun ,setter (&rest _)
-         ,(format "Set %s segment." name)
-         (if-let ((str (,getter-sym)))
-             (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
-           (setq-local ,segment nil)))
+           (defun ,setter (&rest _)
+             ,(format "Set %s segment." name)
+             (if-let ((str (,getter-sym)))
+                 (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
+               (setq-local ,segment nil)))
 
-       ,(when (or setup hooks advice)
-          `(progn
-             (defun ,setup-sym (&rest _)
-               ,(format "Set up %s segment." name)
+           ,(when (or setup hooks advice)
+              `(progn
+                 (defun ,setup-sym (&rest _)
+                   ,(format "Set up %s segment." name)
 
-               ,@(mapcar (lambda (it)
-                           `(add-hook ',it #',setter)) hooks)
+                   ,@(mapcar (lambda (it)
+                               `(add-hook ',it #',setter))
+                             hooks)
 
-               ,@(mapcar (lambda (it)
-                           `(advice-add ',it ,(car advice) #',setter)
-                           ) (cdr advice))
+                   ,@(mapcar (lambda (it)
+                               `(advice-add ',it ,(car advice) #',setter))
+                             (cdr advice))
 
-               ,(when setup `(funcall ,setup)))
+                   ,(when setup `(funcall ,setup)))
 
-             (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'wal-line-setup-hook #',setup-sym)))
 
-       ,(when (or teardown hooks advice)
-          `(progn
-             (defun ,teardown-sym (&rest _)
-               ,(format "Tear down %s segment." name)
+           ,(when (or teardown hooks advice)
+              `(progn
+                 (defun ,teardown-sym (&rest _)
+                   ,(format "Tear down %s segment." name)
 
-               ,@(mapcar (lambda (it)
-                           `(remove-hook ',it #',setter)) hooks)
+                   ,@(mapcar (lambda (it)
+                               `(remove-hook ',it #',setter))
+                             hooks)
 
-               ,@(mapcar (lambda (it)
-                           `(advice-remove ',it #',setter)
-                           ) (cdr advice))
+                   ,@(mapcar (lambda (it)
+                               `(advice-remove ',it #',setter))
+                             (cdr advice))
 
-               ,(when teardown `(funcall ,teardown)))
+                   ,(when teardown `(funcall ,teardown)))
 
-             (add-hook 'wal-line-teardown-hook #',teardown-sym)))
+                 (add-hook 'wal-line-teardown-hook #',teardown-sym)))
 
-       (wal-line-add-segment ',name ,prio))))
+           (wal-line-add-segment ',name ,prio))
+      `(progn
+         (defvar ,segment nil)
+         (message "Adding static segment %s failed" ',name)))))
 
-(cl-defmacro wal-line-create-dynamic-segment (name &key getter condition setup teardown dense priority)
+(cl-defmacro wal-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
   "Create a dynamic segment name NAME.
 
 GETTER is the function to call on re-render.
@@ -312,6 +321,9 @@ GETTER is the function to call on re-render.
 CONDITION is the conndition to evaluate before calling the
 renderer. If NEEDS-CURRENT is truthy, it will be an additional
 condition.
+
+VERIFY is a function called before setup. If it returns nil, the
+segment will not be added.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
@@ -332,37 +344,47 @@ The segment will be added with PRIORITY or t."
         (prio (or priority t))
         (con (or condition t)))
 
-    `(progn
-       (defun ,getter-sym ()
-         ,(format "Get the `%s' segment." name)
-         ,getter)
+    (if (or (null verify) (funcall verify))
+        `(progn
+           (defun ,getter-sym ()
+             ,(format "Get the `%s' segment." name)
+             ,getter)
 
-       (defun ,segment ()
-         ,(format "Render `%s' segment." name)
-         (or (when ,con
-               ,(if dense `(,getter-sym) `(concat (wal-line--spacer) (,getter-sym))))
-             ""))
+           (defun ,segment ()
+             ,(format "Render `%s' segment." name)
+             (or (when ,con
+                   ,(if dense `(,getter-sym) `(concat (wal-line--spacer) (,getter-sym))))
+                 ""))
 
-       ,(when setup
-          `(progn
-             (defun ,setup-sym (&rest _)
-               ,(format "Set up %s segment." name)
-               (funcall ,setup))
+           ,(when setup
+              `(progn
+                 (defun ,setup-sym (&rest _)
+                   ,(format "Set up %s segment." name)
+                   (funcall ,setup))
 
-             (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'wal-line-setup-hook #',setup-sym)))
 
-       ,(when teardown
-          `(progn
-             (defun ,teardown-sym (&rest _)
-               ,(format "Tear down %s segment." name)
-               (funcall ,teardown))
+           ,(when teardown
+              `(progn
+                 (defun ,teardown-sym (&rest _)
+                   ,(format "Tear down %s segment." name)
+                   (funcall ,teardown))
 
-             (add-hook 'wal-line-teardown-hook #',teardown-sym)))
+                 (add-hook 'wal-line-teardown-hook #',teardown-sym)))
 
-       (wal-line-add-segment ',name ,prio))))
+           (wal-line-add-segment ',name ,prio))
+      `(progn
+         (defun ,segment ()
+           ,(format "Render `%s' segment as an empty string." name)
+           "")
+         (message "Adding dynamic segment `%s' failed" ',name)))))
 
-(cl-defmacro wal-line-create-augment (name &key action hooks advice setup teardown)
+(cl-defmacro wal-line-create-augment (name &key verify action hooks advice setup teardown)
   "Create augment(-or) named NAME.
+
+VERIFY is an optional function called before augmenting. If that
+function returns nil, a user error will indicate it didn't take
+place.
 
 ACTION is the function to call for HOOKS.
 
@@ -379,40 +401,42 @@ Additional SETUP and TEARDOWN function can be added for more control."
   (let ((augment (intern (format wal-line-augment-fstring (symbol-name name))))
         (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
         (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name)))))
-    `(progn
 
-       (defun ,augment (&rest args)
-         ,(format "Augment function for `%s'" name)
-         (apply ,action args))
+    (if (or (null verify) (funcall verify))
+        `(progn
+           (defun ,augment (&rest args)
+             ,(format "Augment function for `%s'" name)
+             (apply ,action args))
 
-       ,(when (or hooks advice setup)
-          `(progn
-             (defun ,setup-sym (&rest _)
-               ,(format "Set up %s segment." name)
-               ,@(mapcar (lambda (it)
-                           `(add-hook ',it #',augment)) hooks)
+           ,(when (or hooks advice setup)
+              `(progn
+                 (defun ,setup-sym (&rest _)
+                   ,(format "Set up %s segment." name)
+                   ,@(mapcar (lambda (it)
+                               `(add-hook ',it #',augment)) hooks)
 
-               ,@(mapcar (lambda (it)
-                           `(advice-add ',it ,(car advice) #',augment)) (cdr advice))
+                   ,@(mapcar (lambda (it)
+                               `(advice-add ',it ,(car advice) #',augment)) (cdr advice))
 
-               ,(when setup `(funcall ,setup)))
+                   ,(when setup `(funcall ,setup)))
 
-             (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'wal-line-setup-hook #',setup-sym)))
 
-       ,(when (or hooks advice setup)
-          `(progn
-             (defun ,teardown-sym (&rest _)
-               ,(format "Tear down %s segment." name)
+           ,(when (or hooks advice setup)
+              `(progn
+                 (defun ,teardown-sym (&rest _)
+                   ,(format "Tear down %s segment." name)
 
-               ,@(mapcar (lambda (it)
-                           `(remove-hook ',it #',augment)) hooks)
+                   ,@(mapcar (lambda (it)
+                               `(remove-hook ',it #',augment)) hooks)
 
-               ,@(mapcar (lambda (it)
-                           `(advice-remove ',it #',augment)) (cdr advice))
+                   ,@(mapcar (lambda (it)
+                               `(advice-remove ',it #',augment)) (cdr advice))
 
-               ,(when teardown `(funcall ,teardown)))
+                   ,(when teardown `(funcall ,teardown)))
 
-             (add-hook 'wal-line-teardown-hook #',teardown-sym))))))
+                 (add-hook 'wal-line-teardown-hook #',teardown-sym))))
+      `(message "Augmentation for `%s' failed" ',name))))
 
 ;; Segments:
 

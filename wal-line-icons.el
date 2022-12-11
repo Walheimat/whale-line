@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: faces mode-line
 
@@ -84,6 +84,7 @@
 
 (wal-line-create-static-segment icons
   :dense t
+  :verify (lambda () (require 'all-the-icons nil t))
   :getter
   (when (display-graphic-p)
     (let ((icon (all-the-icons-icon-for-buffer)))

@@ -5,10 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0]
 
 ### Added
 
+- Keyword `:verify` or all segment types that takes a function as an
+  argument. If that function yields `nil` the segment won't be
+  added/augment won't take place.
+- Uses this for `flycheck` and `all-the-icons` augment and segment.
 - New Macro `wal-line-create-augment` to create augmentations.
 - Segments `lsp`, `minions` and `flycheck` use this macro.
 

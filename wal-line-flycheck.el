@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
-;; Version: 0.3.0
+;; Version: 0.4.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: faces mode-line
 
@@ -43,6 +43,7 @@
     (_ 'wal-line-neutral)))
 
 (wal-line-create-augment flycheck
+  :verify (lambda () (require 'flycheck nil t))
   :action
   (lambda (status &rest _r)
     (let ((face (wal-line-flycheck--get-face-for-status status))
