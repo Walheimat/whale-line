@@ -39,7 +39,8 @@
                  ((eq wal-line-project-provider 'projectile)
                   (projectile-project-root))
                  ((eq wal-line-project-provider 'project)
-                  (project-root (project-current)))
+                  (when-let ((current (project-current)))
+                    (project-root current)))
                  (t nil))))
     (when (and p-root
                (buffer-file-name)
