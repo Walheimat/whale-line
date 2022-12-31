@@ -12,7 +12,6 @@
 
 ;;; Code:
 
-(require 'projectile nil t)
 (require 'wal-line)
 
 (declare-function wal-line--spacer "wal-line.el")
