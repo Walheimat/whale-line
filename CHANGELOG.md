@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Uses this for `flycheck` and `all-the-icons` augment and segment.
 - New Macro `wal-line-create-augment` to create augmentations.
 - Segments `lsp`, `minions` and `flycheck` use this macro.
+- New priority `current-low` to have low priority segments that should
+  only appear on the current window.
 
 ## [0.3.0]
 

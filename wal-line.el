@@ -27,15 +27,15 @@
 
 (defvar wal-line--segments '(:left ((margin . t)
                                     (icons . nil)
-                                    (buffer-name . t)
-                                    (org . t)
-                                    (buffer-status . t)
-                                    (position . t)
-                                    (selection . low)
+                                    (buffer-name . nil)
+                                    (org . nil)
+                                    (buffer-status . nil)
+                                    (position . nil)
+                                    (selection . nil)
                                     (mc . nil)
-                                    (process . low))
-                             :right ((minor-modes . t)
-                                     (global-mode-string . low)
+                                    (process . nil))
+                             :right ((minor-modes . nil)
+                                     (global-mode-string . nil)
                                      (project . nil)
                                      (vc . nil)
                                      (whale . nil)
@@ -475,13 +475,13 @@ Additional SETUP and TEARDOWN function can be added for more control."
   :getter
   (cons (wal-line--spacer) (cdr global-mode-string))
   :dense t
-  :priority 'current)
+  :priority 'current-low)
 
 (wal-line-create-dynamic-segment minor-modes
   :getter
   minor-mode-alist
   :dense t
-  :priority 'current)
+  :priority 'low)
 
 (wal-line-create-dynamic-segment process
   :getter
@@ -492,8 +492,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
      ((stringp mlp)
       (propertize (concat (wal-line--spacer) mlp) 'face 'wal-line-shadow))
      (t "")))
-  :condition
-  mode-line-process
+  :condition mode-line-process
   :dense t
   :priority 'current)
 
@@ -506,6 +505,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
 (wal-line-create-dynamic-segment selection
   :condition mark-active
+  :priority 'current-low
   :getter
   (let* ((beg (region-beginning))
          (end (region-end))
@@ -518,20 +518,33 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
 ;; Rendering
 
-(defun wal-line--filter (segments &optional no-low)
+(defun wal-line--filter (segments &optional low-space)
   "Filter SEGMENTS.
 
-This always filters out `current' elements if this is not the
-selected window.
+This filters differently for current and other window.
 
-If NO-LOW is t, segments that have a `low' priority are filtered."
-  (let* ((min-filter (if (wal-line--is-current-window-p)
-                         '()
-                       '(current)))
-         (max-filter (if no-low
-                         (append min-filter '(low))
-                       min-filter)))
-    (seq-filter (lambda (it) (not (memq (cdr it) max-filter))) segments)))
+If LOW-SPACE is t, additional segments are filtered."
+  (let ((filter (if (wal-line--is-current-window-p)
+                         (wal-line--filter-for-current low-space)
+                  (wal-line--filter-for-other low-space))))
+    (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
+
+
+(defun wal-line--filter-for-current (&optional low-space)
+  "Build the filter for current window.
+
+If LOW-SPACE is t, filter out additional segments."
+  (if low-space
+      (list 'low 'current-low)
+    nil))
+
+(defun wal-line--filter-for-other (&optional low-space)
+  "Build the filter for other window.
+
+If LOW-SPACE is t, filter out additional segments."
+  (if low-space
+      (list 'current 'current-low 'low)
+    (list 'current 'current-low)))
 
 (defun wal-line--render (side &optional filter)
   "Render SIDE.

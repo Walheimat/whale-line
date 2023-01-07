@@ -61,7 +61,7 @@
     (when wal-line-whale--timer
       (cancel-timer wal-line-whale--timer)
       (setq wal-line-whale--timer nil)))
-  :priority 'current)
+  :priority 'current-low)
 
 (provide 'wal-line-whale)
 
