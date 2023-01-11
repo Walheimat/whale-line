@@ -16,6 +16,7 @@
 
 (declare-function wal-line--spacer "wal-line.el")
 (declare-function projectile-project-root "ext:projectile.el")
+(declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
 
 ;;;; Customization:
@@ -35,18 +36,22 @@
 
 (wal-line-create-static-segment project
   :getter
-  (let ((p-root (cond
-                 ((eq wal-line-project-provider 'projectile)
-                  (projectile-project-root))
-                 ((eq wal-line-project-provider 'project)
-                  (when-let ((current (project-current)))
-                    (project-root current)))
-                 (t nil))))
-    (when (and p-root
-               (buffer-file-name)
-               (string-match-p wal-line-project--regexp p-root))
-      (string-match wal-line-project--regexp p-root)
-      (propertize (substring (match-string 1 p-root) 1) 'face 'wal-line-emphasis)))
+  (when-let* ((p-root (pcase wal-line-project-provider
+                        ('projectile
+                         (projectile-project-root))
+                        ('project
+                         (when-let ((current (project-current)))
+                           (project-root current)))
+                        (_ nil)))
+              (p-name (pcase wal-line-project-provider
+                        ('projectile
+                         (string-match wal-line-project--regexp p-root)
+                         (substring (match-string 1 p-root) 1))
+                        ('project
+                         (project-name (project-current)))
+                        (_ ""))))
+
+    (propertize p-name 'face 'wal-line-emphasis))
   :setup
   (lambda () (add-hook 'find-file-hook #'wal-line-project--set-segment))
   :teardown

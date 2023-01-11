@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segments `lsp`, `minions` and `flycheck` use this macro.
 - New priority `current-low` to have low priority segments that should
   only appear on the current window.
+- Uses `project-name` to determine project name when using
+  `project.el` as provider.
 
 ## [0.3.0]
 
