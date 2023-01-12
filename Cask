@@ -5,4 +5,4 @@
 
 (package-file "wal-line.el")
 
-(files "*.el")
+(files "*.el" (:exclude ".dir-locals.el"))
