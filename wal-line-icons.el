@@ -79,6 +79,16 @@
                                          :height 0.85
                                          :v-adjust 0.0))))))
 
+(defun wal-line-icons--advise-window-status-segment ()
+  "Advise window status segment to use icons."
+  (if (window-dedicated-p)
+      (concat
+       (wal-line--spacer)
+       (propertize (all-the-icons-faicon "link"
+                                         :face 'wal-line-shadow
+                                         :height 0.85
+                                         :v-adjust 0.0)))
+    ""))
 
 ;; Segment:
 
@@ -107,6 +117,10 @@
      #'wal-line-vc--get-segment :filter-return
      #'wal-line-icons--prepend-icon-to-vc-segment)
     (wal-line-vc--set-segment)
+
+    (advice-add
+     #'wal-line-window-status--segment :override
+     #'wal-line-icons--advise-window-status-segment)
 
     (when wal-line-icons-prettify-buffer-status
       (advice-add

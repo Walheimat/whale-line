@@ -33,7 +33,8 @@
                                     (position . nil)
                                     (selection . nil)
                                     (mc . nil)
-                                    (process . nil))
+                                    (process . nil)
+                                    (window-status . nil))
                              :right ((minor-modes . nil)
                                      (global-mode-string . nil)
                                      (project . nil)
@@ -463,6 +464,12 @@ Additional SETUP and TEARDOWN function can be added for more control."
     (propertize "*" 'face 'wal-line-emphasis))
    (t ""))
   :dense t)
+
+(wal-line-create-dynamic-segment window-status
+  :getter
+  (when (window-dedicated-p)
+    (propertize "^" 'face 'wal-line-shadow))
+  :priority 'low)
 
 (wal-line-create-dynamic-segment position
   :getter

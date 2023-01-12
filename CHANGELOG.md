@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only appear on the current window.
 - Uses `project-name` to determine project name when using
   `project.el` as provider.
+- Segment for `window-status` that displays if the window is dedicated
+  or not.
 
 ## [0.3.0]
 
