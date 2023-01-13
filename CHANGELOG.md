@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `project.el` as provider.
 - Segment for `window-status` that displays if the window is dedicated
   or not.
+- Sub-package `wal-line-mc` was superseded by `wal-line-cursors` that
+  has the same functionality but also shows `iedit-mode` cursors.
 
 ## [0.3.0]
 

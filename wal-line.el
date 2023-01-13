@@ -21,7 +21,7 @@
                                    vc
                                    whale
                                    minions
-                                   mc
+                                   cursors
                                    lsp
                                    org))
 
@@ -32,7 +32,7 @@
                                     (buffer-status . nil)
                                     (position . nil)
                                     (selection . nil)
-                                    (mc . nil)
+                                    (cursors . nil)
                                     (process . nil)
                                     (window-status . nil))
                              :right ((minor-modes . nil)
