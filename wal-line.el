@@ -19,7 +19,7 @@
                                    project
                                    icons
                                    vc
-                                   whale
+                                   animation
                                    minions
                                    cursors
                                    lsp
@@ -39,7 +39,7 @@
                                      (global-mode-string . nil)
                                      (project . nil)
                                      (vc . nil)
-                                     (whale . nil)
+                                     (animation . nil)
                                      (margin . t))))
 
 ;;;; Customization:

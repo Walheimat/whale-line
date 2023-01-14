@@ -27,14 +27,14 @@ be required. Afterwards they can be turned on/off by calling
                        mc))
   ;; Strategy to use when there's not enough space to render all segments.
   (wal-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
-  ;; Whale animation.
-  (wal-line-whale-key-frames [
-                              "(__.- >{"
-                              "(__.' >{"
-                              "(__.- >{"
-                              "(__., >{"
-                              ])
-  (wal-line-whale-animation-speed 0.4)
+  ;; Animation.
+  (wal-line-animation-key-frames [
+                                  "(__.- >{"
+                                  "(__.' >{"
+                                  "(__.- >{"
+                                  "(__., >{"
+                                  ])
+  (wal-line-animation-speed 0.4)
   ;; Project provider.
   (wal-line-project-provider 'projectile) ; Other option is `project'.
   ;; Installation using `quelpa' and `quelpa-use-package'.

@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or not.
 - Sub-package `wal-line-mc` was superseded by `wal-line-cursors` that
   has the same functionality but also shows `iedit-mode` cursors.
+- Sub-package `wal-line-whale` was superseded by `wal-line-animation`
+  since it can display any animation.
 
 ## [0.3.0]
 
