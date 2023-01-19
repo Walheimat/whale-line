@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   has the same functionality but also shows `iedit-mode` cursors.
 - Sub-package `wal-line-whale` was superseded by `wal-line-animation`
   since it can display any animation.
+- `project` segment is only displayed for file and Dired buffers.
 
 ## [0.3.0]
 

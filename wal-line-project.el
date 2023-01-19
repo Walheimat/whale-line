@@ -30,13 +30,22 @@
   :type '(choice (const projectile)
                  (const project)))
 
+(defun wal-line-project--display-for-buffer-p ()
+  "Check if current buffer should show project information.
+
+Only consider Dired buffers and file buffers."
+  (with-current-buffer (current-buffer)
+    (or (derived-mode-p 'dired-mode)
+        (buffer-file-name))))
+
 ;;;; Functionality:
 
 (defvar wal-line-project--regexp ".+\\(\\/.+\\)\\/$")
 
 (wal-line-create-static-segment project
   :getter
-  (when-let* ((p-root (pcase wal-line-project-provider
+  (when-let* ((candidate (wal-line-project--display-for-buffer-p))
+              (p-root (pcase wal-line-project-provider
                         ('projectile
                          (projectile-project-root))
                         ('project
