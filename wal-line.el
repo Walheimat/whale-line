@@ -3,7 +3,7 @@
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/wal-line
 ;; Version: 0.4.0
-;; Package-Requires: ((emacs "28.1"))
+;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
 
 ;;; Commentary:
