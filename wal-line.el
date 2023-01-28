@@ -312,7 +312,7 @@ This will also add the segment with PRIORITY or t."
            (wal-line-add-segment ',name ,prio))
       `(progn
          (defvar ,segment nil)
-         (message "Adding static segment %s failed" ',name)))))
+         (message "Couldn't add `%s' segment" ',name)))))
 
 (cl-defmacro wal-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
   "Create a dynamic segment name NAME.
@@ -378,7 +378,7 @@ The segment will be added with PRIORITY or t."
          (defun ,segment ()
            ,(format "Render `%s' segment as an empty string." name)
            "")
-         (message "Adding dynamic segment `%s' failed" ',name)))))
+         (message "Couldn't add `%s' segment" ',name)))))
 
 (cl-defmacro wal-line-create-augment (name &key verify action hooks advice setup teardown)
   "Create augment(-or) named NAME.
@@ -437,7 +437,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
                    ,(when teardown `(funcall ,teardown)))
 
                  (add-hook 'wal-line-teardown-hook #',teardown-sym))))
-      `(message "Augmentation for `%s' failed" ',name))))
+      `(message "Couldn't create `%s' augment" ',name))))
 
 ;; Segments:
 
