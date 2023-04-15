@@ -31,16 +31,74 @@
   :group 'wal-line
   :type 'boolean)
 
+(defconst wal-line-icon-type
+  '(cons symbol
+         (restricted-sexp
+          :match-alternatives
+          (stringp listp)))
+  "Icon type as a cons cell of the icon library and the icons specs.
+The specs are either a string of the icon name or a list of the
+icon name and the face.")
+
+(defcustom wal-line-icons-project-icon '(faicon . "folder-open")
+  "Icon used for the project segment."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-vc-icon '(faicon . "code-fork")
+  "Icon used for the VC segment."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-buffer-read-only-icon '(faicon . ("lock" wal-line-contrast))
+  "Icon used to indicate buffer is read-only."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-no-buffer-file-name-icon '(faicon . ("sticky-note-o" wal-line-shadow))
+  "Icon used to indicate buffer has no file name."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-buffer-modified-icon '(faicon . ("pencil" wal-line-emphasis))
+  "Icon used to indicate buffer has been modified."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-window-dedicated-icon '(faicon . ("link" wal-line-shadow))
+  "Icon used to indicate a window is dedicated to its buffer."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
+(defcustom wal-line-icons-buffer-fallback-icon '(faicon . ("question-circle" wal-line-contrast))
+  "Icon used when a buffer has no associated icon."
+  :group 'wal-line
+  :type wal-line-icon-type)
+
 ;; Additional icons:
+
+(defun wal-line-icons--icon (specs &rest plist)
+  "Get icon in SPECS with PLIST properties."
+  (declare (indent defun))
+  (let ((fun (intern (concat "all-the-icons-" (symbol-name (car specs)))))
+        (icon (if (listp (cdr specs))
+                  (cadr specs)
+                (cdr specs)))
+        (face (when (listp (cdr specs))
+                (caddr specs))))
+
+    (if face
+        (apply fun (append (list icon :face face) plist))
+      (apply fun (append (list icon) plist)))))
 
 (defun wal-line-icons--prepend-icon-to-project-segment (str)
   "Advise info getter to prepend an icon before STR."
   (if (and (stringp str)
            (display-graphic-p))
-      (concat (all-the-icons-faicon "folder-open"
-                                    :face 'wal-line-emphasis
-                                    :height 0.85
-                                    :v-adjust 0.0)
+      (concat (wal-line-icons--icon wal-line-icons-project-icon
+                :face 'wal-line-emphasis
+                :height 0.85
+                :v-adjust 0.0)
               (wal-line--spacer)
               str)
     str))
@@ -51,43 +109,40 @@
            (display-graphic-p)
            (buffer-file-name))
       (concat
-       (all-the-icons-faicon "code-fork"
-                             :face (wal-line-vc--face-for-state)
-                             :height 0.85
-                             :v-adjust 0.0)
+       (wal-line-icons--icon wal-line-icons-vc-icon
+         :face (wal-line-vc--face-for-state)
+         :height 0.85
+         :v-adjust 0.0)
        (wal-line--spacer)
        str)
     str))
 
 (defun wal-line-icons--advise-buffer-status-segment ()
   "Advise buffer line segment to use icons."
-  (let* ((icon-and-face (cond
-                         (buffer-read-only (cons "lock" 'wal-line-contrast))
-                         ((not (buffer-file-name))
-                          (cons "sticky-note-o" 'wal-line-shadow))
-                         ((buffer-modified-p)
-                          (cons "pencil" 'wal-line-emphasis))
-                         (t (cons "" nil))))
-         (icon (car icon-and-face))
-         (face (cdr icon-and-face)))
-    (if (string-empty-p icon)
-        ""
-      (concat
-       (wal-line--spacer)
-       (propertize (all-the-icons-faicon icon
-                                         :face face
-                                         :height 0.85
-                                         :v-adjust 0.0))))))
+  (let ((icon (cond
+               (buffer-read-only wal-line-icons-buffer-read-only-icon)
+               ((not (buffer-file-name))
+                wal-line-icons-no-buffer-file-name-icon)
+               ((buffer-modified-p)
+                wal-line-icons-buffer-modified-icon)
+               (t nil))))
+
+    (if icon
+        (concat
+         (wal-line--spacer)
+         (wal-line-icons--icon icon
+           :height 0.85
+           :v-adjust 0.0))
+      "")))
 
 (defun wal-line-icons--advise-window-status-segment ()
   "Advise window status segment to use icons."
   (if (window-dedicated-p)
       (concat
        (wal-line--spacer)
-       (propertize (all-the-icons-faicon "link"
-                                         :face 'wal-line-shadow
-                                         :height 0.85
-                                         :v-adjust 0.0)))
+       (wal-line-icons--icon wal-line-icons-window-dedicated-icon
+         :height 0.85
+         :v-adjust 0.0))
     ""))
 
 ;; Segment:
@@ -100,9 +155,7 @@
     (let ((icon (all-the-icons-icon-for-buffer)))
 
       (propertize (if (or (null icon) (symbolp icon))
-                      (all-the-icons-faicon
-                       "question-circle"
-                       :face 'wal-line-contrast)
+                      (wal-line-icons--icon wal-line-icons-buffer-fallback-icon)
                     icon)
                   'help-echo (format "%s" (format-mode-line mode-name))
                   'display '(raise -0.135))))
