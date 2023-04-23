@@ -38,9 +38,9 @@
                                     (window-status . nil))
                              :right ((minor-modes . nil)
                                      (global-mode-string . nil)
-                                     (tab-bar . nil)
                                      (project . nil)
                                      (vc . nil)
+                                     (tab-bar . nil)
                                      (animation . nil)
                                      (margin . t))))
 

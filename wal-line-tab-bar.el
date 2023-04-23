@@ -15,18 +15,14 @@
 
 (require 'wal-line)
 
-(defcustom wal-tab-bar--delimiters '("[" "]")
-  "Delimiters put around the tab name.")
 
 (defun wal-tab-bar--get-explicit-name ()
   "Get the name of the tab if it was set explicitly."
   (when-let* ((tab (tab-bar--current-tab))
               ((alist-get 'explicit-name tab))
-              (name (alist-get 'name tab))
-              (left (nth 0 wal-tab-bar--delimiters))
-              (right (nth 1 wal-tab-bar--delimiters)))
+              (name (alist-get 'name tab)))
 
-    (propertize (concat left name right) 'face 'wal-line-indicate)))
+    (propertize (concat " " name " ") 'face 'wal-line-highlight)))
 
 (wal-line-create-static-segment tab-bar
   :verify
