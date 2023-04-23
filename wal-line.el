@@ -23,7 +23,8 @@
                                    minions
                                    cursors
                                    lsp
-                                   org))
+                                   org
+                                   tab-bar))
 
 (defvar wal-line--segments '(:left ((margin . t)
                                     (icons . nil)
@@ -37,6 +38,7 @@
                                     (window-status . nil))
                              :right ((minor-modes . nil)
                                      (global-mode-string . nil)
+                                     (tab-bar . nil)
                                      (project . nil)
                                      (vc . nil)
                                      (animation . nil)
@@ -235,7 +237,7 @@ constructed by the macro).
 
 HOOKS is a list of functions that will call the setter.
 
-ADVICE is a const cell of the form combinator .
+ADVICE is a cons cell of the form combinator .
 functions-to-advise that will also call the setter.
 
 VERIFY is a function called before setup. If it returns nil, the

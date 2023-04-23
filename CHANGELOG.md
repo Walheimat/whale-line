@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   since it can display any animation.
 - `project` segment is only displayed for file and Dired buffers.
 - Each icon can now be customized.
+- Segment `tab-bar` to show the names of tabs where it was explicitly
+  named.
 
 ## [0.3.0]
 
