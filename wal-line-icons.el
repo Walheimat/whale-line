@@ -26,7 +26,7 @@
 
 ;; Customization:
 
-(defcustom wal-line-icons-prettify-buffer-status nil
+(defcustom wli-prettify-buffer-status nil
   "Whether to use icons for the buffer status."
   :group 'wal-line
   :type 'boolean)
@@ -40,44 +40,44 @@
 The specs are either a string of the icon name or a list of the
 icon name and the face.")
 
-(defcustom wal-line-icons-project-icon '(faicon . "folder-open")
+(defcustom wli-project-icon '(faicon . "folder-open")
   "Icon used for the project segment."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-vc-icon '(faicon . "code-fork")
+(defcustom wli-vc-icon '(faicon . "code-fork")
   "Icon used for the VC segment."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-buffer-read-only-icon '(faicon . ("lock" wal-line-contrast))
+(defcustom wli-buffer-read-only-icon '(faicon . ("lock" wal-line-contrast))
   "Icon used to indicate buffer is read-only."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-no-buffer-file-name-icon '(faicon . ("sticky-note-o" wal-line-shadow))
+(defcustom wli-no-buffer-file-name-icon '(faicon . ("sticky-note-o" wal-line-shadow))
   "Icon used to indicate buffer has no file name."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-buffer-modified-icon '(faicon . ("pencil" wal-line-emphasis))
+(defcustom wli-buffer-modified-icon '(faicon . ("pencil" wal-line-emphasis))
   "Icon used to indicate buffer has been modified."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-window-dedicated-icon '(faicon . ("link" wal-line-shadow))
+(defcustom wli-window-dedicated-icon '(faicon . ("link" wal-line-shadow))
   "Icon used to indicate a window is dedicated to its buffer."
   :group 'wal-line
   :type wal-line-icon-type)
 
-(defcustom wal-line-icons-buffer-fallback-icon '(faicon . ("question-circle" wal-line-contrast))
+(defcustom wli-buffer-fallback-icon '(faicon . ("question-circle" wal-line-contrast))
   "Icon used when a buffer has no associated icon."
   :group 'wal-line
   :type wal-line-icon-type)
 
 ;; Additional icons:
 
-(defun wal-line-icons--icon (specs &rest plist)
+(defun wli--icon (specs &rest plist)
   "Get icon in SPECS with PLIST properties."
   (declare (indent defun))
   (let ((fun (intern (concat "all-the-icons-" (symbol-name (car specs)))))
@@ -91,11 +91,11 @@ icon name and the face.")
         (apply fun (append (list icon :face face) plist))
       (apply fun (append (list icon) plist)))))
 
-(defun wal-line-icons--prepend-icon-to-project-segment (str)
+(defun wli--prepend-icon-to-project-segment (str)
   "Advise info getter to prepend an icon before STR."
   (if (and (stringp str)
            (display-graphic-p))
-      (concat (wal-line-icons--icon wal-line-icons-project-icon
+      (concat (wli--icon wli-project-icon
                 :face 'wal-line-emphasis
                 :height 0.85
                 :v-adjust 0.0)
@@ -103,13 +103,13 @@ icon name and the face.")
               str)
     str))
 
-(defun wal-line-icons--prepend-icon-to-vc-segment (str)
+(defun wli--prepend-icon-to-vc-segment (str)
   "Advise info getter to prepend an icon before STR."
   (if (and (stringp str)
            (display-graphic-p)
            (buffer-file-name))
       (concat
-       (wal-line-icons--icon wal-line-icons-vc-icon
+       (wli--icon wli-vc-icon
          :face (wal-line-vc--face-for-state)
          :height 0.85
          :v-adjust 0.0)
@@ -117,30 +117,30 @@ icon name and the face.")
        str)
     str))
 
-(defun wal-line-icons--advise-buffer-status-segment ()
+(defun wli--advise-buffer-status-segment ()
   "Advise buffer line segment to use icons."
   (let ((icon (cond
-               (buffer-read-only wal-line-icons-buffer-read-only-icon)
+               (buffer-read-only wli-buffer-read-only-icon)
                ((not (buffer-file-name))
-                wal-line-icons-no-buffer-file-name-icon)
+                wli-no-buffer-file-name-icon)
                ((buffer-modified-p)
-                wal-line-icons-buffer-modified-icon)
+                wli-buffer-modified-icon)
                (t nil))))
 
     (if icon
         (concat
          (wal-line--spacer)
-         (wal-line-icons--icon icon
+         (wli--icon icon
            :height 0.85
            :v-adjust 0.0))
       "")))
 
-(defun wal-line-icons--advise-window-status-segment ()
+(defun wli--advise-window-status-segment ()
   "Advise window status segment to use icons."
   (if (window-dedicated-p)
       (concat
        (wal-line--spacer)
-       (wal-line-icons--icon wal-line-icons-window-dedicated-icon
+       (wli--icon wli-window-dedicated-icon
          :height 0.85
          :v-adjust 0.0))
     ""))
@@ -155,7 +155,7 @@ icon name and the face.")
     (let ((icon (all-the-icons-icon-for-buffer)))
 
       (propertize (if (or (null icon) (symbolp icon))
-                      (wal-line-icons--icon wal-line-icons-buffer-fallback-icon)
+                      (wli--icon wli-buffer-fallback-icon)
                     icon)
                   'help-echo (format "%s" (format-mode-line mode-name))
                   'display '(raise -0.135))))
@@ -163,47 +163,51 @@ icon name and the face.")
   (lambda ()
     (advice-add
      #'wal-line-project--get-segment :filter-return
-     #'wal-line-icons--prepend-icon-to-project-segment)
+     #'wli--prepend-icon-to-project-segment)
     (wal-line-project--set-segment)
 
     (advice-add
      #'wal-line-vc--get-segment :filter-return
-     #'wal-line-icons--prepend-icon-to-vc-segment)
+     #'wli--prepend-icon-to-vc-segment)
     (wal-line-vc--set-segment)
 
     (advice-add
      #'wal-line-window-status--segment :override
-     #'wal-line-icons--advise-window-status-segment)
+     #'wli--advise-window-status-segment)
 
-    (when wal-line-icons-prettify-buffer-status
+    (when wli-prettify-buffer-status
       (advice-add
        #'wal-line-buffer-status--segment
-       :override #'wal-line-icons--advise-buffer-status-segment))
+       :override #'wli--advise-buffer-status-segment))
 
-    (add-hook 'find-file-hook #'wal-line-icons--set-segment)
-    (add-hook 'after-change-major-mode-hook #'wal-line-icons--set-segment)
-    (add-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-segment))
+    (add-hook 'find-file-hook #'wli--set-segment)
+    (add-hook 'after-change-major-mode-hook #'wli--set-segment)
+    (add-hook 'clone-indirect-buffer-hook #'wli--set-segment))
   :teardown
   (lambda ()
     (advice-remove
      #'wal-line-project--get-segment
-     #'wal-line-icons--prepend-icon-to-project-segment)
+     #'wli--prepend-icon-to-project-segment)
     (wal-line-project--set-segment)
 
     (advice-remove
      #'wal-line-vc--get-segment
-     #'wal-line-icons--prepend-icon-to-vc-segment)
+     #'wli--prepend-icon-to-vc-segment)
     (wal-line-vc--set-segment)
 
-    (when wal-line-icons-prettify-buffer-status
+    (when wli-prettify-buffer-status
       (advice-remove
        #'wal-line-buffer-status--segment
-       #'wal-line-icons--advise-buffer-status-segment))
+       #'wli--advise-buffer-status-segment))
 
-    (remove-hook 'find-file-hook #'wal-line-icons--set-segment)
-    (remove-hook 'after-change-major-mode-hook #'wal-line-icons--set-segment)
-    (remove-hook 'clone-indirect-buffer-hook #'wal-line-icons--set-segment)))
+    (remove-hook 'find-file-hook #'wli--set-segment)
+    (remove-hook 'after-change-major-mode-hook #'wli--set-segment)
+    (remove-hook 'clone-indirect-buffer-hook #'wli--set-segment)))
 
 (provide 'wal-line-icons)
 
 ;;; wal-line-icons.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wli-" . "wal-line-icons-"))
+;; End:

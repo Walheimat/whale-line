@@ -24,14 +24,14 @@
 
 ;; Customization:
 
-(defcustom wal-line-lsp-delimiters '("[" "]")
+(defcustom wll-delimiters '("[" "]")
   "The delimiters to indicate LSP status for buffer names."
   :group 'wal-line
   :type '(repeat string))
 
 ;; Functionality:
 
-(defun wal-line-lsp--active-p ()
+(defun wll--active-p ()
   "Check if an LSP mode is active."
   (cond
    ((featurep 'lsp-mode)
@@ -46,14 +46,14 @@
         (when-let* ((icon (wal-line-icons--get-segment))
                     (f-props (get-text-property 0 'face icon))
                     (f-new (copy-tree f-props)))
-          (if (wal-line-lsp--active-p)
+          (if (wll--active-p)
               (progn
                 (plist-put f-new :inherit 'wal-line-indicate)
                 (setq-local wal-line-icons--segment (propertize icon 'face f-new)))
             (setq-local wal-line-icons--segment icon)))
-      (when (wal-line-lsp--active-p)
-        (let ((left (nth 0 wal-line-lsp-delimiters))
-              (right (nth 1 wal-line-lsp-delimiters))
+      (when (wll--active-p)
+        (let ((left (nth 0 wll-delimiters))
+              (right (nth 1 wll-delimiters))
               (str (or (wal-line-buffer-name--get-segment) "")))
           (setq wal-line-buffer-name--segment (concat
                                                (wal-line--spacer)
@@ -74,3 +74,7 @@
 (provide 'wal-line-lsp)
 
 ;;; wal-line-lsp.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wll-" . "wal-line-lsp-"))
+;; End:

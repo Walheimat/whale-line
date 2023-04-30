@@ -26,40 +26,40 @@
 
 ;; Customization:
 
-(defcustom wal-line-org-delimiter "/"
+(defcustom wlo-delimiter "/"
   "The delimiter between file name and heading name."
   :group 'wal-line
   :type 'string)
 
-(defcustom wal-line-org-ellipsis "…"
+(defcustom wlo-ellipsis "…"
   "The string indicating truncation."
   :group 'wal-line
   :type 'string)
 
-(defcustom wal-line-org-include 'current-and-root
+(defcustom wlo-include 'current-and-root
   "The heading depth to show."
   :group 'wal-line
   :type '(choice (const current-and-root)
                  (const current)))
 
-(defcustom wal-line-org-max-heading-length 12
+(defcustom wlo-max-heading-length 12
   "The max length of a heading before truncation."
   :group 'wal-line
   :type 'integer)
 
 ;; Functionality:
 
-(defun wal-line-org--maybe-truncate (heading)
+(defun wlo--maybe-truncate (heading)
   "Maybe truncate HEADING."
-  (let ((max-len wal-line-org-max-heading-length)
+  (let ((max-len wlo-max-heading-length)
         (len (string-width heading))
-        (ellipsis-len (string-width wal-line-org-ellipsis)))
+        (ellipsis-len (string-width wlo-ellipsis)))
     (if (> len max-len)
         (concat (substring heading 0 (max (- max-len ellipsis-len) 1))
-                wal-line-org-ellipsis)
+                wlo-ellipsis)
       heading)))
 
-(defun wal-line-org--get-next-heading ()
+(defun wlo--get-next-heading ()
   "Get the next heading going backwards."
   (org-back-to-heading)
   (let* ((components (org-heading-components))
@@ -68,27 +68,27 @@
          (heading (org-link-display-format (nth 4 components))))
     (propertize heading 'face face)))
 
-(defun wal-line-org--collect-headings ()
+(defun wlo--collect-headings ()
   "Collect headings until it's no longer safe."
   (when (fboundp 'org-up-heading-safe)
     (save-excursion
-      (cl-loop collect (wal-line-org--get-next-heading)
+      (cl-loop collect (wlo--get-next-heading)
                while (org-up-heading-safe)))))
 
-(defun wal-line-org--build-segment ()
+(defun wlo--build-segment ()
   "Build the segment from included segments."
   (org-with-wide-buffer
    (goto-char (window-start))
    (unless (org-before-first-heading-p)
-     (let ((headings (wal-line-org--collect-headings)))
+     (let ((headings (wlo--collect-headings)))
        (if (null headings)
            ""
-         (pcase wal-line-org-include
+         (pcase wlo-include
            ('current (nth 0 headings))
            ('current-and-root
             (if (> (length headings) 1)
                 (concat
-                 (wal-line-org--maybe-truncate (car (last headings)))
+                 (wlo--maybe-truncate (car (last headings)))
                  (wal-line--spacer)
                  (nth 0 headings))
               (nth 0 headings)))))))))
@@ -97,11 +97,11 @@
 
 (wal-line-create-dynamic-segment org
   :getter
-  (let ((segment (wal-line-org--build-segment)))
+  (let ((segment (wlo--build-segment)))
     (when segment
       (concat
-       wal-line-org-delimiter
-       (wal-line-org--build-segment))))
+       wlo-delimiter
+       (wlo--build-segment))))
   :condition
   (eq major-mode 'org-mode)
   :dense t)
@@ -109,3 +109,7 @@
 (provide 'wal-line-org)
 
 ;;; wal-line-org.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wlo-" . "wal-line-org-"))
+;; End:

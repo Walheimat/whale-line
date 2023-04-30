@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `ready-symbol-shorthands` used in some sub-packages to keep their
+  name lengths in check.
+
 ## [0.4.0]
 
 ### Added

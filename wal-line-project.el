@@ -21,7 +21,7 @@
 
 ;;;; Customization:
 
-(defcustom wal-line-project-provider
+(defcustom wlp-provider
   (if (bound-and-true-p projectile-mode)
       'projectile
     'project)
@@ -30,7 +30,7 @@
   :type '(choice (const projectile)
                  (const project)))
 
-(defun wal-line-project--display-for-buffer-p ()
+(defun wlp--display-for-buffer-p ()
   "Check if current buffer should show project information.
 
 Only consider Dired buffers and file buffers."
@@ -40,21 +40,21 @@ Only consider Dired buffers and file buffers."
 
 ;;;; Functionality:
 
-(defvar wal-line-project--regexp ".+\\(\\/.+\\)\\/$")
+(defvar wlp--regexp ".+\\(\\/.+\\)\\/$")
 
 (wal-line-create-static-segment project
   :getter
-  (when-let* ((candidate (wal-line-project--display-for-buffer-p))
-              (p-root (pcase wal-line-project-provider
+  (when-let* ((candidate (wlp--display-for-buffer-p))
+              (p-root (pcase wlp-provider
                         ('projectile
                          (projectile-project-root))
                         ('project
                          (when-let ((current (project-current)))
                            (project-root current)))
                         (_ nil)))
-              (p-name (pcase wal-line-project-provider
+              (p-name (pcase wlp-provider
                         ('projectile
-                         (string-match wal-line-project--regexp p-root)
+                         (string-match wlp--regexp p-root)
                          (substring (match-string 1 p-root) 1))
                         ('project
                          (project-name (project-current)))
@@ -62,10 +62,14 @@ Only consider Dired buffers and file buffers."
 
     (propertize p-name 'face 'wal-line-emphasis))
   :setup
-  (lambda () (add-hook 'find-file-hook #'wal-line-project--set-segment))
+  (lambda () (add-hook 'find-file-hook #'wlp--set-segment))
   :teardown
-  (lambda () (remove-hook 'find-file-hook #'wal-line-project--set-segment)))
+  (lambda () (remove-hook 'find-file-hook #'wlp--set-segment)))
 
 (provide 'wal-line-project)
 
 ;;; wal-line-project.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wlp-" . "wal-line-project-"))
+;; End:

@@ -20,49 +20,50 @@
 
 ;;;; Customization:
 
-(defcustom wal-line-animation-key-frames ["(__.- >{"
-                                          "(__.' >{"
-                                          "(__.- >{"
-                                          "(__., >{"]
+(defcustom wla-key-frames ["(__.- >{"
+                           "(__.' >{"
+                           "(__.- >{"
+                           "(__., >{"]
   "Animation key frames."
   :group 'wal-line
   :type '(vector string))
 
-(defcustom wal-line-animation-speed 0.4
+(defcustom wla-speed 0.4
   "Animation speed."
   :group 'wal-line
   :type 'float)
 
 ;;;; Functionality:
 
-(defvar wal-line-animation--frame-index 0)
-(defvar wal-line-animation--timer nil)
+(defvar wla--frame-index 0)
+(defvar wla--timer nil)
 
 (wal-line-create-static-segment animation
   :getter
-  (let* ((frame (aref wal-line-animation-key-frames wal-line-animation--frame-index))
+  (let* ((frame (aref wla-key-frames wla--frame-index))
          (colored (propertize frame 'face 'wal-line-emphasis)))
-    (setq wal-line-animation--frame-index
+    (setq wla--frame-index
           (mod
-           (1+ wal-line-animation--frame-index)
-           (length wal-line-animation-key-frames))
-          wal-line-animation--segment (concat (wal-line--spacer) colored))
+           (1+ wla--frame-index)
+           (length wla-key-frames))
+          wla--segment (concat (wal-line--spacer) colored))
     (force-mode-line-update)
-    wal-line-animation--segment)
+    wla--segment)
   :setup
   (lambda ()
-    (unless wal-line-animation--timer
-      (setq wal-line-animation--timer (run-with-timer
-                                       0
-                                       wal-line-animation-speed
-                                       #'wal-line-animation--get-segment))))
+    (unless wla--timer
+      (setq wla--timer (run-with-timer 0 wla-speed #'wla--get-segment))))
   :teardown
   (lambda ()
-    (when wal-line-animation--timer
-      (cancel-timer wal-line-animation--timer)
-      (setq wal-line-animation--timer nil)))
+    (when wla--timer
+      (cancel-timer wla--timer)
+      (setq wla--timer nil)))
   :priority 'current-low)
 
 (provide 'wal-line-animation)
 
 ;;; wal-line-animation.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wla-" . "wal-line-animation-"))
+;; End:

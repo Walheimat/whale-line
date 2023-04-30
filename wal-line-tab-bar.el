@@ -15,8 +15,7 @@
 
 (require 'wal-line)
 
-
-(defun wal-tab-bar--get-explicit-name ()
+(defun wltb--get-explicit-name ()
   "Get the name of the tab if it was set explicitly."
   (when-let* ((tab (tab-bar--current-tab))
               ((alist-get 'explicit-name tab))
@@ -29,7 +28,7 @@
   (lambda () (featurep 'tab-bar))
 
   :getter
-  (wal-tab-bar--get-explicit-name)
+  (wltb--get-explicit-name)
 
   :hooks
   (window-configuration-change-hook)
@@ -40,3 +39,7 @@
 (provide 'wal-line-tab-bar)
 
 ;;; wal-line-tab-bar.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wltb-" . "wal-line-tab-bar-"))
+;; End:

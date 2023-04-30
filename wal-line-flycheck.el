@@ -20,7 +20,7 @@
 
 ;;;; Functionality:
 
-(defface wal-line-flycheck-running
+(defface wlf-running
   '((t (:underline (:style wave)
         :inherit (shadow)
         )))
@@ -28,10 +28,10 @@
   :group 'wal-line)
 
 (defvar flycheck-current-errors)
-(defun wal-line-flycheck--get-face-for-status (status)
+(defun wlf--get-face-for-status (status)
   "Get the face to use for STATUS."
   (pcase status
-    ('running 'wal-line-flycheck-running)
+    ('running 'wlf-running)
     ('finished
      (if flycheck-current-errors
          (let-alist (flycheck-count-errors flycheck-current-errors)
@@ -46,7 +46,7 @@
   :verify (lambda () (require 'flycheck nil t))
   :action
   (lambda (status &rest _r)
-    (let ((face (wal-line-flycheck--get-face-for-status status))
+    (let ((face (wlf--get-face-for-status status))
           (segment (wal-line-buffer-name--get-segment)))
       (setq-local wal-line-buffer-name--segment (concat
                                                  (wal-line--spacer)
@@ -57,3 +57,7 @@
 (provide 'wal-line-flycheck)
 
 ;;; wal-line-flycheck.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wlf-" . "wal-line-flycheck-"))
+;; End:

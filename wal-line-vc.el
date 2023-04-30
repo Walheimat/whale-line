@@ -19,21 +19,21 @@
 
 ;; State:
 
-(defvar-local wal-line-vc--state nil)
+(defvar-local wlvc--state nil)
 
-(defun wal-line-vc--update-state ()
+(defun wlvc--update-state ()
   "Update the version control state."
-  (when-let ((state (wal-line-vc--get-state)))
-    (setq-local wal-line-vc--state state)))
+  (when-let ((state (wlvc--get-state)))
+    (setq-local wlvc--state state)))
 
-(defun wal-line-vc--get-state ()
+(defun wlvc--get-state ()
   "Get the version control state."
   (when-let ((backend (vc-backend buffer-file-name)))
     (vc-state (file-local-name buffer-file-name) backend)))
 
-(defun wal-line-vc--face-for-state ()
+(defun wlvc--face-for-state ()
   "Get the correct face for the state."
-  (let ((state wal-line-vc--state))
+  (let ((state wlvc--state))
     (cond ((eq state 'needs-update)
            'wal-line-contrast)
           ((eq state 'edited)
@@ -44,45 +44,49 @@
 
 ;; Info:
 
-(defvar wal-line-vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
-(defvar-local wal-line-vc--info nil)
+(defvar wlvc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
+(defvar-local wlvc--info nil)
 
-(defun wal-line-vc--update-info ()
+(defun wlvc--update-info ()
   "Update version control info."
-  (when-let ((info (wal-line-vc--get-info)))
-    (setq-local wal-line-vc--info info)))
+  (when-let ((info (wlvc--get-info)))
+    (setq-local wlvc--info info)))
 
-(defun wal-line-vc--get-info ()
+(defun wlvc--get-info ()
   "Get version control info."
   (when (and vc-mode buffer-file-name)
     (let* ((backend (vc-backend buffer-file-name))
            (status (if vc-display-status
                        (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
                      ""))
-           (str (replace-regexp-in-string wal-line-vc--scope-regexp "" status)))
+           (str (replace-regexp-in-string wlvc--scope-regexp "" status)))
       (propertize str
                   'mouse-face 'wal-line-highlight
-                  'face (wal-line-vc--face-for-state)))))
+                  'face (wlvc--face-for-state)))))
 
 ;; Segment:
 
 (wal-line-create-static-segment vc
   :getter
   (progn
-    (wal-line-vc--update-state)
-    (wal-line-vc--update-info)
-    wal-line-vc--info)
+    (wlvc--update-state)
+    (wlvc--update-info)
+    wlvc--info)
   :setup
   (lambda ()
-    (add-hook 'find-file-hook #'wal-line-vc--set-segment)
-    (add-hook 'after-save-hook #'wal-line-vc--set-segment)
-    (advice-add 'vc-refresh-state :after #'wal-line-vc--set-segment))
+    (add-hook 'find-file-hook #'wlvc--set-segment)
+    (add-hook 'after-save-hook #'wlvc--set-segment)
+    (advice-add 'vc-refresh-state :after #'wlvc--set-segment))
   :teardown
   (lambda ()
-    (remove-hook 'find-file-hook #'wal-line-vc--set-segment)
-    (remove-hook 'after-save-hook #'wal-line-vc--set-segment)
-    (advice-remove 'vc-refresh-state #'wal-line-vc--set-segment)))
+    (remove-hook 'find-file-hook #'wlvc--set-segment)
+    (remove-hook 'after-save-hook #'wlvc--set-segment)
+    (advice-remove 'vc-refresh-state #'wlvc--set-segment)))
 
 (provide 'wal-line-vc)
 
 ;;; wal-line-vc.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wlvc-" . "wal-line-vc-"))
+;; End:
