@@ -49,9 +49,9 @@
     ('finished
      (if flycheck-current-errors
          (let-alist (flycheck-count-errors flycheck-current-errors)
-           (format "Errors: %s, warnings: %s" (or .error 0) (or .warning 0)))
-       (format "Info: %s" (or .info 0))))
-    (_ "No problems")))
+           (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))
+       "No errors"))
+    (_ "No errors")))
 
 (wal-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
