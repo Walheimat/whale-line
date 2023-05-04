@@ -60,7 +60,7 @@ Only consider Dired buffers and file buffers."
                          (project-name (project-current)))
                         (_ ""))))
 
-    (propertize p-name 'face 'wal-line-emphasis))
+    (propertize p-name 'face 'wal-line-emphasis 'help-echo p-root))
   :setup
   (lambda () (add-hook 'find-file-hook #'wlp--set-segment))
   :teardown

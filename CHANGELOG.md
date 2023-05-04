@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Segment `project` and augment `flycheck` now have help echo texts
+  showing root path and errors respectively.
+
 ### Changed
 
 - `ready-symbol-shorthands` used in some sub-packages to keep their
