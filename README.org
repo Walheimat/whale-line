@@ -2,57 +2,81 @@
 
 This package is my personal Emacs mode-line.
 
+It displays buffer information in two sections. Each section has its
+dedicated segments. Segments come in various priorities that will
+determine if they are shown. Some are only shown on the selected
+window, some are hidden if there isn't enough space (split windows).
+
+** Installation
+
+If you use =straight= or =quelpa=, you know what to do.
+
+If you're on Emacs >29, I recommend using =package-vc-install=.
+
+Alternatively, provided you have Cask, you can install the package
+with =make install=.
+
 ** Configuration
 
-The base mode line has no dependencies. By default all features are
-enabled. This includes the =icons= feature which will require
-=all-the-icons=.
-
-On requiring the base package, all features in =wal-line-features= will
-be required. Afterwards they can be turned on/off by calling
+On enabling =wal-line-mode=, all features in =wal-line-features= will be
+required. Afterwards they can be turned on/off by calling
 =wal-line-disable-feature= and =wal-line-enable-feature= respectively.
+Segments that rely on external packages will not load if they are
+missing. Adapt =wal-line-features= accordingly.
 
 #+BEGIN_SRC emacs-lisp
 (use-package wal-line
   :config
   (wal-line-mode +1)
+
   :custom
   ;; Features that should be enabled on activation.
-  (wal-line-features '(flycheck
-                       project
-                       icons ; Remove if you don't use `all-the-icons'.
+  (wal-line-features '(flycheck   ; Indicates `flycheck' errors.
+                       project    ; For `project' and `projectile'.
+                       icons      ; For `all-the-icons'.
                        vc
-                       whale
+                       animation  ; Shows animation (a whale by default).
                        minions
-                       mc))
+                       cursors    ; For `multiple-cursors'.
+                       lsp        ; For `lsp-mode' and `eglot'.
+                       org        ; Shows heading path.
+                       tab-bar))
+
   ;; Strategy to use when there's not enough space to render all segments.
   (wal-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
+
   ;; Animation.
   (wal-line-animation-key-frames [
-                                  "(__.- >{"
-                                  "(__.' >{"
-                                  "(__.- >{"
-                                  "(__., >{"
+                                  "   "
+                                  ".  "
+                                  ".. "
+                                  "..."
+                                  " .."
+                                  "  ."
                                   ])
   (wal-line-animation-speed 0.4)
+
   ;; Project provider.
-  (wal-line-project-provider 'projectile) ; Other option is `project'.
-  ;; Installation using `quelpa' and `quelpa-use-package'.
-  :quelpa (wal-line :fetcher github :repo "Walheimat/wal-line"))
+  (wal-line-project-provider 'projectile) ; Default is `project'.)
 #+END_SRC
 
 ** Example Screenshot
 
-Modeline (theme is =doom-palenight=) showing:
+Modeline in a split frame (theme is =kaolin-galaxy=).
+
+The left window is selected and shows:
 
 - file buffer icon using =all-the-icons=
 - status (warnings) using =flycheck=
+- buffer-status (edited)
 - file position
-- selection (3 lines)
+- selection (6 lines)
+- =global-mode-string=
 - minimized minor modes using =minions=
-- =global-mode-string= including =perspective=
 - project
 - version control status (unedited)
-- (animated) whale
+- animation
+
+The right window hides segments with low priority.
 
 [[file:assets/mode-line.png]]
