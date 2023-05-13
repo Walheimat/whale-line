@@ -1,6 +1,5 @@
 *.elc
 *.tar
-.dir-locals.el
 tasks.org
 
 # cask
