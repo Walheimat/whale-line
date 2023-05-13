@@ -43,15 +43,16 @@
     (_ 'wal-line-neutral)))
 
 (defun wlf--get-error-help (status)
-  "Get the error count for STATUS."
+  "Get the error count for STATUS.
+
+Returns nil if not checking or if no errors were found."
   (pcase status
     ('running "Still checking")
     ('finished
-     (if flycheck-current-errors
-         (let-alist (flycheck-count-errors flycheck-current-errors)
-           (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))
-       "No errors"))
-    (_ "No errors")))
+     (when flycheck-current-errors
+       (let-alist (flycheck-count-errors flycheck-current-errors)
+         (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))))
+    (_ nil)))
 
 (wal-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
@@ -60,13 +61,13 @@
     (let ((face (wlf--get-face-for-status status))
           (text (wlf--get-error-help status))
           (segment (wal-line-buffer-name--get-segment)))
-      (setq-local wal-line-buffer-name--segment
-                  (concat
+
+	  (setq-local wal-line-buffer-name--segment
+				  (concat
                    (wal-line--spacer)
-                   (propertize
-                    segment
-                    'face face
-                    'help-echo text)))))
+				   (if text
+					   (propertize segment 'face face 'help-echo text)
+					 (propertize segment 'face face))))))
   :hooks
   (flycheck-status-changed-functions))
 
