@@ -447,7 +447,11 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
 (wal-line-create-static-segment buffer-name
   :getter
-  (buffer-name)
+  (let* ((identification (car-safe mode-line-buffer-identification))
+         (help (get-text-property 0 'help-echo identification))
+         (map (get-text-property 0 'local-map identification)))
+
+    (propertize "%b" 'help-echo help 'mouse-face 'wal-line-highlight 'local-map map))
   :hooks
   (find-file-hook
    after-save-hook
