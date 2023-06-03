@@ -1,4 +1,4 @@
-* wal-line.el
+* whale-line.el
 
 This package is my personal Emacs mode-line.
 
@@ -18,20 +18,20 @@ with =make install=.
 
 ** Configuration
 
-On enabling =wal-line-mode=, all features in =wal-line-features= will be
+On enabling =whale-line-mode=, all features in =whale-line-features= will be
 required. Afterwards they can be turned on/off by calling
-=wal-line-disable-feature= and =wal-line-enable-feature= respectively.
+=whale-line-disable-feature= and =whale-line-enable-feature= respectively.
 Segments that rely on external packages will not load if they are
-missing. Adapt =wal-line-features= accordingly.
+missing. Adapt =whale-line-features= accordingly.
 
 #+BEGIN_SRC emacs-lisp
-(use-package wal-line
+(use-package whale-line
   :config
-  (wal-line-mode +1)
+  (whale-line-mode +1)
 
   :custom
   ;; Features that should be enabled on activation.
-  (wal-line-features '(flycheck   ; Indicates `flycheck' errors.
+  (whale-line-features '(flycheck   ; Indicates `flycheck' errors.
                        project    ; For `project' and `projectile'.
                        icons      ; For `all-the-icons'.
                        vc
@@ -43,10 +43,10 @@ missing. Adapt =wal-line-features= accordingly.
                        tab-bar))
 
   ;; Strategy to use when there's not enough space to render all segments.
-  (wal-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
+  (whale-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
 
   ;; Animation.
-  (wal-line-animation-key-frames [
+  (whale-line-animation-key-frames [
                                   "   "
                                   ".  "
                                   ".. "
@@ -54,20 +54,21 @@ missing. Adapt =wal-line-features= accordingly.
                                   " .."
                                   "  ."
                                   ])
-  (wal-line-animation-speed 0.4)
+  (whale-line-animation-speed 0.4)
 
   ;; Project provider.
-  (wal-line-project-provider 'projectile) ; Default is `project'.)
+  (whale-line-project-provider 'projectile) ; Default is `project'.)
 #+END_SRC
 
 ** Example Screenshot
 
-Modeline in a split frame (theme is =kaolin-galaxy=).
+Modeline in a split split frame (theme is =kaolin-galaxy=).
 
 The left window is selected and shows:
 
 - file buffer icon using =all-the-icons=
 - status (warnings) using =flycheck=
+- position in =org= document
 - buffer-status (edited)
 - file position
 - selection (6 lines)
@@ -75,6 +76,7 @@ The left window is selected and shows:
 - minimized minor modes using =minions=
 - project
 - version control status (unedited)
+- =tab-bar-mode= name
 - animation
 
 The right window hides segments with low priority.

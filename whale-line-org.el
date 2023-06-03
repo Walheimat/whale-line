@@ -1,7 +1,7 @@
-;;; wal-line-org.el --- Indicate position for Org files -*- lexical-binding: t; -*-
+;;; whale-line-org.el --- Indicate position for Org files -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -15,36 +15,36 @@
 (eval-when-compile
   (require 'org))
 
-(require 'wal-line)
+(require 'whale-line)
 
 (declare-function org-back-to-heading "ext:org.el")
 (declare-function org-before-first-heading-p "ext:org.el")
 (declare-function org-heading-components "ext:org.el")
 (declare-function org-link-display-format "ext:org.el")
-(declare-function wal-line-buffer-name--segment "wal-line.el")
-(declare-function wal-line--spacer "wal-line.el")
+(declare-function whale-line-buffer-name--segment "whale-line.el")
+(declare-function whale-line--spacer "whale-line.el")
 
 ;; Customization:
 
 (defcustom wlo-delimiter "/"
   "The delimiter between file name and heading name."
-  :group 'wal-line
+  :group 'whale-line
   :type 'string)
 
 (defcustom wlo-ellipsis "…"
   "The string indicating truncation."
-  :group 'wal-line
+  :group 'whale-line
   :type 'string)
 
 (defcustom wlo-include 'current-and-root
   "The heading depth to show."
-  :group 'wal-line
+  :group 'whale-line
   :type '(choice (const current-and-root)
                  (const current)))
 
 (defcustom wlo-max-heading-length 12
   "The max length of a heading before truncation."
-  :group 'wal-line
+  :group 'whale-line
   :type 'integer)
 
 ;; Functionality:
@@ -89,13 +89,13 @@
             (if (> (length headings) 1)
                 (concat
                  (wlo--maybe-truncate (car (last headings)))
-                 (wal-line--spacer)
+                 (whale-line--spacer)
                  (nth 0 headings))
               (nth 0 headings)))))))))
 
 ;; Segment:
 
-(wal-line-create-dynamic-segment org
+(whale-line-create-dynamic-segment org
   :getter
   (let ((segment (wlo--build-segment)))
     (when segment
@@ -106,10 +106,10 @@
   (eq major-mode 'org-mode)
   :dense t)
 
-(provide 'wal-line-org)
+(provide 'whale-line-org)
 
-;;; wal-line-org.el ends here
+;;; whale-line-org.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wlo-" . "wal-line-org-"))
+;; read-symbol-shorthands: (("wlo-" . "whale-line-org-"))
 ;; End:

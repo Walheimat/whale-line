@@ -1,7 +1,7 @@
-;;; wal-line-vc.el --- Version control segment -*- lexical-binding: t; -*-
+;;; whale-line-vc.el --- Version control segment -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -12,10 +12,10 @@
 
 ;;; Code:
 
-(require 'wal-line)
+(require 'whale-line)
 
-(declare-function wal-line--is-current-window-p "wal-line.el")
-(declare-function wal-line--spacer "wal-line.el")
+(declare-function whale-line--is-current-window-p "whale-line.el")
+(declare-function whale-line--spacer "whale-line.el")
 
 ;; State:
 
@@ -35,12 +35,12 @@
   "Get the correct face for the state."
   (let ((state wlvc--state))
     (cond ((eq state 'needs-update)
-           'wal-line-contrast)
+           'whale-line-contrast)
           ((eq state 'edited)
-           'wal-line-indicate)
+           'whale-line-indicate)
           ((memq state '(removed conflict unregistered))
-           'wal-line-contrast)
-          (t 'wal-line-neutral))))
+           'whale-line-contrast)
+          (t 'whale-line-neutral))))
 
 ;; Info:
 
@@ -61,12 +61,12 @@
                      ""))
            (str (replace-regexp-in-string wlvc--scope-regexp "" status)))
       (propertize str
-                  'mouse-face 'wal-line-highlight
+                  'mouse-face 'whale-line-highlight
                   'face (wlvc--face-for-state)))))
 
 ;; Segment:
 
-(wal-line-create-static-segment vc
+(whale-line-create-static-segment vc
   :getter
   (progn
     (wlvc--update-state)
@@ -83,10 +83,10 @@
     (remove-hook 'after-save-hook #'wlvc--set-segment)
     (advice-remove 'vc-refresh-state #'wlvc--set-segment)))
 
-(provide 'wal-line-vc)
+(provide 'whale-line-vc)
 
-;;; wal-line-vc.el ends here
+;;; whale-line-vc.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wlvc-" . "wal-line-vc-"))
+;; read-symbol-shorthands: (("wlvc-" . "whale-line-vc-"))
 ;; End:

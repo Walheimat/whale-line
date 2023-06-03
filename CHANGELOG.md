@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Package was renamed from `wal-line` to `whale-line`.
 - `ready-symbol-shorthands` used in some sub-packages to keep their
   name lengths in check.
 - `buffer-name` segment now uses the local map and help echo from

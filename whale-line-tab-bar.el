@@ -1,7 +1,7 @@
-;;; wal-line-tab-bar.el --- Tab segment -*- lexical-binding: t; -*-
+;;; whale-line-tab-bar.el --- Tab segment -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -13,7 +13,7 @@
 ;;; Code:
 
 
-(require 'wal-line)
+(require 'whale-line)
 
 (defun wltb--get-explicit-name ()
   "Get the name of the tab if it was set explicitly."
@@ -21,9 +21,9 @@
               ((alist-get 'explicit-name tab))
               (name (alist-get 'name tab)))
 
-    (propertize (concat " " name " ") 'face 'wal-line-highlight)))
+    (propertize (concat " " name " ") 'face 'whale-line-highlight)))
 
-(wal-line-create-static-segment tab-bar
+(whale-line-create-static-segment tab-bar
   :verify
   (lambda () (featurep 'tab-bar))
 
@@ -36,10 +36,10 @@
   :priority
   'current-low)
 
-(provide 'wal-line-tab-bar)
+(provide 'whale-line-tab-bar)
 
-;;; wal-line-tab-bar.el ends here
+;;; whale-line-tab-bar.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wltb-" . "wal-line-tab-bar-"))
+;; read-symbol-shorthands: (("wltb-" . "whale-line-tab-bar-"))
 ;; End:

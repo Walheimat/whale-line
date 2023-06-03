@@ -1,7 +1,7 @@
-;;; wal-line.el --- A whale-based mode-line -*- lexical-binding: t; -*-
+;;; whale-line.el --- A whale-based mode-line -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -15,7 +15,7 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(defconst wal-line--all-features '(flycheck
+(defconst whale-line--all-features '(flycheck
                                    project
                                    icons
                                    vc
@@ -26,7 +26,7 @@
                                    org
                                    tab-bar))
 
-(defvar wal-line--segments '(:left ((margin . t)
+(defvar whale-line--segments '(:left ((margin . t)
                                     (icons . nil)
                                     (buffer-name . nil)
                                     (org . nil)
@@ -46,67 +46,67 @@
 
 ;;;; Customization:
 
-(defgroup wal-line nil
+(defgroup whale-line nil
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom wal-line-features (copy-tree wal-line--all-features)
+(defcustom whale-line-features (copy-tree whale-line--all-features)
   "Optional features to add or enhance segments."
-  :group 'wal-line
+  :group 'whale-line
   :type '(repeat symbol))
 
-(defcustom wal-line-segment-strategy 'prioritize
+(defcustom whale-line-segment-strategy 'prioritize
   "Strategy used when lack of space prohibits displaying all segments.
 
 Strategy `prioritize' filters out segments with low priority.
 Strategy `elide' only displays the left side. Strategy `ignore'
 will display both sides unchanged no matter the space
 constraints."
-  :group 'wal-line
+  :group 'whale-line
   :type '(choice (const prioritize)
                  (const elide)
                  (const ignore)))
 
 ;;;; Faces:
 
-(defface wal-line-neutral
+(defface whale-line-neutral
   '((t))
   "Neutral face."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-shadow
+(defface whale-line-shadow
   '((t (:inherit (shadow))))
   "Shadow face."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-highlight
+(defface whale-line-highlight
   '((t (:inherit (mode-line-highlight))))
   "Face used for highlight."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-indicate
+(defface whale-line-indicate
   '((t :inherit (success)))
   "Face used for indicating (something good)."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-emphasis
+(defface whale-line-emphasis
   '((t (:inherit (mode-line-emphasis))))
   "Face used for emphasis."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-contrast
+(defface whale-line-contrast
   '((t (:inherit (warning))))
   "Face used for contrast."
-  :group 'wal-line)
+  :group 'whale-line)
 
-(defface wal-line-notification
+(defface whale-line-notification
   '((t (:inherit (compilation-info))))
   "Face used for notification."
-  :group 'wal-line)
+  :group 'whale-line)
 
 ;;;; Utility:
 
-(defun wal-line--spacer (&optional big)
+(defun whale-line--spacer (&optional big)
   "A space used for padding.
 
 Optionally, use a BIG spacer."
@@ -114,98 +114,98 @@ Optionally, use a BIG spacer."
 
 ;; Formatting:
 
-(defun wal-line--format-side (side &optional filter)
+(defun whale-line--format-side (side &optional filter)
   "Get the formatted SIDE.
 
 Optionally FILTER out low priority segments."
-  (format-mode-line (wal-line--render side filter)))
+  (format-mode-line (whale-line--render side filter)))
 
-(defun wal-line--enough-space-p ()
+(defun whale-line--enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
   (let* ((f-pixel (window-font-width))
-         (left (* f-pixel (length (wal-line--format-side :left))))
-         (right (* f-pixel (length (wal-line--format-side :right)))))
+         (left (* f-pixel (length (whale-line--format-side :left))))
+         (right (* f-pixel (length (whale-line--format-side :right)))))
     (> (- (window-pixel-width) (+ left right)) 0)))
 
-(defun wal-line--format-ignore ()
+(defun whale-line--format-ignore ()
   "Format mode line ignoring space constraints."
-  (let ((lhs (wal-line--render :left))
-        (rhs (wal-line--render :right))
-        (rlen (length (wal-line--format-side :right))))
+  (let ((lhs (whale-line--render :left))
+        (rhs (whale-line--render :right))
+        (rlen (length (whale-line--format-side :right))))
     `(,@lhs
       ,(propertize " " 'display
                    `((space :align-to (- right (- 0 right-margin) ,rlen))))
       ,@rhs)))
 
-(defun wal-line--format-elide ()
+(defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
-  (let ((lhs (wal-line--render :left))
-        (rhs (wal-line--render :right))
-        (rlen (length (wal-line--format-side :right)))
-        (space? (wal-line--enough-space-p)))
+  (let ((lhs (whale-line--render :left))
+        (rhs (whale-line--render :right))
+        (rlen (length (whale-line--format-side :right)))
+        (space? (whale-line--enough-space-p)))
     `(,@lhs
       ,(propertize
         " "
         'display `((space :align-to (- right (- 0 right-margin) ,(if space? rlen 5)))))
       ,@(if space?
             rhs
-          '((:eval (propertize (concat (wal-line--spacer) "..." (wal-line--spacer))
-                               'face 'wal-line-shadow)))))))
+          '((:eval (propertize (concat (whale-line--spacer) "..." (whale-line--spacer))
+                               'face 'whale-line-shadow)))))))
 
-(defun wal-line--format-prioritize ()
+(defun whale-line--format-prioritize ()
   "Format mode line, prioritizing certain segments if space is lacking."
-  (if (wal-line--enough-space-p)
-      (wal-line--format-ignore)
-    (let ((lhs (wal-line--render :left t))
-          (rhs (wal-line--render :right t))
-          (rlen (length (wal-line--format-side :right t))))
+  (if (whale-line--enough-space-p)
+      (whale-line--format-ignore)
+    (let ((lhs (whale-line--render :left t))
+          (rhs (whale-line--render :right t))
+          (rlen (length (whale-line--format-side :right t))))
       `(,@lhs
         ,(propertize " " 'display
                      `((space :align-to (- right (- 0 right-margin) ,rlen))))
         ,@rhs))))
 
-(defun wal-line--format ()
+(defun whale-line--format ()
   "Return a list of aligned left and right segments.
 
 If there's not enough space, only shows the left segments and an
 ellipsis."
-  (pcase wal-line-segment-strategy
+  (pcase whale-line-segment-strategy
     ('ignore
-     (wal-line--format-ignore))
+     (whale-line--format-ignore))
     ('elide
-     (wal-line--format-elide))
+     (whale-line--format-elide))
     ('prioritize
-     (wal-line--format-prioritize))))
+     (whale-line--format-prioritize))))
 
 ;; Windows:
 
-(defvar wal-line--current-window nil)
+(defvar whale-line--current-window nil)
 
-(defun wal-line--get-current-window ()
+(defun whale-line--get-current-window ()
   "Get the current window but should exclude the child windows."
   (if (and (fboundp 'frame-parent) (frame-parent))
       (frame-selected-window (frame-parent))
     (frame-selected-window)))
 
-(defun wal-line--set-selected-window (&rest _)
+(defun whale-line--set-selected-window (&rest _)
   "Set selected window appropriately."
-  (let ((win (wal-line--get-current-window)))
-    (setq wal-line--current-window
+  (let ((win (whale-line--get-current-window)))
+    (setq whale-line--current-window
           (if (minibuffer-window-active-p win)
               (minibuffer-selected-window)
             win))))
 
-(defun wal-line--is-current-window-p ()
+(defun whale-line--is-current-window-p ()
   "Check if the current window is the selected window."
-  (and wal-line--current-window
-       (eq (wal-line--get-current-window) wal-line--current-window)))
+  (and whale-line--current-window
+       (eq (whale-line--get-current-window) whale-line--current-window)))
 
 ;; Priorities:
 
-(defun wal-line--set-segment-priority (segment priority)
+(defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
-  (let ((left? (assoc segment (plist-get wal-line--segments :left)))
-        (right? (assoc segment (plist-get wal-line--segments :right))))
+  (let ((left? (assoc segment (plist-get whale-line--segments :left)))
+        (right? (assoc segment (plist-get whale-line--segments :right))))
     (cond
      (left?
       (setcdr left? priority))
@@ -213,23 +213,23 @@ ellipsis."
       (setcdr right? priority))
      (t (user-error "Unknown segment")))))
 
-(defun wal-line-add-segment (segment &optional priority)
+(defun whale-line-add-segment (segment &optional priority)
   "Add SEGMENT to the list of segments.
 
 Optionally with a PRIORITY."
   (let ((prio (or priority t)))
-    (wal-line--set-segment-priority segment prio)))
+    (whale-line--set-segment-priority segment prio)))
 
 ;; Macros:
 
-(defvar wal-line-augment-fstring "wal-line-%s--augment")
-(defvar wal-line-segment-fstring "wal-line-%s--segment")
-(defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
-(defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
-(defvar wal-line-setup-fstring "wal-line-%s--setup")
-(defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+(defvar whale-line-augment-fstring "whale-line-%s--augment")
+(defvar whale-line-segment-fstring "whale-line-%s--segment")
+(defvar whale-line-set-segment-fstring "whale-line-%s--set-segment")
+(defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
+(defvar whale-line-setup-fstring "whale-line-%s--setup")
+(defvar whale-line-teardown-fstring "whale-line-%s--teardown")
 
-(cl-defmacro wal-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
+(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
   "Create a static segment named NAME.
 
 GETTER is the form to evaluate to get the string (the setter is
@@ -250,17 +250,17 @@ A left margin is added unless DENSE is t.
 This will also add the segment with PRIORITY or t."
   (declare (indent defun))
 
-  (defvar wal-line-segment-fstring "wal-line-%s--segment")
-  (defvar wal-line-set-segment-fstring "wal-line-%s--set-segment")
-  (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
-  (defvar wal-line-setup-fstring "wal-line-%s--setup")
-  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+  (defvar whale-line-segment-fstring "whale-line-%s--segment")
+  (defvar whale-line-set-segment-fstring "whale-line-%s--set-segment")
+  (defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
+  (defvar whale-line-setup-fstring "whale-line-%s--setup")
+  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
 
-  (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
-        (setter (intern (format wal-line-set-segment-fstring (symbol-name name))))
-        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name))))
-        (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name))))
+  (let ((segment (intern (format whale-line-segment-fstring (symbol-name name))))
+        (setter (intern (format whale-line-set-segment-fstring (symbol-name name))))
+        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name))))
+        (getter-sym (intern (format whale-line-get-segment-fstring (symbol-name name))))
         (prio (or priority t)))
 
     (if (or (null verify) (funcall verify))
@@ -274,7 +274,7 @@ This will also add the segment with PRIORITY or t."
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
              (if-let ((str (,getter-sym)))
-                 (setq-local ,segment ,(if dense 'str '(concat (wal-line--spacer) str)))
+                 (setq-local ,segment ,(if dense 'str '(concat (whale-line--spacer) str)))
                (setq-local ,segment nil)))
 
            ,(when (or setup hooks advice)
@@ -292,7 +292,7 @@ This will also add the segment with PRIORITY or t."
 
                    ,(when setup `(funcall ,setup)))
 
-                 (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'whale-line-setup-hook #',setup-sym)))
 
            ,(when (or teardown hooks advice)
               `(progn
@@ -309,14 +309,14 @@ This will also add the segment with PRIORITY or t."
 
                    ,(when teardown `(funcall ,teardown)))
 
-                 (add-hook 'wal-line-teardown-hook #',teardown-sym)))
+                 (add-hook 'whale-line-teardown-hook #',teardown-sym)))
 
-           (wal-line-add-segment ',name ,prio))
+           (whale-line-add-segment ',name ,prio))
       `(progn
          (defvar ,segment nil)
          (message "Couldn't add `%s' segment" ',name)))))
 
-(cl-defmacro wal-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
+(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
   "Create a dynamic segment name NAME.
 
 GETTER is the function to call on re-render.
@@ -335,15 +335,15 @@ A left margin is added unless DENSE is t.
 The segment will be added with PRIORITY or t."
   (declare (indent defun))
 
-  (defvar wal-line-segment-fstring "wal-line-%s--segment")
-  (defvar wal-line-get-segment-fstring "wal-line-%s--get-segment")
-  (defvar wal-line-setup-fstring "wal-line-%s--setup")
-  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+  (defvar whale-line-segment-fstring "whale-line-%s--segment")
+  (defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
+  (defvar whale-line-setup-fstring "whale-line-%s--setup")
+  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
 
-  (let ((segment (intern (format wal-line-segment-fstring (symbol-name name))))
-        (getter-sym (intern (format wal-line-get-segment-fstring (symbol-name name))))
-        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name))))
+  (let ((segment (intern (format whale-line-segment-fstring (symbol-name name))))
+        (getter-sym (intern (format whale-line-get-segment-fstring (symbol-name name))))
+        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name))))
         (prio (or priority t))
         (con (or condition t)))
 
@@ -356,7 +356,7 @@ The segment will be added with PRIORITY or t."
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
-                   ,(if dense `(,getter-sym) `(concat (wal-line--spacer) (,getter-sym))))
+                   ,(if dense `(,getter-sym) `(concat (whale-line--spacer) (,getter-sym))))
                  ""))
 
            ,(when setup
@@ -365,7 +365,7 @@ The segment will be added with PRIORITY or t."
                    ,(format "Set up %s segment." name)
                    (funcall ,setup))
 
-                 (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'whale-line-setup-hook #',setup-sym)))
 
            ,(when teardown
               `(progn
@@ -373,16 +373,16 @@ The segment will be added with PRIORITY or t."
                    ,(format "Tear down %s segment." name)
                    (funcall ,teardown))
 
-                 (add-hook 'wal-line-teardown-hook #',teardown-sym)))
+                 (add-hook 'whale-line-teardown-hook #',teardown-sym)))
 
-           (wal-line-add-segment ',name ,prio))
+           (whale-line-add-segment ',name ,prio))
       `(progn
          (defun ,segment ()
            ,(format "Render `%s' segment as an empty string." name)
            "")
          (message "Couldn't add `%s' segment" ',name)))))
 
-(cl-defmacro wal-line-create-augment (name &key verify action hooks advice setup teardown)
+(cl-defmacro whale-line-create-augment (name &key verify action hooks advice setup teardown)
   "Create augment(-or) named NAME.
 
 VERIFY is an optional function called before augmenting. If that
@@ -397,13 +397,13 @@ functions-to-advise to call ACTION.
 Additional SETUP and TEARDOWN function can be added for more control."
   (declare (indent defun))
 
-  (defvar wal-line-augment-fstring "wal-line-%s--augment")
-  (defvar wal-line-setup-fstring "wal-line-%s--setup")
-  (defvar wal-line-teardown-fstring "wal-line-%s--teardown")
+  (defvar whale-line-augment-fstring "whale-line-%s--augment")
+  (defvar whale-line-setup-fstring "whale-line-%s--setup")
+  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
 
-  (let ((augment (intern (format wal-line-augment-fstring (symbol-name name))))
-        (setup-sym (intern (format wal-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format wal-line-teardown-fstring (symbol-name name)))))
+  (let ((augment (intern (format whale-line-augment-fstring (symbol-name name))))
+        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
+        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name)))))
 
     (if (or (null verify) (funcall verify))
         `(progn
@@ -423,7 +423,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
                    ,(when setup `(funcall ,setup)))
 
-                 (add-hook 'wal-line-setup-hook #',setup-sym)))
+                 (add-hook 'whale-line-setup-hook #',setup-sym)))
 
            ,(when (or hooks advice setup)
               `(progn
@@ -438,20 +438,20 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
                    ,(when teardown `(funcall ,teardown)))
 
-                 (add-hook 'wal-line-teardown-hook #',teardown-sym))))
+                 (add-hook 'whale-line-teardown-hook #',teardown-sym))))
       `(message "Couldn't create `%s' augment" ',name))))
 
 ;; Segments:
 
-(defvar wal-line-margin--segment (wal-line--spacer))
+(defvar whale-line-margin--segment (whale-line--spacer))
 
-(wal-line-create-static-segment buffer-name
+(whale-line-create-static-segment buffer-name
   :getter
   (let* ((identification (car-safe mode-line-buffer-identification))
          (help (get-text-property 0 'help-echo identification))
          (map (get-text-property 0 'local-map identification)))
 
-    (propertize "%b" 'help-echo help 'mouse-face 'wal-line-highlight 'local-map map))
+    (propertize "%b" 'help-echo help 'mouse-face 'whale-line-highlight 'local-map map))
   :hooks
   (find-file-hook
    after-save-hook
@@ -459,64 +459,64 @@ Additional SETUP and TEARDOWN function can be added for more control."
   :advice
   (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
-(wal-line-create-dynamic-segment buffer-status
+(whale-line-create-dynamic-segment buffer-status
   :getter
   (cond
    (buffer-read-only
-    (propertize "@" 'face 'wal-line-contrast))
+    (propertize "@" 'face 'whale-line-contrast))
    ((not (buffer-file-name))
-    (propertize "&" 'face 'wal-line-shadow))
+    (propertize "&" 'face 'whale-line-shadow))
    ((buffer-modified-p)
-    (propertize "*" 'face 'wal-line-emphasis))
+    (propertize "*" 'face 'whale-line-emphasis))
    (t ""))
   :dense t)
 
-(wal-line-create-dynamic-segment window-status
+(whale-line-create-dynamic-segment window-status
   :getter
   (when (window-dedicated-p)
-    (propertize "^" 'face 'wal-line-shadow))
+    (propertize "^" 'face 'whale-line-shadow))
   :priority 'low)
 
-(wal-line-create-dynamic-segment position
+(whale-line-create-dynamic-segment position
   :getter
   (let* ((following (bound-and-true-p follow-mode))
          (str (if following "f: %l:%c %p%" "%l:%c %p%")))
-    (propertize str 'face 'wal-line-shadow))
+    (propertize str 'face 'whale-line-shadow))
   :priority 'current)
 
-(wal-line-create-dynamic-segment global-mode-string
+(whale-line-create-dynamic-segment global-mode-string
   :getter
-  (cons (wal-line--spacer) (cdr global-mode-string))
+  (cons (whale-line--spacer) (cdr global-mode-string))
   :dense t
   :priority 'current-low)
 
-(wal-line-create-dynamic-segment minor-modes
+(whale-line-create-dynamic-segment minor-modes
   :getter
   minor-mode-alist
   :dense t
   :priority 'low)
 
-(wal-line-create-dynamic-segment process
+(whale-line-create-dynamic-segment process
   :getter
   (let ((mlp mode-line-process))
     (cond
      ((listp mlp)
-      (cons (wal-line--spacer) (cdr mlp)))
+      (cons (whale-line--spacer) (cdr mlp)))
      ((stringp mlp)
-      (propertize (concat (wal-line--spacer) mlp) 'face 'wal-line-shadow))
+      (propertize (concat (whale-line--spacer) mlp) 'face 'whale-line-shadow))
      (t "")))
   :condition mode-line-process
   :dense t
   :priority 'current)
 
-(defun wal-line-selection--get-columns (beg end)
+(defun whale-line-selection--get-columns (beg end)
   "Get the columns from BEG to END for displaying `rectangle-mode'."
   (abs (- (save-excursion (goto-char end)
                           (current-column))
           (save-excursion (goto-char beg)
                           (current-column)))))
 
-(wal-line-create-dynamic-segment selection
+(whale-line-create-dynamic-segment selection
   :condition mark-active
   :priority 'current-low
   :getter
@@ -524,26 +524,26 @@ Additional SETUP and TEARDOWN function can be added for more control."
          (end (region-end))
          (lines (count-lines beg (min end (point-max)))))
     (propertize (if (bound-and-true-p rectangle-mark-mode)
-                    (let ((columns (wal-line-selection--get-columns beg end)))
+                    (let ((columns (whale-line-selection--get-columns beg end)))
                       (format " %dx%d " lines columns))
                   (format " %d " lines))
                 'face 'region)))
 
 ;; Rendering
 
-(defun wal-line--filter (segments &optional low-space)
+(defun whale-line--filter (segments &optional low-space)
   "Filter SEGMENTS.
 
 This filters differently for current and other window.
 
 If LOW-SPACE is t, additional segments are filtered."
-  (let ((filter (if (wal-line--is-current-window-p)
-                         (wal-line--filter-for-current low-space)
-                  (wal-line--filter-for-other low-space))))
+  (let ((filter (if (whale-line--is-current-window-p)
+                         (whale-line--filter-for-current low-space)
+                  (whale-line--filter-for-other low-space))))
     (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
 
 
-(defun wal-line--filter-for-current (&optional low-space)
+(defun whale-line--filter-for-current (&optional low-space)
   "Build the filter for current window.
 
 If LOW-SPACE is t, filter out additional segments."
@@ -551,7 +551,7 @@ If LOW-SPACE is t, filter out additional segments."
       (list 'low 'current-low)
     nil))
 
-(defun wal-line--filter-for-other (&optional low-space)
+(defun whale-line--filter-for-other (&optional low-space)
   "Build the filter for other window.
 
 If LOW-SPACE is t, filter out additional segments."
@@ -559,22 +559,22 @@ If LOW-SPACE is t, filter out additional segments."
       (list 'current 'current-low 'low)
     (list 'current 'current-low)))
 
-(defun wal-line--render (side &optional filter)
+(defun whale-line--render (side &optional filter)
   "Render SIDE.
 
 Optionally FILTER out low priority segments."
-  (let* ((segments (plist-get wal-line--segments side))
-         (filtered (wal-line--filter segments filter)))
-    (wal-line--render-segments filtered)))
+  (let* ((segments (plist-get whale-line--segments side))
+         (filtered (whale-line--filter segments filter)))
+    (whale-line--render-segments filtered)))
 
-(defun wal-line--render-segments (segments)
+(defun whale-line--render-segments (segments)
   "Render SEGMENTS."
   (delq nil (mapcar
              (lambda (it)
                (when-let* ((should-use (cdr it))
                            (name (symbol-name (car it)))
-                           (segment (intern (format wal-line-segment-fstring name)))
-                           (setter (intern (format wal-line-set-segment-fstring name))))
+                           (segment (intern (format whale-line-segment-fstring name)))
+                           (setter (intern (format whale-line-set-segment-fstring name))))
 
                  (if (functionp segment)
                      `(:eval (,segment))
@@ -588,72 +588,72 @@ Optionally FILTER out low priority segments."
 
 ;;;; Disabling/enabling:
 
-(defun wal-line--enabled-feature-p (feature)
+(defun whale-line--enabled-feature-p (feature)
   "Check if FEATURE is enabled."
-  (memq feature wal-line-features))
+  (memq feature whale-line-features))
 
-(defun wal-line--disabled-features ()
+(defun whale-line--disabled-features ()
   "Get the disabled features."
-  (seq-filter (lambda (it) (not (wal-line--enabled-feature-p it)))
-              wal-line--all-features))
+  (seq-filter (lambda (it) (not (whale-line--enabled-feature-p it)))
+              whale-line--all-features))
 
-(defun wal-line--enable-or-disable-feature (feature enable)
+(defun whale-line--enable-or-disable-feature (feature enable)
   "If ENABLE is t, enable FEATURE, otherwise disable."
   (let* ((symbol? (if (symbolp feature) feature (intern feature)))
          (suffix (if enable "--setup" "--teardown"))
-         (func (intern (concat "wal-line-" (symbol-name symbol?) suffix))))
+         (func (intern (concat "whale-line-" (symbol-name symbol?) suffix))))
 
-    (wal-line--set-segment-priority symbol? enable)
+    (whale-line--set-segment-priority symbol? enable)
 
-    (setq wal-line-features (if enable
-                                (append wal-line-features (list symbol?))
-                              (delete symbol? wal-line-features)))
+    (setq whale-line-features (if enable
+                                (append whale-line-features (list symbol?))
+                              (delete symbol? whale-line-features)))
     (when (fboundp func)
       (funcall func))))
 
 ;; Entrypoint.
 
-(defvar wal-line--default-mode-line nil)
-(defvar wal-line-setup-hook nil)
-(defvar wal-line-teardown-hook nil)
+(defvar whale-line--default-mode-line nil)
+(defvar whale-line-setup-hook nil)
+(defvar whale-line-teardown-hook nil)
 
-(defun wal-line-disable-feature (feature)
+(defun whale-line-disable-feature (feature)
   "Disable FEATURE."
-  (interactive (list (completing-read "Disable feature: " wal-line-features)))
-  (wal-line--enable-or-disable-feature feature nil))
+  (interactive (list (completing-read "Disable feature: " whale-line-features)))
+  (whale-line--enable-or-disable-feature feature nil))
 
-(defun wal-line-enable-feature (feature)
+(defun whale-line-enable-feature (feature)
   "Enable disabled FEATURE."
-  (interactive (list (completing-read "Enable feature: " (wal-line--disabled-features))))
-  (wal-line--enable-or-disable-feature feature t))
+  (interactive (list (completing-read "Enable feature: " (whale-line--disabled-features))))
+  (whale-line--enable-or-disable-feature feature t))
 
 ;;;###autoload
-(define-minor-mode wal-line-mode
+(define-minor-mode whale-line-mode
   "Toggle mood-line on or off."
-  :group 'wal-line
+  :group 'whale-line
   :global t
   :lighter " wll"
-  (if wal-line-mode
+  (if whale-line-mode
       (progn
-        (dolist (it wal-line-features)
-          (require (intern (concat "wal-line-" (symbol-name it)))))
+        (dolist (it whale-line-features)
+          (require (intern (concat "whale-line-" (symbol-name it)))))
         ;; Save a copy of the previous mode-line.
-        (setq wal-line--default-mode-line mode-line-format)
+        (setq whale-line--default-mode-line mode-line-format)
 
         ;; Make setups do their thing.
-        (run-hooks 'wal-line-setup-hook)
-        (add-hook 'pre-redisplay-functions #'wal-line--set-selected-window)
+        (run-hooks 'whale-line-setup-hook)
+        (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
 
         ;; Set the new mode-line-format
-        (setq-default mode-line-format '("%e" (:eval (wal-line--format)))))
+        (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
     (progn
       ;; Tear down everything.
-      (run-hooks 'wal-line-teardown-hook)
-      (remove-hook 'pre-redisplay-functions #'wal-line--set-selected-window)
+      (run-hooks 'whale-line-teardown-hook)
+      (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
 
       ;; Restore the original mode-line format
-      (setq-default mode-line-format wal-line--default-mode-line))))
+      (setq-default mode-line-format whale-line--default-mode-line))))
 
-(provide 'wal-line)
+(provide 'whale-line)
 
-;;; wal-line.el ends here
+;;; whale-line.el ends here

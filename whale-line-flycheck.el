@@ -1,7 +1,7 @@
-;;; wal-line-flycheck.el --- Indicate issues with flycheck -*- lexical-binding: t; -*-
+;;; whale-line-flycheck.el --- Indicate issues with flycheck -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -12,11 +12,11 @@
 
 ;;; Code:
 
-(require 'wal-line)
+(require 'whale-line)
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
-(declare-function wal-line-buffer-name--get-segment "wal-line.el")
-(declare-function wal-line--spacer "wal-line.el")
+(declare-function whale-line-buffer-name--get-segment "whale-line.el")
+(declare-function whale-line--spacer "whale-line.el")
 
 ;;;; Functionality:
 
@@ -25,7 +25,7 @@
         :inherit (shadow)
         )))
   "Face used to indicate running state."
-  :group 'wal-line)
+  :group 'whale-line)
 
 (defvar flycheck-current-errors)
 (defun wlf--get-face-for-status (status)
@@ -39,8 +39,8 @@
             (.error 'flycheck-error)
             (.warning 'flycheck-warning)
             (.info 'flycheck-info)))
-       'wal-line-neutral))
-    (_ 'wal-line-neutral)))
+       'whale-line-neutral))
+    (_ 'whale-line-neutral)))
 
 (defun wlf--get-error-help (status)
   "Get the error count for STATUS.
@@ -54,27 +54,27 @@ Returns nil if not checking or if no errors were found."
          (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))))
     (_ nil)))
 
-(wal-line-create-augment flycheck
+(whale-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
   :action
   (lambda (status &rest _r)
     (let ((face (wlf--get-face-for-status status))
           (text (wlf--get-error-help status))
-          (segment (wal-line-buffer-name--get-segment)))
+          (segment (whale-line-buffer-name--get-segment)))
 
-	  (setq-local wal-line-buffer-name--segment
+	  (setq-local whale-line-buffer-name--segment
 				  (concat
-                   (wal-line--spacer)
+                   (whale-line--spacer)
 				   (if text
 					   (propertize segment 'face face 'help-echo text)
 					 (propertize segment 'face face))))))
   :hooks
   (flycheck-status-changed-functions))
 
-(provide 'wal-line-flycheck)
+(provide 'whale-line-flycheck)
 
-;;; wal-line-flycheck.el ends here
+;;; whale-line-flycheck.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wlf-" . "wal-line-flycheck-"))
+;; read-symbol-shorthands: (("wlf-" . "whale-line-flycheck-"))
 ;; End:

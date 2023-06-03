@@ -15,7 +15,7 @@ endif
 
 .PHONY: package-install
 package-install: dist
-	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/wal-line-$(PACKAGE_VERSION).tar\")"
+	$(EMACS) --batch -f package-initialize --eval "(package-install-file \"$(SOURCE_DIR)/dist/whale-line-$(PACKAGE_VERSION).tar\")"
 
 .PHONY: clean-install
 clean-install: clean install

@@ -1,7 +1,7 @@
-;;; wal-line-icons.el --- Icons for the modeline -*- lexical-binding: t; -*-
+;;; whale-line-icons.el --- Icons for the modeline -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -12,26 +12,26 @@
 
 ;;; Code:
 
-(require 'wal-line)
+(require 'whale-line)
 
 (declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
 (declare-function all-the-icons-faicon "ext:all-the-icons.el")
-(declare-function wal-line--spacer "wal-line.el")
-(declare-function wal-line-buffer-status--segment "wal-line.el")
-(declare-function wal-line-project--get-segment "wal-line-project.el")
-(declare-function wal-line-project--set-segment "wal-line-project.el")
-(declare-function wal-line-vc--face-for-state "wal-line-vc.el")
-(declare-function wal-line-vc--get-segment "wal-line-vc.el")
-(declare-function wal-line-vc--set-segment "wal-line-vc.el")
+(declare-function whale-line--spacer "whale-line.el")
+(declare-function whale-line-buffer-status--segment "whale-line.el")
+(declare-function whale-line-project--get-segment "whale-line-project.el")
+(declare-function whale-line-project--set-segment "whale-line-project.el")
+(declare-function whale-line-vc--face-for-state "whale-line-vc.el")
+(declare-function whale-line-vc--get-segment "whale-line-vc.el")
+(declare-function whale-line-vc--set-segment "whale-line-vc.el")
 
 ;; Customization:
 
 (defcustom wli-prettify-buffer-status nil
   "Whether to use icons for the buffer status."
-  :group 'wal-line
+  :group 'whale-line
   :type 'boolean)
 
-(defconst wal-line-icon-type
+(defconst whale-line-icon-type
   '(cons symbol
          (restricted-sexp
           :match-alternatives
@@ -42,38 +42,38 @@ icon name and the face.")
 
 (defcustom wli-project-icon '(faicon . "folder-open")
   "Icon used for the project segment."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
 (defcustom wli-vc-icon '(faicon . "code-fork")
   "Icon used for the VC segment."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
-(defcustom wli-buffer-read-only-icon '(faicon . ("lock" wal-line-contrast))
+(defcustom wli-buffer-read-only-icon '(faicon . ("lock" whale-line-contrast))
   "Icon used to indicate buffer is read-only."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
-(defcustom wli-no-buffer-file-name-icon '(faicon . ("sticky-note-o" wal-line-shadow))
+(defcustom wli-no-buffer-file-name-icon '(faicon . ("sticky-note-o" whale-line-shadow))
   "Icon used to indicate buffer has no file name."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
-(defcustom wli-buffer-modified-icon '(faicon . ("pencil" wal-line-emphasis))
+(defcustom wli-buffer-modified-icon '(faicon . ("pencil" whale-line-emphasis))
   "Icon used to indicate buffer has been modified."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
-(defcustom wli-window-dedicated-icon '(faicon . ("link" wal-line-shadow))
+(defcustom wli-window-dedicated-icon '(faicon . ("link" whale-line-shadow))
   "Icon used to indicate a window is dedicated to its buffer."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
-(defcustom wli-buffer-fallback-icon '(faicon . ("question-circle" wal-line-contrast))
+(defcustom wli-buffer-fallback-icon '(faicon . ("question-circle" whale-line-contrast))
   "Icon used when a buffer has no associated icon."
-  :group 'wal-line
-  :type wal-line-icon-type)
+  :group 'whale-line
+  :type whale-line-icon-type)
 
 ;; Additional icons:
 
@@ -96,10 +96,10 @@ icon name and the face.")
   (if (and (stringp str)
            (display-graphic-p))
       (concat (wli--icon wli-project-icon
-                :face 'wal-line-emphasis
+                :face 'whale-line-emphasis
                 :height 0.85
                 :v-adjust 0.0)
-              (wal-line--spacer)
+              (whale-line--spacer)
               str)
     str))
 
@@ -110,10 +110,10 @@ icon name and the face.")
            (buffer-file-name))
       (concat
        (wli--icon wli-vc-icon
-         :face (wal-line-vc--face-for-state)
+         :face (whale-line-vc--face-for-state)
          :height 0.85
          :v-adjust 0.0)
-       (wal-line--spacer)
+       (whale-line--spacer)
        str)
     str))
 
@@ -129,7 +129,7 @@ icon name and the face.")
 
     (if icon
         (concat
-         (wal-line--spacer)
+         (whale-line--spacer)
          (wli--icon icon
            :height 0.85
            :v-adjust 0.0))
@@ -139,7 +139,7 @@ icon name and the face.")
   "Advise window status segment to use icons."
   (if (window-dedicated-p)
       (concat
-       (wal-line--spacer)
+       (whale-line--spacer)
        (wli--icon wli-window-dedicated-icon
          :height 0.85
          :v-adjust 0.0))
@@ -147,7 +147,7 @@ icon name and the face.")
 
 ;; Segment:
 
-(wal-line-create-static-segment icons
+(whale-line-create-static-segment icons
   :dense t
   :verify (lambda () (require 'all-the-icons nil t))
   :getter
@@ -162,22 +162,22 @@ icon name and the face.")
   :setup
   (lambda ()
     (advice-add
-     #'wal-line-project--get-segment :filter-return
+     #'whale-line-project--get-segment :filter-return
      #'wli--prepend-icon-to-project-segment)
-    (wal-line-project--set-segment)
+    (whale-line-project--set-segment)
 
     (advice-add
-     #'wal-line-vc--get-segment :filter-return
+     #'whale-line-vc--get-segment :filter-return
      #'wli--prepend-icon-to-vc-segment)
-    (wal-line-vc--set-segment)
+    (whale-line-vc--set-segment)
 
     (advice-add
-     #'wal-line-window-status--segment :override
+     #'whale-line-window-status--segment :override
      #'wli--advise-window-status-segment)
 
     (when wli-prettify-buffer-status
       (advice-add
-       #'wal-line-buffer-status--segment
+       #'whale-line-buffer-status--segment
        :override #'wli--advise-buffer-status-segment))
 
     (add-hook 'find-file-hook #'wli--set-segment)
@@ -186,28 +186,28 @@ icon name and the face.")
   :teardown
   (lambda ()
     (advice-remove
-     #'wal-line-project--get-segment
+     #'whale-line-project--get-segment
      #'wli--prepend-icon-to-project-segment)
-    (wal-line-project--set-segment)
+    (whale-line-project--set-segment)
 
     (advice-remove
-     #'wal-line-vc--get-segment
+     #'whale-line-vc--get-segment
      #'wli--prepend-icon-to-vc-segment)
-    (wal-line-vc--set-segment)
+    (whale-line-vc--set-segment)
 
     (when wli-prettify-buffer-status
       (advice-remove
-       #'wal-line-buffer-status--segment
+       #'whale-line-buffer-status--segment
        #'wli--advise-buffer-status-segment))
 
     (remove-hook 'find-file-hook #'wli--set-segment)
     (remove-hook 'after-change-major-mode-hook #'wli--set-segment)
     (remove-hook 'clone-indirect-buffer-hook #'wli--set-segment)))
 
-(provide 'wal-line-icons)
+(provide 'whale-line-icons)
 
-;;; wal-line-icons.el ends here
+;;; whale-line-icons.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wli-" . "wal-line-icons-"))
+;; read-symbol-shorthands: (("wli-" . "whale-line-icons-"))
 ;; End:

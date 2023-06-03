@@ -1,7 +1,7 @@
-;;; wal-line-project.el --- Project segment -*- lexical-binding: t; -*-
+;;; whale-line-project.el --- Project segment -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
-;; Homepage: https://github.com/Walheimat/wal-line
+;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.4.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
@@ -12,9 +12,9 @@
 
 ;;; Code:
 
-(require 'wal-line)
+(require 'whale-line)
 
-(declare-function wal-line--spacer "wal-line.el")
+(declare-function whale-line--spacer "whale-line.el")
 (declare-function projectile-project-root "ext:projectile.el")
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
@@ -26,7 +26,7 @@
       'projectile
     'project)
   "The project provider."
-  :group 'wal-line
+  :group 'whale-line
   :type '(choice (const projectile)
                  (const project)))
 
@@ -42,7 +42,7 @@ Only consider Dired buffers and file buffers."
 
 (defvar wlp--regexp ".+\\(\\/.+\\)\\/$")
 
-(wal-line-create-static-segment project
+(whale-line-create-static-segment project
   :getter
   (when-let* ((candidate (wlp--display-for-buffer-p))
               (p-root (pcase wlp-provider
@@ -60,16 +60,16 @@ Only consider Dired buffers and file buffers."
                          (project-name (project-current)))
                         (_ ""))))
 
-    (propertize p-name 'face 'wal-line-emphasis 'help-echo p-root))
+    (propertize p-name 'face 'whale-line-emphasis 'help-echo p-root))
   :setup
   (lambda () (add-hook 'find-file-hook #'wlp--set-segment))
   :teardown
   (lambda () (remove-hook 'find-file-hook #'wlp--set-segment)))
 
-(provide 'wal-line-project)
+(provide 'whale-line-project)
 
-;;; wal-line-project.el ends here
+;;; whale-line-project.el ends here
 
 ;; Local Variables:
-;; read-symbol-shorthands: (("wlp-" . "wal-line-project-"))
+;; read-symbol-shorthands: (("wlp-" . "whale-line-project-"))
 ;; End:
