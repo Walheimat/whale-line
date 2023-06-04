@@ -37,9 +37,12 @@
 
 (defvar wla--frame-index 0)
 (defvar wla--timer nil)
+(defvar wla--segment)
 
-(whale-line-create-static-segment animation
-  :getter
+(defun wla--animate ()
+  "Animate.
+
+Forces a mode-line update and returns the current frame."
   (let* ((frame (aref wla-key-frames wla--frame-index))
          (colored (propertize frame 'face 'whale-line-emphasis)))
     (setq wla--frame-index
@@ -48,16 +51,23 @@
            (length wla-key-frames))
           wla--segment (concat (whale-line--spacer) colored))
     (force-mode-line-update)
-    wla--segment)
-  :setup
-  (lambda ()
-    (unless wla--timer
-      (setq wla--timer (run-with-timer 0 wla-speed #'wla--get-segment))))
-  :teardown
-  (lambda ()
-    (when wla--timer
-      (cancel-timer wla--timer)
-      (setq wla--timer nil)))
+    wla--segment))
+
+(defun wla--start-timer ()
+  "Set up the animation timer."
+  (unless wla--timer
+    (setq wla--timer (run-with-timer 0 wla-speed #'wla--get-segment))))
+
+(defun wla--stop-timer ()
+  "Stop the animation timer."
+  (when wla--timer
+    (cancel-timer wla--timer)
+    (setq wla--timer nil)))
+
+(whale-line-create-static-segment animation
+  :getter wla--animate
+  :setup wla--start-timer
+  :teardown wla--stop-timer
   :priority 'current-low)
 
 (provide 'whale-line-animation)

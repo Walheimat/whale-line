@@ -269,7 +269,9 @@ This will also add the segment with PRIORITY or t."
 
            (defun ,getter-sym ()
              ,(format "Get the %s segment." name)
-             ,getter)
+            ,(if (symbolp getter)
+                  `(funcall ',getter)
+                getter))
 
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
@@ -290,7 +292,9 @@ This will also add the segment with PRIORITY or t."
                                `(advice-add ',it ,(car advice) #',setter))
                              (cdr advice))
 
-                   ,(when setup `(funcall ,setup)))
+                   ,(when setup (if (symbolp setup)
+                                    `(funcall ',setup)
+                                  `(funcall ,setup))))
 
                  (add-hook 'whale-line-setup-hook #',setup-sym)))
 
@@ -307,7 +311,9 @@ This will also add the segment with PRIORITY or t."
                                `(advice-remove ',it #',setter))
                              (cdr advice))
 
-                   ,(when teardown `(funcall ,teardown)))
+                   ,(when teardown (if (symbolp teardown)
+                                       `(funcall ',teardown)
+                                     `(funcall ,teardown))))
 
                  (add-hook 'whale-line-teardown-hook #',teardown-sym)))
 
@@ -351,7 +357,9 @@ The segment will be added with PRIORITY or t."
         `(progn
            (defun ,getter-sym ()
              ,(format "Get the `%s' segment." name)
-             ,getter)
+             ,(if (symbolp getter)
+                  `(funcall ',getter)
+                getter))
 
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
@@ -409,7 +417,10 @@ Additional SETUP and TEARDOWN function can be added for more control."
         `(progn
            (defun ,augment (&rest args)
              ,(format "Augment function for `%s'" name)
-             (apply ,action args))
+
+             ,(if (symbolp action)
+                  `(apply ',action args)
+                `(apply ,action args)))
 
            ,(when (or hooks advice setup)
               `(progn
@@ -491,8 +502,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
   :priority 'current-low)
 
 (whale-line-create-dynamic-segment minor-modes
-  :getter
-  minor-mode-alist
+  :getter (lambda () minor-mode-alist)
   :dense t
   :priority 'low)
 

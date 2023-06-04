@@ -17,8 +17,8 @@
 (declare-function mc/num-cursors "ext:multiple-cursors.el")
 (declare-function iedit-counter "ext:iedit.el")
 
-(whale-line-create-dynamic-segment cursors
-  :getter
+(defun whale-line-cursors--count ()
+  "Get the cursor count."
   (let* ((mc-cursors (when (bound-and-true-p multiple-cursors-mode)
                        (mc/num-cursors)))
          (iedit-cursors (when (bound-and-true-p iedit-mode)
@@ -26,7 +26,10 @@
          (cursors (or mc-cursors iedit-cursors)))
 
     (when cursors
-      (propertize (format " %d " cursors) 'face 'whale-line-highlight)))
+      (propertize (format " %d " cursors) 'face 'whale-line-highlight))))
+
+(whale-line-create-dynamic-segment cursors
+  :getter whale-line-cursors--count
   :condition
   (or (bound-and-true-p multiple-cursors-mode)
       (bound-and-true-p iedit-mode))

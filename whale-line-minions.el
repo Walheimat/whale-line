@@ -24,18 +24,20 @@
 (defvar minions-mode-line-minor-modes-map)
 (defvar minions-mode-line-lighter)
 
+(defun whale-line-minions--list (&rest _args)
+  "Get the appropriate mode list."
+  (if (bound-and-true-p minions-mode)
+      `((:propertize ("" ,(minions--prominent-modes))
+                     face whale-line-shadow)
+        ,(whale-line--spacer)
+        (:propertize ,minions-mode-line-lighter
+                     face whale-line-shadow
+                     local-map ,minions-mode-line-minor-modes-map
+                     mouse-face whale-line-highlight))
+    minor-mode-alist))
+
 (whale-line-create-augment minions
-  :action
-  (lambda (&rest _args)
-    (if (bound-and-true-p minions-mode)
-        `((:propertize ("" ,(minions--prominent-modes))
-                       face whale-line-shadow)
-          ,(whale-line--spacer)
-          (:propertize ,minions-mode-line-lighter
-                       face whale-line-shadow
-                       local-map ,minions-mode-line-minor-modes-map
-                       mouse-face whale-line-highlight))
-      minor-mode-alist))
+  :action whale-line-minions--list
   :advice
   (:after-while . (whale-line-minor-modes--segment)))
 

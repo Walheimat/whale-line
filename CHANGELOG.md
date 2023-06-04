@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Segment `project` and augment `flycheck` now have help echo texts
   showing root path and errors respectively.
+- Testing setup. This required reworking the macros a bit to allow for
+  passing functions that can be tested independently.
+- Tests for `whale-line-animation`, `whale-line-cursors`,
+  `whale-line-flycheck` and `whale-line-minions`.
 
 ### Changed
 
