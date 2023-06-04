@@ -1,5 +1,14 @@
 * whale-line.el
 
+#+BEGIN_HTML
+<a href='https://coveralls.io/github/Walheimat/whale-line?branch=trunk'>
+    <img
+        src='https://coveralls.io/repos/github/Walheimat/whale-line/badge.svg?branch=trunk'
+        alt='Coverage Status'
+    />
+</a>
+#+END_HTML
+
 This package is my personal Emacs mode-line.
 
 It displays buffer information in two sections. Each section has its
