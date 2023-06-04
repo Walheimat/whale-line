@@ -21,14 +21,11 @@
 
 ;;;; Customization:
 
-(defcustom wlp-provider
-  (if (bound-and-true-p projectile-mode)
-      'projectile
-    'project)
+(defcustom wlp-provider 'project
   "The project provider."
   :group 'whale-line
-  :type '(choice (const projectile)
-                 (const project)))
+  :type '(choice (const project)
+                 (const projectile)))
 
 (defun wlp--display-for-buffer-p ()
   "Check if current buffer should show project information.
