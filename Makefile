@@ -41,6 +41,10 @@ test: .cask
 	mkdir -p coverage
 	cask exec ert-runner $(TEST_ARGS)
 
+.PHONY: local-test
+local-test: test
+	cask emacs --batch -f bydi-calculate-coverage
+
 # -- Clean-up
 
 .PHONY: clean
