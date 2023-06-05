@@ -27,6 +27,8 @@
   :type '(choice (const project)
                  (const projectile)))
 
+;;;; Functionality:
+
 (defun wlp--display-for-buffer-p ()
   "Check if current buffer should show project information.
 
@@ -35,12 +37,10 @@ Only consider Dired buffers and file buffers."
     (or (derived-mode-p 'dired-mode)
         (buffer-file-name))))
 
-;;;; Functionality:
-
 (defvar wlp--regexp ".+\\(\\/.+\\)\\/$")
 
-(whale-line-create-static-segment project
-  :getter
+(defun wlp--get ()
+  "Get the project segment."
   (when-let* ((candidate (wlp--display-for-buffer-p))
               (p-root (pcase wlp-provider
                         ('projectile
@@ -57,9 +57,14 @@ Only consider Dired buffers and file buffers."
                          (project-name (project-current)))
                         (_ ""))))
 
-    (propertize p-name 'face 'whale-line-emphasis 'help-echo p-root))
+    (propertize p-name 'face 'whale-line-emphasis 'help-echo p-root)))
+
+(whale-line-create-static-segment project
+  :getter wlp--get
+
   :setup
   (lambda () (add-hook 'find-file-hook #'wlp--set-segment))
+
   :teardown
   (lambda () (remove-hook 'find-file-hook #'wlp--set-segment)))
 

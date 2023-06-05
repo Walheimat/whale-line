@@ -27,8 +27,7 @@
   :verify
   (lambda () (featurep 'tab-bar))
 
-  :getter
-  (wltb--get-explicit-name)
+  :getter wltb--get-explicit-name
 
   :hooks
   (window-configuration-change-hook)

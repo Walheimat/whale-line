@@ -132,10 +132,7 @@ Optionally FILTER out low priority segments."
   (let ((lhs (whale-line--render :left))
         (rhs (whale-line--render :right))
         (rlen (length (whale-line--format-side :right))))
-    `(,@lhs
-      ,(propertize " " 'display
-                   `((space :align-to (- right (- 0 right-margin) ,rlen))))
-      ,@rhs)))
+    `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
 
 (defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
@@ -144,9 +141,7 @@ Optionally FILTER out low priority segments."
         (rlen (length (whale-line--format-side :right)))
         (space? (whale-line--enough-space-p)))
     `(,@lhs
-      ,(propertize
-        " "
-        'display `((space :align-to (- right (- 0 right-margin) ,(if space? rlen 5)))))
+      ,(whale-line--space-between (if space? rlen 5))
       ,@(if space?
             rhs
           '((:eval (propertize (concat (whale-line--spacer) "..." (whale-line--spacer))
@@ -159,10 +154,14 @@ Optionally FILTER out low priority segments."
     (let ((lhs (whale-line--render :left t))
           (rhs (whale-line--render :right t))
           (rlen (length (whale-line--format-side :right t))))
-      `(,@lhs
-        ,(propertize " " 'display
-                     `((space :align-to (- right (- 0 right-margin) ,rlen))))
-        ,@rhs))))
+      `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
+
+(defun whale-line--space-between (length)
+  "Get the space between sides aligned using LENGTH."
+  (propertize
+   " "
+   'display
+   `((space :align-to (- right (- 0 right-margin) ,length)))))
 
 (defun whale-line--format ()
   "Return a list of aligned left and right segments.

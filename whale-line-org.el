@@ -21,6 +21,7 @@
 (declare-function org-before-first-heading-p "ext:org.el")
 (declare-function org-heading-components "ext:org.el")
 (declare-function org-link-display-format "ext:org.el")
+(declare-function org-up-heading-safe "ext:org.el")
 (declare-function whale-line-buffer-name--segment "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
@@ -70,10 +71,9 @@
 
 (defun wlo--collect-headings ()
   "Collect headings until it's no longer safe."
-  (when (fboundp 'org-up-heading-safe)
-    (save-excursion
-      (cl-loop collect (wlo--get-next-heading)
-               while (org-up-heading-safe)))))
+  (save-excursion
+    (cl-loop collect (wlo--get-next-heading)
+             while (org-up-heading-safe))))
 
 (defun wlo--build-segment ()
   "Build the segment from included segments."
