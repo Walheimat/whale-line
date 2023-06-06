@@ -16,6 +16,8 @@
 
 ;; Setup
 
+(setq whale-line--testing t)
+
 (bydi-path-setup)
 (bydi-undercover-setup (list "*.el"))
 (bydi-ert-runner-setup)

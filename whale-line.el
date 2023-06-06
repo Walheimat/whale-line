@@ -16,33 +16,36 @@
   (require 'cl-lib))
 
 (defconst whale-line--all-features '(flycheck
-                                   project
-                                   icons
-                                   vc
-                                   animation
-                                   minions
-                                   cursors
-                                   lsp
-                                   org
-                                   tab-bar))
+                                     project
+                                     icons
+                                     vc
+                                     animation
+                                     minions
+                                     cursors
+                                     lsp
+                                     org
+                                     tab-bar))
 
-(defvar whale-line--segments '(:left ((margin . t)
-                                    (icons . nil)
-                                    (buffer-name . nil)
-                                    (org . nil)
-                                    (buffer-status . nil)
-                                    (position . nil)
-                                    (selection . nil)
-                                    (cursors . nil)
-                                    (process . nil)
-                                    (window-status . nil))
-                             :right ((minor-modes . nil)
-                                     (global-mode-string . nil)
-                                     (project . nil)
-                                     (vc . nil)
-                                     (tab-bar . nil)
-                                     (animation . nil)
-                                     (margin . t))))
+(defvar whale-line--segments '(:left
+                               ((margin . t)
+                                (icons . nil)
+                                (buffer-name . nil)
+                                (org . nil)
+                                (buffer-status . nil)
+                                (position . nil)
+                                (selection . nil)
+                                (cursors . nil)
+                                (process . nil)
+                                (window-status . nil))
+
+                               :right
+                               ((minor-modes . nil)
+                                (global-mode-string . nil)
+                                (project . nil)
+                                (vc . nil)
+                                (tab-bar . nil)
+                                (animation . nil)
+                                (margin . t))))
 
 ;;;; Customization:
 
@@ -262,13 +265,14 @@ This will also add the segment with PRIORITY or t."
         (getter-sym (intern (format whale-line-get-segment-fstring (symbol-name name))))
         (prio (or priority t)))
 
-    (if (or (null verify) (funcall verify))
+    (if (and (not (bound-and-true-p whale-line--testing))
+             (or (null verify) (funcall verify)))
         `(progn
            (defvar ,segment 'initial)
 
            (defun ,getter-sym ()
              ,(format "Get the %s segment." name)
-            ,(if (symbolp getter)
+             ,(if (symbolp getter)
                   `(funcall ',getter)
                 getter))
 
@@ -319,7 +323,8 @@ This will also add the segment with PRIORITY or t."
            (whale-line-add-segment ',name ,prio))
       `(progn
          (defvar ,segment nil)
-         (message "Couldn't add `%s' segment" ',name)))))
+         (unless (bound-and-true-p whale-line--testing)
+           (message "Couldn't add `%s' segment" ',name))))))
 
 (cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
   "Create a dynamic segment name NAME.
@@ -352,7 +357,8 @@ The segment will be added with PRIORITY or t."
         (prio (or priority t))
         (con (or condition t)))
 
-    (if (or (null verify) (funcall verify))
+    (if (and (not (bound-and-true-p whale-line--testing))
+             (or (null verify) (funcall verify)))
         `(progn
            (defun ,getter-sym ()
              ,(format "Get the `%s' segment." name)
@@ -387,7 +393,8 @@ The segment will be added with PRIORITY or t."
          (defun ,segment ()
            ,(format "Render `%s' segment as an empty string." name)
            "")
-         (message "Couldn't add `%s' segment" ',name)))))
+         (unless (bound-and-true-p whale-line--testing)
+           (message "Couldn't add `%s' segment" ',name))))))
 
 (cl-defmacro whale-line-create-augment (name &key verify action hooks advice setup teardown)
   "Create augment(-or) named NAME.
@@ -412,7 +419,8 @@ Additional SETUP and TEARDOWN function can be added for more control."
         (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
         (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name)))))
 
-    (if (or (null verify) (funcall verify))
+    (if (and (not (bound-and-true-p whale-line--testing))
+             (or (null verify) (funcall verify)))
         `(progn
            (defun ,augment (&rest args)
              ,(format "Augment function for `%s'" name)
@@ -449,7 +457,8 @@ Additional SETUP and TEARDOWN function can be added for more control."
                    ,(when teardown `(funcall ,teardown)))
 
                  (add-hook 'whale-line-teardown-hook #',teardown-sym))))
-      `(message "Couldn't create `%s' augment" ',name))))
+      `(unless (bound-and-true-p whale-line--testing)
+         (message "Couldn't create `%s' augment" ',name)))))
 
 ;; Segments:
 
@@ -547,7 +556,7 @@ This filters differently for current and other window.
 
 If LOW-SPACE is t, additional segments are filtered."
   (let ((filter (if (whale-line--is-current-window-p)
-                         (whale-line--filter-for-current low-space)
+                    (whale-line--filter-for-current low-space)
                   (whale-line--filter-for-other low-space))))
     (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
 
@@ -615,10 +624,33 @@ Optionally FILTER out low priority segments."
     (whale-line--set-segment-priority symbol? enable)
 
     (setq whale-line-features (if enable
-                                (append whale-line-features (list symbol?))
-                              (delete symbol? whale-line-features)))
+                                  (append whale-line-features (list symbol?))
+                                (delete symbol? whale-line-features)))
     (when (fboundp func)
       (funcall func))))
+
+(defun whale-line-mode--setup ()
+  "Set up `whale-line-mode'."
+  (dolist (it whale-line-features)
+    (require (intern (concat "whale-line-" (symbol-name it)))))
+  ;; Save a copy of the previous mode-line.
+  (setq whale-line--default-mode-line mode-line-format)
+
+  ;; Make setups do their thing.
+  (run-hooks 'whale-line-setup-hook)
+  (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+
+  ;; Set the new mode-line-format
+  (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
+
+(defun whale-line-mode--teardown ()
+  "Tear down `whale-line-mode'."
+  ;; Tear down everything.
+  (run-hooks 'whale-line-teardown-hook)
+  (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+
+  ;; Restore the original mode-line format
+  (setq-default mode-line-format whale-line--default-mode-line))
 
 ;; Entrypoint.
 
@@ -643,25 +675,8 @@ Optionally FILTER out low priority segments."
   :global t
   :lighter " wll"
   (if whale-line-mode
-      (progn
-        (dolist (it whale-line-features)
-          (require (intern (concat "whale-line-" (symbol-name it)))))
-        ;; Save a copy of the previous mode-line.
-        (setq whale-line--default-mode-line mode-line-format)
-
-        ;; Make setups do their thing.
-        (run-hooks 'whale-line-setup-hook)
-        (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
-
-        ;; Set the new mode-line-format
-        (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
-    (progn
-      ;; Tear down everything.
-      (run-hooks 'whale-line-teardown-hook)
-      (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
-
-      ;; Restore the original mode-line format
-      (setq-default mode-line-format whale-line--default-mode-line))))
+      (whale-line-mode--setup)
+    (whale-line-mode--teardown)))
 
 (provide 'whale-line)
 
