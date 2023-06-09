@@ -9,7 +9,7 @@
 (require 'whale-line-animation)
 
 (ert-deftest wla--animate ()
-  (bydi-with-mock (force-mode-line-update)
+  (bydi (force-mode-line-update)
 
     (should (string= " (__.- >{" (whale-line-animation--animate)))
     (bydi-was-called force-mode-line-update)
@@ -17,7 +17,7 @@
     (should (string= " (__.' >{" (whale-line-animation--animate)))))
 
 (ert-deftest wla--start-timer ()
-  (bydi-with-mock (run-with-timer)
+  (bydi (run-with-timer)
     (let ((whale-line-animation--timer nil))
 
       (whale-line-animation--start-timer)
@@ -29,7 +29,7 @@
       (bydi-was-not-called run-with-timer))))
 
 (ert-deftest wla--stop-timer ()
-  (bydi-with-mock cancel-timer
+  (bydi cancel-timer
     (let ((whale-line-animation--timer nil))
 
       (whale-line-animation--stop-timer)

@@ -9,11 +9,9 @@
 (require 'whale-line-icons)
 
 (ert-deftest wli--icon ()
-  (bydi-with-mock ((all-the-icons-faicon . (lambda (&rest _) "I")))
-    (let (
-          (test-icon-with-face '(faicon . ("test" test)))
-          (test-icon '(faicon . "test"))
-          )
+  (bydi ((:mock all-the-icons-faicon :return "I"))
+    (let ((test-icon-with-face '(faicon . ("test" test)))
+          (test-icon '(faicon . "test")))
 
       (should (equal (whale-line-icons--icon test-icon-with-face :height 0.42) "I"))
       (bydi-was-called-with all-the-icons-faicon '("test" :face test :height 0.42))
@@ -24,33 +22,30 @@
       (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
 
 (ert-deftest wli--prepend-icon-to-project-segment ()
-  (let ((display nil))
-    (bydi-with-mock ((whale-line-icons--icon . (lambda (&rest _) "I"))
-                     (display-graphic-p . (lambda () display)))
+  (bydi ((:mock whale-line-icons--icon :return "I")
+         (:sometimes display-graphic-p))
 
-      (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "proj"))
+    (should-not (whale-line-icons--prepend-icon-to-project-segment nil))
 
-      (setq display t)
+    (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "I proj"))
 
-      (should-not (whale-line-icons--prepend-icon-to-project-segment nil))
-
-      (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "I proj")))))
+    (bydi-toggle-sometimes)
+    (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "proj"))))
 
 (ert-deftest wli--prepend-icon-to-vc-segment ()
-  (let ((display nil)
-        (name nil))
-    (bydi-with-mock ((whale-line-icons--icon . (lambda (&rest _) "I"))
-                     (display-graphic-p . (lambda () display))
-                     (buffer-file-name . (lambda () name)))
+  (let ((name "/test/tmp"))
 
-      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "vc"))
-
-      (setq display t
-            name "/tmp/test.el")
+    (bydi ((:mock whale-line-icons--icon :return "I")
+           (:sometimes display-graphic-p)
+           (buffer-file-name . (lambda () name)))
 
       (should-not (whale-line-icons--prepend-icon-to-vc-segment nil))
+      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "I vc"))
 
-      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "I vc")))))
+      (bydi-toggle-sometimes)
+      (setq name nil)
+
+      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "vc")))))
 
 (ert-deftest wli--advise-buffer-status-segment ()
   (let ((buffer-read-only nil)
@@ -61,9 +56,9 @@
         (whale-line-icons-buffer-modified-icon "modified"))
 
     (with-temp-buffer
-      (bydi-with-mock ((buffer-file-name . (lambda () name))
-                       (buffer-modified-p . (lambda () modified))
-                       (whale-line-icons--icon . (lambda (&rest _) "I")))
+      (bydi ((:mock buffer-file-name :return name)
+             (:mock buffer-modified-p :return modified)
+             (:mock whale-line-icons--icon :return "I"))
 
         (setq buffer-read-only t)
 
@@ -87,18 +82,13 @@
         (should (string= "" (whale-line-icons--advise-buffer-status-segment)))))))
 
 (ert-deftest wli--advise-window-status-segment ()
-  (let ((dedicated nil))
+  (with-temp-buffer
+    (bydi ((:sometimes window-dedicated-p)
+           (:mock whale-line-icons--icon :return "I"))
+      (should (string= " I" (whale-line-icons--advise-window-status-segment)))
 
-    (with-temp-buffer
-      (bydi-with-mock ((window-dedicated-p . (lambda () dedicated))
-                       (whale-line-icons--icon . (lambda (&rest _) "I")))
-        (should (string= "" (whale-line-icons--advise-window-status-segment)))
-
-        (bydi-clear-mocks)
-
-        (setq dedicated t)
-
-        (should (string= " I" (whale-line-icons--advise-window-status-segment)))))))
+      (bydi-toggle-sometimes)
+      (should (string= "" (whale-line-icons--advise-window-status-segment))))))
 
 ;;; whale-line-icons-test.el ends here
 

@@ -13,8 +13,8 @@
   (should (string= "  " (whale-line--spacer t))))
 
 (ert-deftest whale-line--format-side ()
-  (bydi-with-mock (format-mode-line
-                   (whale-line--render . (lambda (&rest _) "test")))
+  (bydi (format-mode-line
+         (:mock whale-line--render :return "test"))
     (whale-line--format-side :left 'filter)
 
     (bydi-was-called-with whale-line--render '(:left filter))
@@ -25,9 +25,9 @@
         (right "right")
         (width 10))
 
-    (bydi-with-mock ((window-font-width . (lambda () 1))
-                     (window-pixel-width . (lambda () width))
-                     (whale-line--format-side . (lambda (side)
+    (bydi ((:mock window-font-width :return 1)
+           (:mock window-pixel-width :return  width)
+           (:mock whale-line--format-side :with (lambda (side)
                                                   (pcase side
                                                     (:left left)
                                                     (:right right)))))
@@ -38,11 +38,11 @@
 (defmacro with-whale-line (&rest body)
   "Render BODY with main functions mocked."
   `(let ((space t))
-     (bydi-with-mock ((whale-line--render . (lambda (&rest _) '("rendered")))
-                      (whale-line--format-side . (lambda (&rest _) "formatted"))
-                      (whale-line--enough-space-p . (lambda () space))
-                      (whale-line--space-between . (lambda (_) "   ")))
-          ,@body)))
+     (bydi ((:mock whale-line--render :return '("rendered"))
+            (:mock whale-line--format-side :return "formatted")
+            (:mock whale-line--enough-space-p  :return space)
+            (:mock whale-line--space-between :return "   "))
+       ,@body)))
 
 (ert-deftest whale-line--format-ignore ()
   (with-whale-line
@@ -69,7 +69,7 @@
 
 (ert-deftest whale-line--format-prioritize ()
   (with-whale-line
-   (bydi-with-mock (whale-line--format-ignore)
+   (bydi (whale-line--format-ignore)
      (whale-line--format-prioritize)
      (bydi-was-called whale-line--format-ignore))
 
@@ -88,9 +88,9 @@
 (ert-deftest whale-line--format ()
   (let ((whale-line-segment-strategy 'ignore))
 
-    (bydi-with-mock (whale-line--format-ignore
-                     whale-line--format-elide
-                     whale-line--format-prioritize)
+    (bydi (whale-line--format-ignore
+           whale-line--format-elide
+           whale-line--format-prioritize)
 
       (whale-line--format)
       (bydi-was-called whale-line--format-ignore)
@@ -109,8 +109,8 @@
   (let ((parent nil)
         (selected nil))
 
-    (bydi-with-mock ((frame-parent . (lambda () parent))
-                     (frame-selected-window . (lambda (&rest _) selected)))
+    (bydi ((:mock frame-parent :return parent)
+           (:mock frame-selected-window :return selected))
       (should-not (whale-line--get-current-window))
 
       (setq parent t)
@@ -122,9 +122,9 @@
   (let ((active nil)
         (whale-line--current-window nil))
 
-    (bydi-with-mock ((whale-line--get-current-window . #'bydi-rt)
-                     (minibuffer-window-active-p . (lambda (_) active))
-                     (minibuffer-selected-window . (lambda () 'selected)))
+    (bydi ((:mock whale-line--get-current-window :with bydi-rt)
+           (:mock minibuffer-window-active-p :return active)
+           (:mock minibuffer-selected-window :return 'selected))
 
       (whale-line--set-selected-window)
 
@@ -140,7 +140,7 @@
 
   (let ((whale-line--current-window nil))
 
-    (bydi-with-mock ((whale-line--get-current-window . #'bydi-rt))
+    (bydi ((:mock whale-line--get-current-window :with bydi-rt))
       (should-not (whale-line--is-current-window-p))
 
       (setq whale-line--current-window 'resting)
@@ -193,7 +193,7 @@
   (let ((current nil)
         (segments '((a . low) (b . current-low) (c . t) (d . current))))
 
-    (bydi-with-mock ((whale-line--is-current-window-p . (lambda () current)))
+    (bydi ((:mock whale-line--is-current-window-p :return current))
 
       (should (equal (whale-line--filter segments)
                      '((a . low) (c . t))))
@@ -212,8 +212,8 @@
 (ert-deftest whale-line--render ()
   (let ((whale-line--segments '(:left ((one . t)) :right ((two . nil)))))
 
-    (bydi-with-mock ((whale-line--filter . (lambda (&rest _) '((one . t))))
-                     whale-line--render-segments)
+    (bydi ((:mock whale-line--filter :return '((one . t)))
+           whale-line--render-segments)
 
       (whale-line--render :left)
 

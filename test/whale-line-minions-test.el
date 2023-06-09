@@ -20,7 +20,7 @@
 
     (should (equal '(test rest) (whale-line-minions--list)))
 
-    (bydi-with-mock ((minions--prominent-modes . (lambda () '((prominent " prm")))))
+    (bydi ((:mock minions--prominent-modes :with (lambda () '((prominent " prm")))))
       (with-temp-buffer
         (setq-local minions-mode t)
 

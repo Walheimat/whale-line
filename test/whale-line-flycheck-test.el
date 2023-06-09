@@ -20,7 +20,7 @@
 
     (setq flycheck-current-errors 'errors)
 
-    (bydi-with-mock ((flycheck-count-errors . (lambda (_) mock-errors)))
+    (bydi ((:mock flycheck-count-errors :return mock-errors))
 
       (setq mock-errors '((error . 1)))
 
@@ -43,7 +43,7 @@
 
   (let ((flycheck-current-errors '((error . 1) (warning . 2) (info . 3))))
 
-    (bydi-with-mock ((flycheck-count-errors . 'bydi-rf))
+    (bydi ((:mock flycheck-count-errors :with bydi-rf))
       (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-flycheck--get-error-help 'finished))))))
 
 ;;; whale-line-flycheck-test.el ends here

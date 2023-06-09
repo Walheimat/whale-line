@@ -10,27 +10,24 @@
 
 (ert-deftest wlp--display-for-buffer-p--no-show-for-non-file-non-dired ()
   (with-temp-buffer
-    (bydi-with-mock ((derived-mode-p . #'ignore)
-                     (buffer-file-name . #'ignore))
-
+    (bydi ((:ignore derived-mode-p)
+           (:ignore buffer-file-name))
       (should-not (whale-line-project--display-for-buffer-p)))))
 
 (ert-deftest wlp--get--for-projectile ()
   (let ((whale-line-project-provider 'projectile))
 
-    (bydi-with-mock ((whale-line-project--display-for-buffer-p . #'always)
-                     (projectile-project-root . (lambda () "/home/test/project/")))
-
+    (bydi ((:always whale-line-project--display-for-buffer-p)
+           (:mock projectile-project-root :return "/home/test/project/"))
       (should (string= "project" (whale-line-project--get))))))
 
 (ert-deftest wlp--get--for-project ()
   (let ((whale-line-project-provider 'project))
 
-    (bydi-with-mock ((whale-line-project--display-for-buffer-p . #'always)
-                     (project-current . #'always)
-                     (project-root . (lambda (_) "/home/test/project/"))
-                     (project-name . (lambda (_) "project")))
-
+    (bydi ((:always whale-line-project--display-for-buffer-p)
+           (:always project-current)
+           (:mock project-root :return "/home/test/project/")
+           (:mock project-name :return "project"))
       (should (string= "project" (whale-line-project--get))))))
 
 ;;; whale-line-project-test.el ends here

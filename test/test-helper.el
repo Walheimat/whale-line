@@ -6,8 +6,6 @@
 
 ;;; Code:
 
-(require 'ert-x)
-(require 'compat nil t)
 (require 'bydi nil t)
 
 (declare-function bydi-path-setup "ext:bydi.el")

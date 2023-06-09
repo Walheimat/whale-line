@@ -9,7 +9,7 @@
 (require 'whale-line-vc)
 
 (ert-deftest wlvc--update-state ()
-  (bydi-with-mock ((whale-line-vc--get-state . #'bydi-rt))
+  (bydi ((:mock whale-line-vc--get-state :with bydi-rt))
     (with-temp-buffer
       (should-not whale-line-vc--state)
 
@@ -18,9 +18,9 @@
       (should (equal 'testing whale-line-vc--state)))))
 
 (ert-deftest wlvc--get-state ()
-  (bydi-with-mock ((vc-backend . #'bydi-rt)
-                   vc-state
-                   (file-local-name . (lambda (_) "/tmp/testing")))
+  (bydi ((:mock vc-backend :with bydi-rt)
+         vc-state
+         (:mock file-local-name :return "/tmp/testing"))
 
     (whale-line-vc--get-state)
 
@@ -44,7 +44,7 @@
   (with-temp-buffer
     (should-not whale-line-vc--info)
 
-    (bydi-with-mock ((whale-line-vc--get-info . (lambda () "testing")))
+    (bydi ((:mock whale-line-vc--get-info :return "testing"))
       (whale-line-vc--update-info)
       (should (string= whale-line-vc--info "testing")))))
 
@@ -56,7 +56,7 @@
   (let ((vc-display-status t)
         (find-file-hook . nil))
 
-    (bydi-with-mock ((vc-backend . (lambda (_) "none")))
+    (bydi ((:mock vc-backend :return "none"))
 
       (bydi-with-temp-file "testing"
         (with-current-buffer (find-file-noselect bydi-tmp-file)

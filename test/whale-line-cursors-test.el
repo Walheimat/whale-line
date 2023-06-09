@@ -17,14 +17,14 @@
 
     (should-not (whale-line-cursors--count))
 
-    (bydi-with-mock ((mc/num-cursors . (lambda () 2)))
+    (bydi ((:mock mc/num-cursors :return 2))
 
       (with-temp-buffer
         (setq-local multiple-cursors-mode t)
 
         (should (string= " 2 " (whale-line-cursors--count)))))
 
-    (bydi-with-mock ((iedit-counter . (lambda () 3)))
+    (bydi ((:mock iedit-counter :return 3))
 
       (with-temp-buffer
         (setq-local iedit-mode t)

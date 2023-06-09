@@ -21,9 +21,9 @@
 (ert-deftest wlo--get-next-heading ()
   (let ((org-level-faces '(red green blue orange)))
 
-    (bydi-with-mock (org-back-to-heading
-                     (org-heading-components . (lambda () '(2 2 nil nil "Test Suite" nil)))
-                     (org-display-format . #'bydi-rf))
+    (bydi (org-back-to-heading
+           (:mock org-heading-components :with (lambda () '(2 2 nil nil "Test Suite" nil)))
+           (:mock org-display-format :with bydi-rf))
 
       (should (string= (whale-line-org--get-next-heading) "Test Suite"))
       (bydi-was-called org-back-to-heading))))
@@ -31,8 +31,8 @@
 (ert-deftest wlo--collect-headings ()
   (let ((headings '(a b c)))
 
-    (bydi-with-mock ((org-up-heading-safe . (lambda () (pop headings)))
-                     (whale-line-org--get-next-heading . (lambda () "Heading")))
+    (bydi ((:mock org-up-heading-safe :with (lambda () (pop headings)))
+           (:mock whale-line-org--get-next-heading :return "Heading"))
 
       (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-org--collect-headings))))))
 
@@ -47,9 +47,9 @@
         (headings nil)
         (whale-line-org-include 'current-and-root))
 
-    (bydi-with-mock ((org-before-first-heading-p . (lambda () first-heading))
-                     (whale-line-org--collect-headings . (lambda () headings))
-                     (whale-line-org--maybe-truncate . #'bydi-rf))
+    (bydi ((:mock org-before-first-heading-p :return first-heading)
+           (:mock whale-line-org--collect-headings :return headings)
+           (:mock whale-line-org--maybe-truncate :with bydi-rf))
       (with-temp-buffer
         (should-not (whale-line-org--build-segment)))
 

@@ -10,8 +10,8 @@
 
 (ert-deftest wll--active-p ()
   (let ((feature nil))
-    (bydi-with-mock ((featurep . (lambda (f) (eq f feature)))
-                     lsp-workspaces)
+    (bydi ((:mock featurep :with (lambda (f) (eq f feature)))
+           lsp-workspaces)
 
       (should-not (whale-line-lsp--active-p))
 
