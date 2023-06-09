@@ -1,6 +1,8 @@
 EMACS?=emacs
 SOURCE_DIR?=$(CURDIR)
 PACKAGE_VERSION=$(shell cask version)
+TEST_PRE_ARGS=
+TEST_ARGS=
 
 # Run `make V=1 {cmd}` to print commands
 $(V).SILENT:
@@ -39,12 +41,16 @@ dist: .cask
 .PHONY: test
 test: .cask
 	mkdir -p coverage
-	cask exec ert-runner $(TEST_ARGS)
+	$(TEST_PRE_ARGS) cask exec ert-runner $(TEST_ARGS)
 
 .PHONY: local-test
 local-test: test
 	cat coverage/results.txt
 	cask emacs --batch -f bydi-calculate-coverage
+
+.PHONY: coverage
+coverage: TEST_PRE_ARGS=COVERAGE_WITH_JSON=true
+coverage: test
 
 # -- Clean-up
 
