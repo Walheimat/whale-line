@@ -434,10 +434,12 @@ Additional SETUP and TEARDOWN function can be added for more control."
                  (defun ,setup-sym (&rest _)
                    ,(format "Set up %s segment." name)
                    ,@(mapcar (lambda (it)
-                               `(add-hook ',it #',augment)) hooks)
+                               `(add-hook ',it #',augment))
+                             hooks)
 
                    ,@(mapcar (lambda (it)
-                               `(advice-add ',it ,(car advice) #',augment)) (cdr advice))
+                               `(advice-add ',it ,(car advice) #',augment))
+                             (cdr advice))
 
                    ,(when setup `(funcall ,setup)))
 
@@ -621,13 +623,20 @@ Optionally FILTER out low priority segments."
          (suffix (if enable "--setup" "--teardown"))
          (func (intern (concat "whale-line-" (symbol-name symbol?) suffix))))
 
+    (when (or (and enable (memq symbol? whale-line-features))
+              (and (not enable)
+                   (not (memq symbol? whale-line-features))))
+      (user-error "Feature %s is already %s" symbol? (if enable "enabled" "disabled")))
+
     (whale-line--set-segment-priority symbol? enable)
 
-    (setq whale-line-features (if enable
+    (setq whale-line-features (if (and enable (not (memq symbol? whale-line-features)))
                                   (append whale-line-features (list symbol?))
                                 (delete symbol? whale-line-features)))
-    (when (fboundp func)
+    (when (functionp func)
       (funcall func))))
+
+(defvar whale-line--default-mode-line nil)
 
 (defun whale-line-mode--setup ()
   "Set up `whale-line-mode'."
