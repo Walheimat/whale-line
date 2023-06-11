@@ -3,6 +3,7 @@ SOURCE_DIR?=$(CURDIR)
 PACKAGE_VERSION=$(shell cask version)
 TEST_PRE_ARGS=
 TEST_ARGS=
+UPDATE_VERSION=./tools/update-version.sh
 
 # Run `make V=1 {cmd}` to print commands
 $(V).SILENT:
@@ -51,6 +52,23 @@ local-test: test
 .PHONY: coverage
 coverage: TEST_PRE_ARGS=COVERAGE_WITH_JSON=true
 coverage: test
+
+# -- Utility
+
+.PHONY: update-version
+update-version:
+	$(UPDATE_VERSION) Cask
+	$(UPDATE_VERSION) whale-line-animation.el
+	$(UPDATE_VERSION) whale-line-cursors.el
+	$(UPDATE_VERSION) whale-line.el
+	$(UPDATE_VERSION) whale-line-flycheck.el
+	$(UPDATE_VERSION) whale-line-icons.el
+	$(UPDATE_VERSION) whale-line-lsp.el
+	$(UPDATE_VERSION) whale-line-minions.el
+	$(UPDATE_VERSION) whale-line-org.el
+	$(UPDATE_VERSION) whale-line-project.el
+	$(UPDATE_VERSION) whale-line-tab-bar.el
+	$(UPDATE_VERSION) whale-line-vc.el
 
 # -- Clean-up
 

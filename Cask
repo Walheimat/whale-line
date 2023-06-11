@@ -7,7 +7,7 @@
  (depends-on "undercover")
  (depends-on "compat"))
 
-(package "whale-line" "0.4.0" "A whale-based mode-line")
+(package "whale-line" "0.5.0" "A whale-based mode-line")
 
 (package-file "whale-line.el")
 
