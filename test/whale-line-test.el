@@ -229,7 +229,7 @@
 
       (should (equal '((:eval whale-line-one--segment)
                        (:eval (whale-line-three--segment))
-                       (:eval (whale-line-four--set-segment)))
+                       (:eval (whale-line-four--action)))
                      (whale-line--render-segments segments))))))
 
 (ert-deftest whale-line--enabled-feature-p ()
@@ -345,28 +345,26 @@
        :setup (lambda () t))
      '(progn
        (defvar whale-line-test--segment 'initial)
-       (defun whale-line-test--get-segment ()
-         "Get the test segment."
-         (lambda nil t))
-       (defun whale-line-test--set-segment (&rest _)
+       (defun whale-line-test--action
+           (&rest _)
          "Set test segment."
-         (if-let ((str (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment (concat
-                                                   (whale-line--spacer)
-                                                   str))
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq-local whale-line-test--segment
+                         (concat
+                          (whale-line--spacer)
+                          str))
            (setq-local whale-line-test--segment nil)))
-       (progn
-         (defun whale-line-test--setup (&rest _)
-           "Set up test segment."
-           (add-hook 'test-mode-hook #'whale-line-test--set-segment)
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-setup-hook #'whale-line-test--setup))
-       (progn
-         (defun whale-line-test--teardown (&rest _)
-           "Tear down test segment."
-           (remove-hook 'test-mode-hook #'whale-line-test--set-segment)
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))
+       (whale-line--function whale-line-test--get-segment
+         (lambda nil t)
+         "Get the test segment.")
+       (whale-line--setup test :setup
+         (lambda nil t)
+         :advice nil :hooks
+         (test-mode-hook)
+         :teardown
+         (lambda nil t))
        (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-static-segment--simple ()
@@ -376,18 +374,21 @@
        :getter (lambda () t))
      '(progn
        (defvar whale-line-test--segment 'initial)
-       (defun whale-line-test--get-segment ()
-         "Get the test segment."
-         (lambda nil t))
-       (defun whale-line-test--set-segment (&rest _)
+       (defun whale-line-test--action
+           (&rest _)
          "Set test segment."
-         (if-let ((str (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment (concat
-                                                   (whale-line--spacer)
-                                                   str))
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq-local whale-line-test--segment
+                         (concat
+                          (whale-line--spacer)
+                          str))
            (setq-local whale-line-test--segment nil)))
-       nil
-       nil
+       (whale-line--function whale-line-test--get-segment
+         (lambda nil t)
+         "Get the test segment.")
+       (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil)
        (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-static-segment--using-symbols ()
@@ -403,28 +404,20 @@
        :priority low)
      '(progn
        (defvar whale-line-test--segment 'initial)
-       (defun whale-line-test--get-segment ()
-         "Get the test segment."
-         (funcall 'ignore))
-       (defun whale-line-test--set-segment (&rest _)
+       (defun whale-line-test--action (&rest _)
          "Set test segment."
          (if-let ((str (whale-line-test--get-segment)))
              (setq-local whale-line-test--segment str)
            (setq-local whale-line-test--segment nil)))
-       (progn
-         (defun whale-line-test--setup (&rest _)
-           "Set up test segment."
-           (advice-add 'ancient :before #'whale-line-test--set-segment)
-           (advice-add 'old :before #'whale-line-test--set-segment)
-           (funcall 'ignore))
-         (add-hook 'whale-line-setup-hook #'whale-line-test--setup))
-       (progn
-         (defun whale-line-test--teardown (&rest _)
-           "Tear down test segment."
-           (advice-remove 'ancient #'whale-line-test--set-segment)
-           (advice-remove 'old #'whale-line-test--set-segment)
-           (funcall 'ignore))
-         (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))
+
+       (whale-line--function whale-line-test--get-segment ignore "Get the test segment.")
+
+       (whale-line--setup test
+         :setup ignore
+         :advice (:before ancient old)
+         :hooks nil
+         :teardown ignore)
+
        (whale-line-add-segment 'test 'low)))))
 
 (ert-deftest whale-line-create-dynamic-segment ()
@@ -436,9 +429,6 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
-       (defun whale-line-test--get-segment ()
-         "Get the `test' segment."
-         (lambda nil t))
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or
@@ -447,16 +437,13 @@
              (whale-line--spacer)
              (whale-line-test--get-segment)))
           ""))
-       (progn
-         (defun whale-line-test--setup (&rest _)
-           "Set up test segment."
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-setup-hook #'whale-line-test--setup))
-       (progn
-         (defun whale-line-test--teardown (&rest _)
-           "Tear down test segment."
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))
+       (whale-line--function whale-line-test--get-segment
+         (lambda nil t)
+         "Get the `test' segment.")
+       (whale-line--setup test :setup
+         (lambda nil t)
+         :teardown
+         (lambda nil t))
        (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-dynamic-segment--using-symbol ()
@@ -467,17 +454,14 @@
        :condition buffer-file-name
        :dense t)
      '(progn
-       (defun whale-line-test--get-segment ()
-         "Get the `test' segment."
-         (funcall 'ignore))
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or
           (when buffer-file-name
             (whale-line-test--get-segment))
           ""))
-       nil
-       nil
+       (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
+       (whale-line--setup test :setup nil :teardown nil)
        (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-augment ()
@@ -488,20 +472,15 @@
        :action ignore
        :setup (lambda () t)
        :teardown (lambda () t))
+
      '(progn
-       (defun whale-line-test--augment (&rest args)
-         "Augment function for `test'"
-         (apply 'ignore args))
-       (progn
-         (defun whale-line-test--setup (&rest _)
-           "Set up test segment."
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-setup-hook #'whale-line-test--setup))
-       (progn
-         (defun whale-line-test--teardown (&rest _)
-           "Tear down test segment."
-           (funcall (lambda nil t)))
-         (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))))
+       (whale-line--function whale-line-test--action ignore
+         "Augment function for `test'." t)
+       (whale-line--setup test
+         :hooks nil
+         :advice nil
+         :setup (lambda nil t)
+         :teardown (lambda nil t))))))
 
 (ert-deftest whale-line-create-augment--using-symbol ()
   (whale-line-do-expand
@@ -511,23 +490,87 @@
        :hooks (emacs-start-up)
        :advice (:after . (kill-line)))
      '(progn
-       (defun whale-line-test--augment (&rest args)
-         "Augment function for `test'"
-         (apply (lambda nil t) args))
-       (progn
-         (defun whale-line-test--setup (&rest _)
-           "Set up test segment."
-           (add-hook 'emacs-start-up #'whale-line-test--augment)
-           (advice-add 'kill-line :after #'whale-line-test--augment)
-           nil)
-         (add-hook 'whale-line-setup-hook #'whale-line-test--setup))
-       (progn
-         (defun whale-line-test--teardown (&rest _)
-           "Tear down test segment."
-           (remove-hook 'emacs-start-up #'whale-line-test--augment)
-           (advice-remove 'kill-line #'whale-line-test--augment)
-           nil)
-         (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))))
+       (whale-line--function whale-line-test--action
+         (lambda nil t)
+         "Augment function for `test'." t)
+       (whale-line--setup test
+         :hooks (emacs-start-up)
+         :advice (:after kill-line)
+         :setup nil
+         :teardown nil)))))
+
+(ert-deftest whale-line--function--lambda ()
+  (bydi-match-expansion
+   (whale-line--function test-fun (lambda () t) "Docs.")
+   '(defun test-fun
+       (&rest _args)
+     "Docs."
+     (lambda nil t))))
+
+(ert-deftest whale-line--function--sym ()
+  (bydi-match-expansion
+   (whale-line--function test-fun other-test-fun "Docs.")
+   '(defun test-fun (&rest _args)
+     "Docs."
+     (funcall 'other-test-fun))))
+
+(ert-deftest whale-line--function--lambda-apply ()
+  (bydi-match-expansion
+   (whale-line--function test-fun (lambda () t) "Docs." t)
+   '(defun test-fun (&rest args)
+     "Docs."
+     (apply (lambda () t) args))))
+
+(ert-deftest whale-line--function--sym-apply ()
+  (bydi-match-expansion
+   (whale-line--function test-fun other-test-fun "Docs." t)
+   '(defun test-fun (&rest args)
+     "Docs."
+     (apply 'other-test-fun args))))
+
+(ert-deftest whale-line--setup ()
+  (whale-line--setup test
+    :setup (lambda () t)
+    :teardown (lambda () t)
+    :hooks (first-hook second-hook)
+    :advice (:after . (one two)))
+  '(progn
+    (defun whale-line-test--setup (&rest _)
+      "Set up test segment."
+      (add-hook 'first-hook #'whale-line-test--action)
+      (add-hook 'second-hook #'whale-line-test--action)
+      (advice-add 'one :after #'whale-line-test--action)
+      (advice-add 'two :after #'whale-line-test--action)
+      (funcall (lambda nil t)))
+
+    (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+
+    (defun whale-line-test--teardown (&rest _)
+      "Tear down test segment."
+      (remove-hook 'first-hook #'whale-line-test--action)
+      (remove-hook 'second-hook #'whale-line-test--action)
+      (advice-remove 'one #'whale-line-test--action)
+      (advice-remove 'two #'whale-line-test--action)
+      (funcall (lambda nil t)))
+
+    (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))
+
+(ert-deftest whale-line--setup--using-symbols ()
+  (whale-line--setup test
+    :setup one
+    :teardown two)
+  '(progn
+    (defun whale-line-test--setup (&rest _)
+      "Set up test segment."
+      (funcall 'one))
+
+    (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+
+    (defun whale-line-test--teardown (&rest _)
+      "Tear down test segment."
+
+      (funcall 'two))
+    (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))
 
 ;;; whale-line-test.el ends here
 

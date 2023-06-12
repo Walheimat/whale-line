@@ -20,7 +20,7 @@
 (declare-function whale-line--spacer "whale-line.el")
 (declare-function whale-line-buffer-name--get-segment "whale-line.el")
 (declare-function whale-line-icons--get-segment "whale-line-icons.el")
-(declare-function whale-line-icons--set-segment "whale-line-icons.el")
+(declare-function whale-line-icons--action "whale-line-icons.el")
 
 ;; Customization:
 
@@ -71,7 +71,7 @@
   :teardown
   (lambda ()
     (when (whale-line--enabled-feature-p 'icons)
-      (whale-line-icons--set-segment))))
+      (whale-line-icons--action))))
 
 (provide 'whale-line-lsp)
 

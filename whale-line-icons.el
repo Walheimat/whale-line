@@ -19,10 +19,10 @@
 (declare-function whale-line--spacer "whale-line.el")
 (declare-function whale-line-buffer-status--segment "whale-line.el")
 (declare-function whale-line-project--get-segment "whale-line-project.el")
-(declare-function whale-line-project--set-segment "whale-line-project.el")
+(declare-function whale-line-project--action "whale-line-project.el")
 (declare-function whale-line-vc--face-for-state "whale-line-vc.el")
 (declare-function whale-line-vc--get-segment "whale-line-vc.el")
-(declare-function whale-line-vc--set-segment "whale-line-vc.el")
+(declare-function whale-line-vc--action "whale-line-vc.el")
 
 ;; Customization:
 
@@ -170,12 +170,12 @@ icon name and the face.")
     (advice-add
      #'whale-line-project--get-segment :filter-return
      #'wli--prepend-icon-to-project-segment)
-    (whale-line-project--set-segment)
+    (whale-line-project--action)
 
     (advice-add
      #'whale-line-vc--get-segment :filter-return
      #'wli--prepend-icon-to-vc-segment)
-    (whale-line-vc--set-segment)
+    (whale-line-vc--action)
 
     (advice-add
      #'whale-line-window-status--segment :override
@@ -191,12 +191,12 @@ icon name and the face.")
     (advice-remove
      #'whale-line-project--get-segment
      #'wli--prepend-icon-to-project-segment)
-    (whale-line-project--set-segment)
+    (whale-line-project--action)
 
     (advice-remove
      #'whale-line-vc--get-segment
      #'wli--prepend-icon-to-vc-segment)
-    (whale-line-vc--set-segment)
+    (whale-line-vc--action)
 
     (when wli-prettify-buffer-status
       (advice-remove

@@ -224,12 +224,74 @@ Optionally with a PRIORITY."
 
 ;; Macros:
 
-(defvar whale-line-augment-fstring "whale-line-%s--augment")
-(defvar whale-line-segment-fstring "whale-line-%s--segment")
-(defvar whale-line-set-segment-fstring "whale-line-%s--set-segment")
-(defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
-(defvar whale-line-setup-fstring "whale-line-%s--setup")
-(defvar whale-line-teardown-fstring "whale-line-%s--teardown")
+(cl-defmacro whale-line--setup (name &key setup teardown hooks advice)
+  "Create setup for NAME.
+
+HOOKS is a list of functions that will call the setter.
+
+ADVICE is a cons cell of the form (combinator .
+functions-to-advise) that will also call the setter.
+
+SETUP is the function called on setup. TEARDOWN is the function
+called on teardown."
+  (declare (indent defun))
+
+  (let ((setter-sym (intern (format "whale-line-%s--action" (symbol-name name))))
+        (setup-sym (intern (format "whale-line-%s--setup" (symbol-name name))))
+        (teardown-sym (intern (format "whale-line-%s--teardown" (symbol-name name)))))
+
+    `(progn
+       (defun ,setup-sym (&rest _)
+         ,(format "Set up %s segment." name)
+
+         ,@(mapcar (lambda (it)
+                     `(add-hook ',it #',setter-sym))
+                   hooks)
+
+         ,@(mapcar (lambda (it)
+                     `(advice-add ',it ,(car advice) #',setter-sym))
+                   (cdr advice))
+
+         ,(when setup (if (symbolp setup)
+                          `(funcall ',setup)
+                        `(funcall ,setup))))
+
+       (add-hook 'whale-line-setup-hook #',setup-sym)
+
+       (defun ,teardown-sym (&rest _)
+         ,(format "Tear down %s segment." name)
+
+         ,@(mapcar (lambda (it)
+                     `(remove-hook ',it #',setter-sym))
+                   hooks)
+
+         ,@(mapcar (lambda (it)
+                     `(advice-remove ',it #',setter-sym))
+                   (cdr advice))
+
+         ,(when teardown
+            (if (symbolp teardown)
+                `(funcall ',teardown)
+              `(funcall ,teardown))))
+
+       (add-hook 'whale-line-teardown-hook #',teardown-sym))))
+
+(cl-defmacro whale-line--function (sym fun docs &optional apply)
+  "Create a function using symbol SYM.
+
+The function will call FUN if it is a symbol. DOCS are used for
+the docstring. If APPLY is t, use `apply' instead of `funcall'."
+  (declare (indent defun))
+
+  `(defun ,sym (&rest ,(if apply 'args '_args))
+     ,docs
+     ,(if apply
+          (if (symbolp fun)
+              `(apply ',fun args)
+            `(apply ,fun args))
+        (if (symbolp fun)
+            `(funcall ',fun)
+          fun))))
 
 (cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
   "Create a static segment named NAME.
@@ -252,17 +314,9 @@ A left margin is added unless DENSE is t.
 This will also add the segment with PRIORITY or t."
   (declare (indent defun))
 
-  (defvar whale-line-segment-fstring "whale-line-%s--segment")
-  (defvar whale-line-set-segment-fstring "whale-line-%s--set-segment")
-  (defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
-  (defvar whale-line-setup-fstring "whale-line-%s--setup")
-  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
-
-  (let ((segment (intern (format whale-line-segment-fstring (symbol-name name))))
-        (setter (intern (format whale-line-set-segment-fstring (symbol-name name))))
-        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name))))
-        (getter-sym (intern (format whale-line-get-segment-fstring (symbol-name name))))
+  (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
+        (setter (intern (format "whale-line-%s--action" (symbol-name name))))
+        (getter-sym (intern (format "whale-line-%s--get-segment" (symbol-name name))))
         (prio (or priority t)))
 
     (if (and (not (bound-and-true-p whale-line--testing))
@@ -270,56 +324,14 @@ This will also add the segment with PRIORITY or t."
         `(progn
            (defvar ,segment 'initial)
 
-           (defun ,getter-sym ()
-             ,(format "Get the %s segment." name)
-             ,(if (symbolp getter)
-                  `(funcall ',getter)
-                getter))
-
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
              (if-let ((str (,getter-sym)))
                  (setq-local ,segment ,(if dense 'str '(concat (whale-line--spacer) str)))
                (setq-local ,segment nil)))
 
-           ,(when (or setup hooks advice)
-              `(progn
-                 (defun ,setup-sym (&rest _)
-                   ,(format "Set up %s segment." name)
-
-                   ,@(mapcar (lambda (it)
-                               `(add-hook ',it #',setter))
-                             hooks)
-
-                   ,@(mapcar (lambda (it)
-                               `(advice-add ',it ,(car advice) #',setter))
-                             (cdr advice))
-
-                   ,(when setup (if (symbolp setup)
-                                    `(funcall ',setup)
-                                  `(funcall ,setup))))
-
-                 (add-hook 'whale-line-setup-hook #',setup-sym)))
-
-           ,(when (or teardown hooks advice)
-              `(progn
-                 (defun ,teardown-sym (&rest _)
-                   ,(format "Tear down %s segment." name)
-
-                   ,@(mapcar (lambda (it)
-                               `(remove-hook ',it #',setter))
-                             hooks)
-
-                   ,@(mapcar (lambda (it)
-                               `(advice-remove ',it #',setter))
-                             (cdr advice))
-
-                   ,(when teardown (if (symbolp teardown)
-                                       `(funcall ',teardown)
-                                     `(funcall ,teardown))))
-
-                 (add-hook 'whale-line-teardown-hook #',teardown-sym)))
-
+           (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
+           (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown)
            (whale-line-add-segment ',name ',prio))
       `(progn
          (defvar ,segment nil)
@@ -345,49 +357,22 @@ A left margin is added unless DENSE is t.
 The segment will be added with PRIORITY or t."
   (declare (indent defun))
 
-  (defvar whale-line-segment-fstring "whale-line-%s--segment")
-  (defvar whale-line-get-segment-fstring "whale-line-%s--get-segment")
-  (defvar whale-line-setup-fstring "whale-line-%s--setup")
-  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
-
-  (let ((segment (intern (format whale-line-segment-fstring (symbol-name name))))
-        (getter-sym (intern (format whale-line-get-segment-fstring (symbol-name name))))
-        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name))))
+  (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
+        (getter-sym (intern (format "whale-line-%s--get-segment" (symbol-name name))))
         (prio (or priority t))
         (con (or condition t)))
 
     (if (and (not (bound-and-true-p whale-line--testing))
              (or (null verify) (funcall verify)))
         `(progn
-           (defun ,getter-sym ()
-             ,(format "Get the `%s' segment." name)
-             ,(if (symbolp getter)
-                  `(funcall ',getter)
-                getter))
-
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
                    ,(if dense `(,getter-sym) `(concat (whale-line--spacer) (,getter-sym))))
                  ""))
 
-           ,(when setup
-              `(progn
-                 (defun ,setup-sym (&rest _)
-                   ,(format "Set up %s segment." name)
-                   (funcall ,setup))
-
-                 (add-hook 'whale-line-setup-hook #',setup-sym)))
-
-           ,(when teardown
-              `(progn
-                 (defun ,teardown-sym (&rest _)
-                   ,(format "Tear down %s segment." name)
-                   (funcall ,teardown))
-
-                 (add-hook 'whale-line-teardown-hook #',teardown-sym)))
-
+           (whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name))
+           (whale-line--setup ,name :setup ,setup :teardown ,teardown)
            (whale-line-add-segment ',name ',prio))
       `(progn
          (defun ,segment ()
@@ -411,54 +396,13 @@ functions-to-advise to call ACTION.
 Additional SETUP and TEARDOWN function can be added for more control."
   (declare (indent defun))
 
-  (defvar whale-line-augment-fstring "whale-line-%s--augment")
-  (defvar whale-line-setup-fstring "whale-line-%s--setup")
-  (defvar whale-line-teardown-fstring "whale-line-%s--teardown")
-
-  (let ((augment (intern (format whale-line-augment-fstring (symbol-name name))))
-        (setup-sym (intern (format whale-line-setup-fstring (symbol-name name))))
-        (teardown-sym (intern (format whale-line-teardown-fstring (symbol-name name)))))
+  (let ((augment (intern (format "whale-line-%s--action" (symbol-name name)))))
 
     (if (and (not (bound-and-true-p whale-line--testing))
              (or (null verify) (funcall verify)))
         `(progn
-           (defun ,augment (&rest args)
-             ,(format "Augment function for `%s'" name)
-
-             ,(if (symbolp action)
-                  `(apply ',action args)
-                `(apply ,action args)))
-
-           ,(when (or hooks advice setup)
-              `(progn
-                 (defun ,setup-sym (&rest _)
-                   ,(format "Set up %s segment." name)
-                   ,@(mapcar (lambda (it)
-                               `(add-hook ',it #',augment))
-                             hooks)
-
-                   ,@(mapcar (lambda (it)
-                               `(advice-add ',it ,(car advice) #',augment))
-                             (cdr advice))
-
-                   ,(when setup `(funcall ,setup)))
-
-                 (add-hook 'whale-line-setup-hook #',setup-sym)))
-
-           ,(when (or hooks advice setup)
-              `(progn
-                 (defun ,teardown-sym (&rest _)
-                   ,(format "Tear down %s segment." name)
-
-                   ,@(mapcar (lambda (it)
-                               `(remove-hook ',it #',augment)) hooks)
-
-                   ,@(mapcar (lambda (it)
-                               `(advice-remove ',it #',augment)) (cdr advice))
-
-                   ,(when teardown `(funcall ,teardown)))
-
-                 (add-hook 'whale-line-teardown-hook #',teardown-sym))))
+           (whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t)
+           (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown))
       `(unless (bound-and-true-p whale-line--testing)
          (message "Couldn't create `%s' augment" ',name)))))
 
@@ -608,8 +552,8 @@ Optionally FILTER out low priority segments."
              (lambda (it)
                (when-let* ((should-use (cdr it))
                            (name (symbol-name (car it)))
-                           (segment (intern (format whale-line-segment-fstring name)))
-                           (setter (intern (format whale-line-set-segment-fstring name))))
+                           (segment (intern (format "whale-line-%s--segment" name)))
+                           (setter (intern (format "whale-line-%s--action" name))))
 
                  (if (functionp segment)
                      `(:eval (,segment))
