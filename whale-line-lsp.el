@@ -60,12 +60,14 @@
                                                (propertize left 'face 'whale-line-indicate)
                                                (string-trim str)
                                                (propertize right 'face 'whale-line-indicate)))))))
+
   :hooks
   (lsp-after-initialize-hook
    lsp-after-uninitialized-functions
    lsp-after-open-hook
    eglot-server-initialized-hook
    eglot-managed-mode-hook)
+
   :teardown
   (lambda ()
     (when (whale-line--enabled-feature-p 'icons)

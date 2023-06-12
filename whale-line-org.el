@@ -102,8 +102,10 @@
       (concat
        wlo-delimiter
        (wlo--build-segment))))
+
   :condition
   (eq major-mode 'org-mode)
+
   :dense t)
 
 (provide 'whale-line-org)

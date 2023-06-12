@@ -56,6 +56,7 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
+
   :action
   (lambda (status &rest _r)
     (let ((face (wlf--get-face-for-status status))
@@ -68,6 +69,7 @@ Returns nil if not checking or if no errors were found."
 				   (if text
 					   (propertize segment 'face face 'help-echo text)
 					 (propertize segment 'face face))))))
+
   :hooks
   (flycheck-status-changed-functions))
 

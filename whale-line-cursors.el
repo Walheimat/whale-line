@@ -30,10 +30,12 @@
 
 (whale-line-create-dynamic-segment cursors
   :getter whale-line-cursors--count
+
   :condition
   (or (bound-and-true-p multiple-cursors-mode)
       (bound-and-true-p iedit-mode))
-  :priority 'current)
+
+  :priority current)
 
 (provide 'whale-line-cursors)
 

@@ -320,7 +320,7 @@ This will also add the segment with PRIORITY or t."
 
                  (add-hook 'whale-line-teardown-hook #',teardown-sym)))
 
-           (whale-line-add-segment ',name ,prio))
+           (whale-line-add-segment ',name ',prio))
       `(progn
          (defvar ,segment nil)
          (unless (bound-and-true-p whale-line--testing)
@@ -388,7 +388,7 @@ The segment will be added with PRIORITY or t."
 
                  (add-hook 'whale-line-teardown-hook #',teardown-sym)))
 
-           (whale-line-add-segment ',name ,prio))
+           (whale-line-add-segment ',name ',prio))
       `(progn
          (defun ,segment ()
            ,(format "Render `%s' segment as an empty string." name)
@@ -473,10 +473,12 @@ Additional SETUP and TEARDOWN function can be added for more control."
          (map (get-text-property 0 'local-map identification)))
 
     (propertize "%b" 'help-echo help 'mouse-face 'whale-line-highlight 'local-map map))
+
   :hooks
   (find-file-hook
    after-save-hook
    clone-indirect-buffer-hook)
+
   :advice
   (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
@@ -490,31 +492,39 @@ Additional SETUP and TEARDOWN function can be added for more control."
    ((buffer-modified-p)
     (propertize "*" 'face 'whale-line-emphasis))
    (t ""))
+
   :dense t)
 
 (whale-line-create-dynamic-segment window-status
   :getter
   (when (window-dedicated-p)
     (propertize "^" 'face 'whale-line-shadow))
-  :priority 'low)
+
+  :priority low)
 
 (whale-line-create-dynamic-segment position
   :getter
   (let* ((following (bound-and-true-p follow-mode))
          (str (if following "f: %l:%c %p%" "%l:%c %p%")))
     (propertize str 'face 'whale-line-shadow))
-  :priority 'current)
+
+  :priority current)
 
 (whale-line-create-dynamic-segment global-mode-string
   :getter
   (cons (whale-line--spacer) (cdr global-mode-string))
+
   :dense t
-  :priority 'current-low)
+
+  :priority current-low)
 
 (whale-line-create-dynamic-segment minor-modes
-  :getter (lambda () minor-mode-alist)
+  :getter
+  (lambda () minor-mode-alist)
+
   :dense t
-  :priority 'low)
+
+  :priority low)
 
 (whale-line-create-dynamic-segment process
   :getter
@@ -525,9 +535,12 @@ Additional SETUP and TEARDOWN function can be added for more control."
      ((stringp mlp)
       (propertize (concat (whale-line--spacer) mlp) 'face 'whale-line-shadow))
      (t "")))
+
   :condition mode-line-process
+
   :dense t
-  :priority 'current)
+
+  :priority current)
 
 (defun whale-line-selection--get-columns (beg end)
   "Get the columns from BEG to END for displaying `rectangle-mode'."
@@ -538,7 +551,9 @@ Additional SETUP and TEARDOWN function can be added for more control."
 
 (whale-line-create-dynamic-segment selection
   :condition mark-active
-  :priority 'current-low
+
+  :priority current-low
+
   :getter
   (let* ((beg (region-beginning))
          (end (region-end))

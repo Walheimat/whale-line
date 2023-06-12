@@ -38,6 +38,7 @@
 
 (whale-line-create-augment minions
   :action whale-line-minions--list
+
   :advice
   (:after-while . (whale-line-minor-modes--segment)))
 

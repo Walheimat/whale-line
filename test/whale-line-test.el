@@ -367,7 +367,7 @@
            (remove-hook 'test-mode-hook #'whale-line-test--set-segment)
            (funcall (lambda nil t)))
          (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))
-       (whale-line-add-segment 'test t)))))
+       (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-static-segment--simple ()
   (whale-line-do-expand
@@ -388,7 +388,7 @@
            (setq-local whale-line-test--segment nil)))
        nil
        nil
-       (whale-line-add-segment 'test t)))))
+       (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-static-segment--using-symbols ()
   (whale-line-do-expand
@@ -400,7 +400,7 @@
        :teardown ignore
        :setup ignore
        :dense t
-       :priority 'low)
+       :priority low)
      '(progn
        (defvar whale-line-test--segment 'initial)
        (defun whale-line-test--get-segment ()
@@ -457,7 +457,7 @@
            "Tear down test segment."
            (funcall (lambda nil t)))
          (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))
-       (whale-line-add-segment 'test t)))))
+       (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-dynamic-segment--using-symbol ()
   (whale-line-do-expand
@@ -478,7 +478,7 @@
           ""))
        nil
        nil
-       (whale-line-add-segment 'test t)))))
+       (whale-line-add-segment 'test 't)))))
 
 (ert-deftest whale-line-create-augment ()
   (whale-line-do-expand

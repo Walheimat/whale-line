@@ -66,9 +66,12 @@ Forces a mode-line update and returns the current frame."
 
 (whale-line-create-static-segment animation
   :getter wla--animate
+
   :setup wla--start-timer
+
   :teardown wla--stop-timer
-  :priority 'current-low)
+
+  :priority current-low)
 
 (provide 'whale-line-animation)
 

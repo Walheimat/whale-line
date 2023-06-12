@@ -32,8 +32,7 @@
   :hooks
   (window-configuration-change-hook)
 
-  :priority
-  'current-low)
+  :priority current-low)
 
 (provide 'whale-line-tab-bar)
 
