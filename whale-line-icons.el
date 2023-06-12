@@ -149,7 +149,9 @@ icon name and the face.")
 
 (whale-line-create-static-segment icons
   :dense t
+
   :verify (lambda () (require 'all-the-icons nil t))
+
   :getter
   (when (display-graphic-p)
     (let ((icon (all-the-icons-icon-for-buffer)))
@@ -159,6 +161,10 @@ icon name and the face.")
                     icon)
                   'help-echo (format "%s" (format-mode-line mode-name))
                   'display '(raise -0.135))))
+
+  :hooks
+  (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
+
   :setup
   (lambda ()
     (advice-add
@@ -178,11 +184,8 @@ icon name and the face.")
     (when wli-prettify-buffer-status
       (advice-add
        #'whale-line-buffer-status--segment
-       :override #'wli--advise-buffer-status-segment))
+       :override #'wli--advise-buffer-status-segment)))
 
-    (add-hook 'find-file-hook #'wli--set-segment)
-    (add-hook 'after-change-major-mode-hook #'wli--set-segment)
-    (add-hook 'clone-indirect-buffer-hook #'wli--set-segment))
   :teardown
   (lambda ()
     (advice-remove
@@ -198,11 +201,7 @@ icon name and the face.")
     (when wli-prettify-buffer-status
       (advice-remove
        #'whale-line-buffer-status--segment
-       #'wli--advise-buffer-status-segment))
-
-    (remove-hook 'find-file-hook #'wli--set-segment)
-    (remove-hook 'after-change-major-mode-hook #'wli--set-segment)
-    (remove-hook 'clone-indirect-buffer-hook #'wli--set-segment)))
+       #'wli--advise-buffer-status-segment))))
 
 (provide 'whale-line-icons)
 

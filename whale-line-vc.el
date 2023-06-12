@@ -72,16 +72,12 @@
     (wlvc--update-state)
     (wlvc--update-info)
     wlvc--info)
-  :setup
-  (lambda ()
-    (add-hook 'find-file-hook #'wlvc--set-segment)
-    (add-hook 'after-save-hook #'wlvc--set-segment)
-    (advice-add 'vc-refresh-state :after #'wlvc--set-segment))
-  :teardown
-  (lambda ()
-    (remove-hook 'find-file-hook #'wlvc--set-segment)
-    (remove-hook 'after-save-hook #'wlvc--set-segment)
-    (advice-remove 'vc-refresh-state #'wlvc--set-segment)))
+
+  :hooks
+  (find-file-hook after-save-hook)
+
+  :advice
+  (:after . (vc-refresh-state)))
 
 (provide 'whale-line-vc)
 

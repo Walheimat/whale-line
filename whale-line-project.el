@@ -62,11 +62,8 @@ Only consider Dired buffers and file buffers."
 (whale-line-create-static-segment project
   :getter wlp--get
 
-  :setup
-  (lambda () (add-hook 'find-file-hook #'wlp--set-segment))
-
-  :teardown
-  (lambda () (remove-hook 'find-file-hook #'wlp--set-segment)))
+  :hooks
+  (find-file-hook))
 
 (provide 'whale-line-project)
 
