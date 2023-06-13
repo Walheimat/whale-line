@@ -159,13 +159,6 @@ Optionally FILTER out low priority segments."
           (rlen (length (whale-line--format-side :right t))))
       `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
 
-(defun whale-line--space-between (length)
-  "Get the space between sides aligned using LENGTH."
-  (propertize
-   " "
-   'display
-   `((space :align-to (- right (- 0 right-margin) ,length)))))
-
 (defun whale-line--format ()
   "Return a list of aligned left and right segments.
 
@@ -178,6 +171,13 @@ ellipsis."
      (whale-line--format-elide))
     ('prioritize
      (whale-line--format-prioritize))))
+
+(defun whale-line--space-between (length)
+  "Get the space between sides aligned using LENGTH."
+  (propertize
+   " "
+   'display
+   `((space :align-to (- right (- 0 right-margin) ,length)))))
 
 ;; Windows:
 
