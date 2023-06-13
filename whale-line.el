@@ -293,6 +293,25 @@ the docstring. If APPLY is t, use `apply' instead of `funcall'."
             `(funcall ',fun)
           fun))))
 
+(defmacro whale-line--omit (name type)
+  "Indicate that segment NAME was omitted.
+
+TYPE controls what is emitted: a variable for static segments, a
+function returning the empty string for dynamic segments and
+nothing for augments."
+  (let ((segment-sym (intern (format "whale-line-%s--segment" (symbol-name name)))))
+    `(progn
+       ,(pcase type
+          ('dynamic
+           `(defun ,segment-sym ()
+              ,(format "Render `%s' segment as an empty string." name)
+              ""))
+          ('static
+           `(defvar ,segment-sym nil))
+          (_ nil))
+       (unless (bound-and-true-p whale-line--testing)
+         (message "Couldn't add %s `%s' segment" ',type ',name)))))
+
 (cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
   "Create a static segment named NAME.
 
@@ -334,9 +353,7 @@ This will also add the segment with PRIORITY or t."
            (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown)
            (whale-line-add-segment ',name ',prio))
       `(progn
-         (defvar ,segment nil)
-         (unless (bound-and-true-p whale-line--testing)
-           (message "Couldn't add `%s' segment" ',name))))))
+         (whale-line--omit ,name static)))))
 
 (cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
   "Create a dynamic segment name NAME.
@@ -375,11 +392,7 @@ The segment will be added with PRIORITY or t."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown)
            (whale-line-add-segment ',name ',prio))
       `(progn
-         (defun ,segment ()
-           ,(format "Render `%s' segment as an empty string." name)
-           "")
-         (unless (bound-and-true-p whale-line--testing)
-           (message "Couldn't add `%s' segment" ',name))))))
+         (whale-line--omit ,name dynamic)))))
 
 (cl-defmacro whale-line-create-augment (name &key verify action hooks advice setup teardown)
   "Create augment(-or) named NAME.
@@ -403,8 +416,8 @@ Additional SETUP and TEARDOWN function can be added for more control."
         `(progn
            (whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t)
            (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown))
-      `(unless (bound-and-true-p whale-line--testing)
-         (message "Couldn't create `%s' augment" ',name)))))
+      `(progn
+         (whale-line--omit ,name augment)))))
 
 ;; Segments:
 
