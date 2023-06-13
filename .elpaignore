@@ -1,0 +1,7 @@
+.dir-locals.el
+Cask
+Makefile
+
+.github/
+test/
+tools/
