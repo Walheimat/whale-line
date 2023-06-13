@@ -184,11 +184,6 @@
 
 (defvar rectangle (ert-resource-file "rectangle.txt"))
 
-(ert-deftest whale-line-selection--get-columns ()
-  (with-temp-buffer
-    (insert-file-contents rectangle)
-    (should (eq (whale-line-selection--get-columns 1 30) 9))))
-
 (ert-deftest whale-line--filter ()
   (let ((current nil)
         (segments '((a . low) (b . current-low) (c . t) (d . current))))
@@ -284,7 +279,8 @@
            run-hooks)
       (whale-line-mode--setup)
 
-      (bydi-was-called-n-times require 3)
+      (bydi-was-called-n-times require 4)
+      (bydi-was-called-nth-with require '(whale-line-segments) 0)
       (bydi-was-called-with run-hooks (list 'whale-line-setup-hook))
       (bydi-was-called-with add-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window))
 

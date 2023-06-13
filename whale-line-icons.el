@@ -13,6 +13,7 @@
 ;;; Code:
 
 (require 'whale-line)
+(require 'whale-line-segments)
 
 (declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
 (declare-function all-the-icons-faicon "ext:all-the-icons.el")

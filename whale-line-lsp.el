@@ -13,6 +13,7 @@
 ;;; Code:
 
 (require 'whale-line)
+(require 'whale-line-segments)
 
 (declare-function lsp-workspaces "ext:lsp-mode.el")
 (declare-function whale-line--enabled-feature-p "whale-line.el")

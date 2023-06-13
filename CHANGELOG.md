@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Macros to create segments (or augments) have been unified and now
   use helper macros. `{segment}--{set-segment, augment}` is now
   `{segment}--action`.
+- Default segments were factored out into package
+  `whale-line-segments`.
 
 ## [v0.5.0]
 
