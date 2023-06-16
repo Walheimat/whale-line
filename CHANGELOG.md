@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `{segment}--action`.
 - Default segments were factored out into package
   `whale-line-segments`.
+- Switched to using `dinghy`.
 
 ## [v0.5.0]
 
