@@ -1,7 +1,4 @@
 ((nil . ((find-sibling-rules . (("test/\\([^/]+\\)-test.el" "\\1.el")
                                 ("\\([^/]+\\).el" "test/\\1-test.el")))
          (project-vc-name . "Modeline")
-         (wal-project-build-default-cmd . "make dist")
-         (wal-project-clean-default-cmd . "make clean")
-         (wal-project-install-default-cmd . "make package-install")
-         (wal-project-test-default-cmd . "make local-test"))))
+         (wal-project-install-default-cmd . "make package-install"))))
