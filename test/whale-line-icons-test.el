@@ -90,6 +90,25 @@
       (bydi-toggle-sometimes)
       (should (string= "" (whale-line-icons--advise-window-status-segment))))))
 
+(ert-deftest wli--get--nil-for-non-display ()
+  (bydi ((:ignore display-graphic-p))
+    (should-not (whale-line-icons--get))))
+
+(ert-deftest wli--get--fallback ()
+  (bydi ((:always display-graphic-p)
+         (:ignore all-the-icons-icon-for-buffer)
+         (:mock whale-line-icons--icon :return "?")
+         (:mock format-mode-line "echo"))
+
+    (should (equal (whale-line-icons--get) (propertize "?" 'help-echo "echo" 'display '(raise -0.135))))))
+
+(ert-deftest wli--get ()
+  (bydi ((:always display-graphic-p)
+         (:mock all-the-icons-icon-for-buffer :return "?")
+         (:mock format-mode-line "echo"))
+
+    (should (equal (whale-line-icons--get) (propertize "?" 'help-echo "echo" 'display '(raise -0.135))))))
+
 ;;; whale-line-icons-test.el ends here
 
 ;; Local Variables:

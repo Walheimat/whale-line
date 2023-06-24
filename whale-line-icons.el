@@ -146,14 +146,8 @@ icon name and the face.")
          :v-adjust 0.0))
     ""))
 
-;; Segment:
-
-(whale-line-create-static-segment icons
-  :dense t
-
-  :verify (lambda () (require 'all-the-icons nil t))
-
-  :getter
+(defun wli--get ()
+  "Get the buffer icon segment."
   (when (display-graphic-p)
     (let ((icon (all-the-icons-icon-for-buffer)))
 
@@ -161,7 +155,16 @@ icon name and the face.")
                       (wli--icon wli-buffer-fallback-icon)
                     icon)
                   'help-echo (format "%s" (format-mode-line mode-name))
-                  'display '(raise -0.135))))
+                  'display '(raise -0.135)))))
+
+;; Segment:
+
+(whale-line-create-static-segment icons
+  :dense t
+
+  :verify (lambda () (require 'all-the-icons nil t))
+
+  :getter wli--get
 
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
