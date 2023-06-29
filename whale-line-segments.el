@@ -20,7 +20,10 @@
 
 (whale-line-create-static-segment buffer-name
   :getter
-  (let* ((identification (car-safe mode-line-buffer-identification))
+  (let* ((identification (whale-line--car-safe-until
+                          mode-line-buffer-identification
+                          #'stringp
+                          (buffer-name)))
          (help (get-text-property 0 'help-echo identification))
          (map (get-text-property 0 'local-map identification)))
 

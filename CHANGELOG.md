@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `whale-line-segments`.
 - Switched to using `dinghy`.
 
+### Fixed
+
+- Segment `buffer-name` now searches `mode-line-buffer-identification`
+  for the first `car` that is a string. If that fails, it returns
+  `buffer-name`. This was a problem with packages like
+  `git-timemachine`.
+
 ## [v0.5.0]
 
 ### Added
@@ -28,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Package was renamed from `wal-line` to `whale-line`.
+- Package was renamed from `wal-line` to `whale-line`.=SF200
 - `ready-symbol-shorthands` used in some sub-packages to keep their
   name lengths in check.
 - `buffer-name` segment now uses the local map and help echo from

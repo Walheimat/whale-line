@@ -115,6 +115,20 @@ constraints."
 Optionally, use a BIG spacer."
   (if big "  " " "))
 
+(defun whale-line--car-safe-until (seq compare-fn &optional default-value)
+  "Inspect car of SEQ until non-list item is found.
+
+That item is returned if COMPARE-FN yields t. Otherwise nil or an
+optional DEFAULT-VALUE is returned."
+  (let ((rest seq))
+
+    (while (and rest (listp rest))
+      (setq rest (car-safe rest)))
+
+    (if (apply compare-fn (list rest))
+        rest
+      (or default-value nil))))
+
 ;; Formatting:
 
 (defun whale-line--format-side (side &optional filter)
