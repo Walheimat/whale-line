@@ -73,6 +73,8 @@ missing. Adapt =whale-line-features= accordingly.
 
 Modeline in a split split frame (theme is =kaolin-galaxy=).
 
+[[file:assets/mode-line-selected.png]]
+
 The left window is selected and shows:
 
 - file buffer icon using =all-the-icons=
@@ -90,4 +92,4 @@ The left window is selected and shows:
 
 The right window hides segments with low priority.
 
-[[file:assets/mode-line.png]]
+[[file:assets/mode-line-deselected.png]]
