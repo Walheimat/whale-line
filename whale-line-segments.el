@@ -59,8 +59,17 @@
 
 (whale-line-create-dynamic-segment position
   :getter
-  (let* ((following (bound-and-true-p follow-mode))
-         (str (if following "f: %l:%c %p%" "%l:%c %p%")))
+  (let ((str (cond
+              ((eq major-mode 'doc-view-mode)
+               (concat
+                (number-to-string (image-mode-window-get 'page))
+                "/"
+                (number-to-string (doc-view-last-page-number))))
+
+              ((bound-and-true-p follow-mode)
+               "f: %l:%c %p%" 'face 'whale-line-shadow)
+
+              (t "%l:%c %p%"))))
     (propertize str 'face 'whale-line-shadow))
 
   :priority current)

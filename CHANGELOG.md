@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for the first `car` that is a string. If that fails, it returns
   `buffer-name`. This was a problem with packages like
   `git-timemachine`.
+- `doc-view-mode` buffers now display page numbers.
 
 ## [v0.5.0]
 
