@@ -16,6 +16,9 @@
 
 (require 'whale-line)
 
+(declare-function image-mode-window-get "ext:image-mode.el")
+(declare-function doc-view-last-page-number "ext:doc-view.el")
+
 (defvar whale-line-margin--segment (whale-line--spacer))
 
 (whale-line-create-static-segment buffer-name
