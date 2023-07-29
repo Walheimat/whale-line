@@ -58,8 +58,8 @@
 
     (bydi ((:mock vc-backend :return "none"))
 
-      (bydi-with-temp-file "testing"
-        (with-current-buffer (find-file-noselect bydi-tmp-file)
+      (ert-with-temp-file testing
+        (with-current-buffer (find-file-noselect testing)
           (setq-local vc-mode " Git:feature/tests")
           (should (string= "tests" (whale-line-vc--get-info))))))))
 

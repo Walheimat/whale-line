@@ -8,18 +8,15 @@
 
 (require 'bydi)
 (require 'bydi-report)
-
-(declare-function bydi-path-setup "ext:bydi.el")
-(declare-function bydi-ert-runner-setup "ext:bydi.el")
-(declare-function bydi-undercover-setup "ext:bydi.el")
+(require 'bydi-ci)
 
 ;; Setup
 
 (setq whale-line--testing t)
 
-(bydi-path-setup)
-(bydi-undercover-setup (list "*.el"))
-(bydi-ert-runner-setup)
+(bydi-ci-setup-paths)
+(bydi-report-setup-undercover (list "*.el"))
+(bydi-report-setup-ert-runner)
 
 ;;; test-helper.el ends here
 
