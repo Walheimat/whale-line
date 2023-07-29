@@ -12,7 +12,7 @@
 
 ;;; Code:
 
-;; Segments:
+;;; -- Segments
 
 (require 'whale-line)
 

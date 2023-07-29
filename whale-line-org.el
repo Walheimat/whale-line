@@ -25,7 +25,7 @@
 (declare-function whale-line-buffer-name--segment "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
-;; Customization:
+;;; -- Customization
 
 (defcustom wlo-delimiter "/"
   "The delimiter between file name and heading name."
@@ -48,7 +48,7 @@
   :group 'whale-line
   :type 'integer)
 
-;; Functionality:
+;;; -- Functionality
 
 (defun wlo--maybe-truncate (heading)
   "Maybe truncate HEADING."
@@ -93,7 +93,7 @@
                  (nth 0 headings))
               (nth 0 headings)))))))))
 
-;; Segment:
+;;; -- Segment
 
 (whale-line-create-dynamic-segment org
   :getter

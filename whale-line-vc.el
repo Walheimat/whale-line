@@ -17,7 +17,7 @@
 (declare-function whale-line--is-current-window-p "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
-;; State:
+;;; -- State
 
 (defvar-local wlvc--state nil)
 
@@ -42,7 +42,7 @@
            'whale-line-contrast)
           (t 'whale-line-neutral))))
 
-;; Info:
+;;; -- Info
 
 (defvar wlvc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 (defvar-local wlvc--info nil)
@@ -64,7 +64,7 @@
                   'mouse-face 'whale-line-highlight
                   'face (wlvc--face-for-state)))))
 
-;; Segment:
+;;; -- Segment
 
 (whale-line-create-static-segment vc
   :getter

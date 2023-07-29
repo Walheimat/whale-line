@@ -25,7 +25,7 @@
 (declare-function whale-line-vc--get-segment "whale-line-vc.el")
 (declare-function whale-line-vc--action "whale-line-vc.el")
 
-;; Customization:
+;;; -- Customization
 
 (defcustom wli-prettify-buffer-status nil
   "Whether to use icons for the buffer status."
@@ -76,7 +76,7 @@ icon name and the face.")
   :group 'whale-line
   :type whale-line-icon-type)
 
-;; Additional icons:
+;;; -- Additional icons
 
 (defun wli--icon (specs &rest plist)
   "Get icon in SPECS with PLIST properties."
@@ -157,7 +157,7 @@ icon name and the face.")
                   'help-echo (format "%s" (format-mode-line mode-name))
                   'display '(raise -0.135)))))
 
-;; Segment:
+;;; -- Segment
 
 (whale-line-create-static-segment icons
   :dense t

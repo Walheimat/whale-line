@@ -18,7 +18,7 @@
 (declare-function whale-line--spacer "whale-line.el")
 (declare-function whale-line--is-current-window-p "whale-line.el")
 
-;;;; Customization:
+;;; -- Customization
 
 (defcustom wla-key-frames ["(__.- >{"
                            "(__.' >{"
@@ -33,7 +33,7 @@
   :group 'whale-line
   :type 'float)
 
-;;;; Functionality:
+;;; -- Functionality
 
 (defvar wla--frame-index 0)
 (defvar wla--timer nil)

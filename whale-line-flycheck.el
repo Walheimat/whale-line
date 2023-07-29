@@ -18,7 +18,7 @@
 (declare-function whale-line-buffer-name--get-segment "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
-;;;; Functionality:
+;;; -- Functionality
 
 (defface wlf-running
   '((t (:underline (:style wave)

@@ -23,14 +23,14 @@
 (declare-function whale-line-icons--get-segment "whale-line-icons.el")
 (declare-function whale-line-icons--action "whale-line-icons.el")
 
-;; Customization:
+;;; -- Customization
 
 (defcustom wll-delimiters '("[" "]")
   "The delimiters to indicate LSP status for buffer names."
   :group 'whale-line
   :type '(repeat string))
 
-;; Functionality:
+;;; -- Functionality
 
 (defun wll--active-p ()
   "Check if an LSP mode is active."

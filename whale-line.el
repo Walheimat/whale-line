@@ -15,16 +15,18 @@
 (eval-when-compile
   (require 'cl-lib))
 
-(defconst whale-line--all-features '(flycheck
-                                     project
-                                     icons
-                                     vc
-                                     animation
-                                     minions
-                                     cursors
-                                     lsp
-                                     org
-                                     tab-bar))
+;;; -- Variables
+
+(defvar whale-line--all-features '(flycheck
+                                   project
+                                   icons
+                                   vc
+                                   animation
+                                   minions
+                                   cursors
+                                   lsp
+                                   org
+                                   tab-bar))
 
 (defvar whale-line--segments '(:left
                                ((margin . t)
@@ -47,7 +49,13 @@
                                 (animation . nil)
                                 (margin . t))))
 
-;;;; Customization:
+(defvar whale-line--current-window nil)
+(defvar whale-line--default-mode-line nil)
+(defvar whale-line--default-mode-line nil)
+(defvar whale-line-setup-hook nil)
+(defvar whale-line-teardown-hook nil)
+
+;;; -- Customization
 
 (defgroup whale-line nil
   "A minimal mode-line configuration inspired by doom-modeline."
@@ -70,7 +78,7 @@ constraints."
                  (const elide)
                  (const ignore)))
 
-;;;; Faces:
+;;; -- Faces
 
 (defface whale-line-neutral
   '((t))
@@ -107,7 +115,7 @@ constraints."
   "Face used for notification."
   :group 'whale-line)
 
-;;;; Utility:
+;;; -- Utility
 
 (defun whale-line--spacer (&optional big)
   "A space used for padding.
@@ -129,7 +137,7 @@ optional DEFAULT-VALUE is returned."
         rest
       (or default-value nil))))
 
-;; Formatting:
+;;; -- Formatting
 
 (defun whale-line--format-side (side &optional filter)
   "Get the formatted SIDE.
@@ -193,9 +201,7 @@ ellipsis."
    'display
    `((space :align-to (- right (- 0 right-margin) ,length)))))
 
-;; Windows:
-
-(defvar whale-line--current-window nil)
+;;; -- Windows
 
 (defun whale-line--get-current-window ()
   "Get the current window but should exclude the child windows."
@@ -216,7 +222,7 @@ ellipsis."
   (and whale-line--current-window
        (eq (whale-line--get-current-window) whale-line--current-window)))
 
-;; Priorities:
+;;; -- Priorities
 
 (defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
@@ -236,7 +242,7 @@ Optionally with a PRIORITY."
   (let ((prio (or priority t)))
     (whale-line--set-segment-priority segment prio)))
 
-;; Macros:
+;;; -- Macros
 
 (cl-defmacro whale-line--setup (name &key setup teardown hooks advice)
   "Create setup for NAME.
@@ -433,7 +439,7 @@ Additional SETUP and TEARDOWN function can be added for more control."
       `(progn
          (whale-line--omit ,name augment)))))
 
-;; Rendering
+;;; -- Rendering
 
 (defun whale-line--filter (segments &optional low-space)
   "Filter SEGMENTS.
@@ -490,7 +496,7 @@ Optionally FILTER out low priority segments."
                      `(:eval ,eval)))))
              segments)))
 
-;;;; Disabling/enabling:
+;;; -- Setup
 
 (defun whale-line--enabled-feature-p (feature)
   "Check if FEATURE is enabled."
@@ -520,8 +526,6 @@ Optionally FILTER out low priority segments."
     (when (functionp func)
       (funcall func))))
 
-(defvar whale-line--default-mode-line nil)
-
 (defun whale-line-mode--setup ()
   "Set up `whale-line-mode'."
   (dolist (it (append (list 'segments) whale-line-features))
@@ -545,11 +549,7 @@ Optionally FILTER out low priority segments."
   ;; Restore the original mode-line format
   (setq-default mode-line-format whale-line--default-mode-line))
 
-;; Entrypoint.
-
-(defvar whale-line--default-mode-line nil)
-(defvar whale-line-setup-hook nil)
-(defvar whale-line-teardown-hook nil)
+;;; -- API
 
 (defun whale-line-disable-feature (feature)
   "Disable FEATURE."

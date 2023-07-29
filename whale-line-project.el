@@ -19,7 +19,7 @@
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
 
-;;;; Customization:
+;;; -- Customization
 
 (defcustom wlp-provider 'project
   "The project provider."
@@ -27,7 +27,7 @@
   :type '(choice (const project)
                  (const projectile)))
 
-;;;; Functionality:
+;;; -- Functionality
 
 (defun wlp--display-for-buffer-p ()
   "Check if current buffer should show project information.

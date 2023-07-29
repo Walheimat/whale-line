@@ -12,7 +12,6 @@
 
 ;;; Code:
 
-
 (require 'whale-line)
 
 (defun wltb--get-explicit-name ()
