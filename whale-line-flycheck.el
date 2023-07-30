@@ -22,8 +22,7 @@
 
 (defface wlf-running
   '((t (:underline (:style wave)
-        :inherit (shadow)
-        )))
+        :inherit (shadow))))
   "Face used to indicate running state."
   :group 'whale-line)
 
@@ -54,21 +53,23 @@ Returns nil if not checking or if no errors were found."
          (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))))
     (_ nil)))
 
+(defun wlf--underline (status &rest _r)
+  "Underline buffer name based on STATUS."
+  (let ((face (wlf--get-face-for-status status))
+        (text (wlf--get-error-help status))
+        (segment (whale-line-buffer-name--get-segment)))
+
+	(setq-local whale-line-buffer-name--segment
+				(concat
+                 (whale-line--spacer)
+				 (if text
+					 (propertize segment 'face face 'help-echo text)
+				   (propertize segment 'face face))))))
+
 (whale-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
 
-  :action
-  (lambda (status &rest _r)
-    (let ((face (wlf--get-face-for-status status))
-          (text (wlf--get-error-help status))
-          (segment (whale-line-buffer-name--get-segment)))
-
-	  (setq-local whale-line-buffer-name--segment
-				  (concat
-                   (whale-line--spacer)
-				   (if text
-					   (propertize segment 'face face 'help-echo text)
-					 (propertize segment 'face face))))))
+  :action wlf--underline
 
   :hooks
   (flycheck-status-changed-functions))

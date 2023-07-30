@@ -187,8 +187,6 @@
 
     (should (equal whale-line--segments '(:left ((one . t)) :right ((two . low)))))))
 
-(defvar rectangle (ert-resource-file "rectangle.txt"))
-
 (ert-deftest whale-line--filter ()
   (let ((current nil)
         (segments '((a . low) (b . current-low) (c . t) (d . current))))

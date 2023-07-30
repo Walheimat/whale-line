@@ -40,27 +40,29 @@
    ((featurep 'eglot)
     (bound-and-true-p eglot--managed-mode))))
 
+(defun wll--indicate-session (&rest _args)
+  "Indicate an active LSP session."
+  (if (whale-line--enabled-feature-p 'icons)
+      (when-let* ((icon (whale-line-icons--get-segment))
+                  (f-props (get-text-property 0 'face icon))
+                  (f-new (copy-tree f-props)))
+        (if (wll--active-p)
+            (progn
+              (plist-put f-new :inherit 'whale-line-indicate)
+              (setq-local whale-line-icons--segment (propertize icon 'face f-new)))
+          (setq-local whale-line-icons--segment icon)))
+    (when (wll--active-p)
+      (let ((left (nth 0 wll-delimiters))
+            (right (nth 1 wll-delimiters))
+            (str (or (whale-line-buffer-name--get-segment) "")))
+        (setq-local whale-line-buffer-name--segment (concat
+                                                     (whale-line--spacer)
+                                                     (propertize left 'face 'whale-line-indicate)
+                                                     (string-trim str)
+                                                     (propertize right 'face 'whale-line-indicate)))))))
+
 (whale-line-create-augment lsp
-  :action
-  (lambda (&rest _args)
-    (if (whale-line--enabled-feature-p 'icons)
-        (when-let* ((icon (whale-line-icons--get-segment))
-                    (f-props (get-text-property 0 'face icon))
-                    (f-new (copy-tree f-props)))
-          (if (wll--active-p)
-              (progn
-                (plist-put f-new :inherit 'whale-line-indicate)
-                (setq-local whale-line-icons--segment (propertize icon 'face f-new)))
-            (setq-local whale-line-icons--segment icon)))
-      (when (wll--active-p)
-        (let ((left (nth 0 wll-delimiters))
-              (right (nth 1 wll-delimiters))
-              (str (or (whale-line-buffer-name--get-segment) "")))
-          (setq whale-line-buffer-name--segment (concat
-                                               (whale-line--spacer)
-                                               (propertize left 'face 'whale-line-indicate)
-                                               (string-trim str)
-                                               (propertize right 'face 'whale-line-indicate)))))))
+  :action wll--indicate-session
 
   :hooks
   (lsp-after-initialize-hook

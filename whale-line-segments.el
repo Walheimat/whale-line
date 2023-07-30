@@ -116,20 +116,24 @@
           (save-excursion (goto-char beg)
                           (current-column)))))
 
-(whale-line-create-dynamic-segment selection
-  :condition mark-active
-
-  :priority current-low
-
-  :getter
+(defun whale-line-selection--get ()
+  "Show the selection."
   (let* ((beg (region-beginning))
          (end (region-end))
          (lines (count-lines beg (min end (point-max)))))
+
     (propertize (if (bound-and-true-p rectangle-mark-mode)
                     (let ((columns (whale-line-selection--get-columns beg end)))
                       (format " %dx%d " lines columns))
                   (format " %d " lines))
                 'face 'region)))
+
+(whale-line-create-dynamic-segment selection
+  :condition mark-active
+
+  :priority current-low
+
+  :getter whale-line-selection--get)
 
 (provide 'whale-line-segments)
 

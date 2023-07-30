@@ -46,6 +46,26 @@
     (bydi ((:mock flycheck-count-errors :with bydi-rf))
       (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-flycheck--get-error-help 'finished))))))
 
+(ert-deftest wlf--underline ()
+  (let ((whale-line-buffer-name--segment nil)
+        (segment "test")
+        (text "testing"))
+
+    (bydi ((:mock whale-line-buffer-name--get-segment :return segment)
+           (:mock whale-line-flycheck--get-face-for-status :return 'success)
+           (:mock whale-line-flycheck--get-error-help :return text))
+
+      (with-temp-buffer
+        (whale-line-flycheck--underline 'status)
+
+        (should (string= (propertize " test" 'face 'success 'help-echo "testing") whale-line-buffer-name--segment))
+
+        (setq text nil)
+
+        (whale-line-flycheck--underline 'status)
+
+        (should (string= (propertize " test" 'face 'success) whale-line-buffer-name--segment))))))
+
 ;;; whale-line-flycheck-test.el ends here
 
 ;; Local Variables:
