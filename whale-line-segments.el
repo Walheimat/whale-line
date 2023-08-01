@@ -21,8 +21,8 @@
 
 (defvar whale-line-margin--segment (whale-line--spacer))
 
-(whale-line-create-static-segment buffer-name
-  :getter
+(defun wls--buffer-name ()
+  "Get the buffer name."
   (let* ((identification (whale-line--car-safe-until
                           mode-line-buffer-identification
                           #'stringp
@@ -30,18 +30,15 @@
          (help (get-text-property 0 'help-echo identification))
          (map (get-text-property 0 'local-map identification)))
 
-    (propertize "%b" 'help-echo help 'mouse-face 'whale-line-highlight 'local-map map))
+    (propertize "%b" 'help-echo help 'mouse-face 'whale-line-highlight 'local-map map)))
 
-  :hooks
-  (find-file-hook
-   after-save-hook
-   clone-indirect-buffer-hook)
+(whale-line-create-static-segment buffer-name
+  :getter wls--buffer-name
+  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook)
+  :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
-  :advice
-  (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
-
-(whale-line-create-dynamic-segment buffer-status
-  :getter
+(defun wls--buffer-status ()
+  "Render buffer status segment."
   (cond
    (buffer-read-only
     (propertize "@" 'face 'whale-line-contrast))
@@ -49,19 +46,23 @@
     (propertize "&" 'face 'whale-line-shadow))
    ((buffer-modified-p)
     (propertize "*" 'face 'whale-line-emphasis))
-   (t ""))
+   (t "")))
 
+(whale-line-create-dynamic-segment buffer-status
+  :getter wls--buffer-status
   :dense t)
 
-(whale-line-create-dynamic-segment window-status
-  :getter
+(defun wls--window-status ()
+  "Render window status segment."
   (when (window-dedicated-p)
-    (propertize "^" 'face 'whale-line-shadow))
+    (propertize "^" 'face 'whale-line-shadow)))
 
+(whale-line-create-dynamic-segment window-status
+  :getter wls--window-status
   :priority low)
 
-(whale-line-create-dynamic-segment position
-  :getter
+(defun wls--position ()
+  "Render position segment."
   (let ((str (cond
               ((eq major-mode 'doc-view-mode)
                (concat
@@ -70,43 +71,44 @@
                 (number-to-string (doc-view-last-page-number))))
 
               ((bound-and-true-p follow-mode)
-               "f: %l:%c %p%" 'face 'whale-line-shadow)
+               "f: %l:%c %p%")
 
               (t "%l:%c %p%"))))
-    (propertize str 'face 'whale-line-shadow))
+    (propertize str 'face 'whale-line-shadow)))
 
+(whale-line-create-dynamic-segment position
+  :getter wls--position
   :priority current)
 
+(defun wls--global-mode-string ()
+  "Render `global-mode-string' segment."
+  (cons (whale-line--spacer) (cdr global-mode-string)))
+
 (whale-line-create-dynamic-segment global-mode-string
-  :getter
-  (cons (whale-line--spacer) (cdr global-mode-string))
-
+  :getter wls--global-mode-string
   :dense t
-
   :priority current-low)
 
 (whale-line-create-dynamic-segment minor-modes
-  :getter
-  (lambda () minor-mode-alist)
-
+  :getter (lambda () minor-mode-alist)
   :dense t
-
   :priority low)
 
-(whale-line-create-dynamic-segment process
-  :getter
+(defun wls--process ()
+  "Get process segment."
   (let ((mlp mode-line-process))
+
     (cond
      ((listp mlp)
       (cons (whale-line--spacer) (cdr mlp)))
      ((stringp mlp)
       (propertize (concat (whale-line--spacer) mlp) 'face 'whale-line-shadow))
-     (t "")))
+     (t ""))))
 
+(whale-line-create-dynamic-segment process
+  :getter wls--process
   :condition mode-line-process
-
   :dense t
-
   :priority current)
 
 (defun whale-line-selection--get-columns (beg end)
@@ -116,7 +118,7 @@
           (save-excursion (goto-char beg)
                           (current-column)))))
 
-(defun whale-line-selection--get ()
+(defun wls--selection ()
   "Show the selection."
   (let* ((beg (region-beginning))
          (end (region-end))
@@ -130,11 +132,13 @@
 
 (whale-line-create-dynamic-segment selection
   :condition mark-active
-
-  :priority current-low
-
-  :getter whale-line-selection--get)
+  :getter wls--selection
+  :priority current-low)
 
 (provide 'whale-line-segments)
 
 ;;; whale-line-segments.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wls-" . "whale-line-segments-"))
+;; End:
