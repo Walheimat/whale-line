@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
-;; Version: 0.5.0
+;; Version: 0.5.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
 
@@ -555,11 +555,13 @@ Optionally FILTER out low priority segments."
   "Disable FEATURE."
   (interactive (list (completing-read "Disable feature: " whale-line-features)))
   (whale-line--enable-or-disable-feature feature nil))
+(make-obsolete 'whale-line-disable-feature nil "0.5.1")
 
 (defun whale-line-enable-feature (feature)
   "Enable disabled FEATURE."
   (interactive (list (completing-read "Enable feature: " (whale-line--disabled-features))))
   (whale-line--enable-or-disable-feature feature t))
+(make-obsolete 'whale-line-enable-feature nil "0.5.1")
 
 ;;;###autoload
 (define-minor-mode whale-line-mode
