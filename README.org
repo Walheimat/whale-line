@@ -23,15 +23,12 @@ If you use =straight= or =quelpa=, you know what to do.
 If you're on Emacs >29, I recommend using =package-vc-install=.
 
 Alternatively, provided you have Cask, you can install the package
-with =make install=.
+with =make package-install=.
 
 ** Configuration
 
-On enabling =whale-line-mode=, all features in =whale-line-features= will be
-required. Afterwards they can be turned on/off by calling
-=whale-line-disable-feature= and =whale-line-enable-feature= respectively.
-Segments that rely on external packages will not load if they are
-missing. Adapt =whale-line-features= accordingly.
+The position and order of the segments can be controlled by
+customizing =whale-line-segments=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package whale-line
@@ -39,17 +36,24 @@ missing. Adapt =whale-line-features= accordingly.
   (whale-line-mode +1)
 
   :custom
-  ;; Features that should be enabled on activation.
-  (whale-line-features '(flycheck   ; Indicates `flycheck' errors.
-                       project    ; For `project' and `projectile'.
-                       icons      ; For `all-the-icons'.
-                       vc
-                       animation  ; Shows animation (a whale by default).
-                       minions
-                       cursors    ; For `multiple-cursors'.
-                       lsp        ; For `lsp-mode' and `eglot'.
-                       org        ; Shows heading path.
-                       tab-bar))
+  (whale-line-segments '(margin
+                         icons
+                         buffer-name
+                         org
+                         buffer-status
+                         position
+                         selection
+                         cursors
+                         process
+                         window-status
+                         | ;; Divides into left and right.
+                         minor-modes
+                         global-mode-string
+                         project
+                         vc
+                         tab-bar
+                         animation
+                         margin))
 
   ;; Strategy to use when there's not enough space to render all segments.
   (whale-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
