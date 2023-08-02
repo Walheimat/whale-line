@@ -215,6 +215,12 @@ ellipsis."
 
 ;;; -- Segments and augments
 
+(defun whale-line--pad-segment (segment side)
+  "Add padding to SEGMENT's SIDE based on its position."
+  (if (assoc segment (plist-get whale-line--segments side))
+      (whale-line--spacer)
+    ""))
+
 (defun whale-line--build-segments ()
   "Build the segments."
   (let* ((break (cl-position '| whale-line-segments))
@@ -391,7 +397,10 @@ This will also add the segment with PRIORITY or t."
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
              (if-let ((str (,getter-sym)))
-                 (setq-local ,segment ,(if dense 'str '(concat (whale-line--spacer) str)))
+                 (setq-local ,segment ,(if dense 'str `(concat
+                                                        (whale-line--pad-segment ',name :left)
+                                                        str
+                                                        (whale-line--pad-segment ',name :right))))
                (setq-local ,segment nil)))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
@@ -433,7 +442,10 @@ The segment will be added with PRIORITY or t."
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
-                   ,(if dense `(,getter-sym) `(concat (whale-line--spacer) (,getter-sym))))
+                   ,(if dense `(,getter-sym) `(concat
+                                               (whale-line--pad-segment ',name :left)
+                                               (,getter-sym)
+                                               (whale-line--pad-segment ',name :right))))
                  ""))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name))

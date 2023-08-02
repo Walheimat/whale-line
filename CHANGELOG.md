@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defined verification is not added. Furthermore, such a segment's (or
   augment's) setup function will return early as well.
 
+### Fixed
+
+- Segments are now padded based on the side they're on (left padding
+  on the left, right padding on the right).
+
 ## [v0.6.0]
 
 ### Changed

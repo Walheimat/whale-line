@@ -36,8 +36,9 @@
                (whale-line-test--get-segment)))
              (setq-local whale-line-test--segment
                          (concat
-                          (whale-line--spacer)
-                          str))
+                          (whale-line--pad-segment 'test :left)
+                          str
+                          (whale-line--pad-segment 'test :right)))
            (setq-local whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -67,8 +68,9 @@
                (whale-line-test--get-segment)))
              (setq-local whale-line-test--segment
                          (concat
-                          (whale-line--spacer)
-                          str))
+                          (whale-line--pad-segment 'test :left)
+                          str
+                          (whale-line--pad-segment 'test :right)))
            (setq-local whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -123,8 +125,9 @@
          (or
           (when t
             (concat
-             (whale-line--spacer)
-             (whale-line-test--get-segment)))
+             (whale-line--pad-segment 'test :left)
+             (whale-line-test--get-segment)
+             (whale-line--pad-segment 'test :right)))
           ""))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -398,6 +401,15 @@
     (setq verifies t)
 
     (should (whale-line--valid-segment-p 'test))))
+
+(ert-deftest whale-line--pad-segment ()
+  (let ((whale-line--segments '(:left ((one . t)) :right ((two . t)))))
+
+    (should (string= " " (whale-line--pad-segment 'one :left)))
+    (should (string= "" (whale-line--pad-segment 'one :right)))
+
+    (should (string= "" (whale-line--pad-segment 'two :left)))
+    (should (string= " " (whale-line--pad-segment 'two :right)))))
 
 (ert-deftest whale-line--add-augment ()
   (let ((whale-line--augments '(a)))
