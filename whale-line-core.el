@@ -18,6 +18,7 @@
 ;;; -- Variables
 
 (defvar whale-line--segments nil)
+(defvar whale-line--augments nil)
 (defvar whale-line--priorities nil)
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
@@ -212,17 +213,29 @@ ellipsis."
   (and whale-line--current-window
        (eq (whale-line--get-current-window) whale-line--current-window)))
 
-;;; -- Segments
+;;; -- Segments and augments
 
 (defun whale-line--build-segments ()
   "Build the segments."
   (let* ((break (cl-position '| whale-line-segments))
          (left (cl-subseq whale-line-segments 0 break))
-         (right (cl-subseq whale-line-segments (1+ break)))
-         (mapper (lambda (it) (assoc it whale-line--priorities))))
+         (right (cl-subseq whale-line-segments (1+ break))))
 
-    (setq whale-line--segments (plist-put whale-line--segments :left (delq nil (mapcar mapper left))))
-    (setq whale-line--segments (plist-put whale-line--segments :right (delq nil (mapcar mapper right))))))
+    (setq whale-line--segments (plist-put whale-line--segments :left (delq nil (mapcar #'whale-line--map-segment left))))
+    (setq whale-line--segments (plist-put whale-line--segments :right (delq nil (mapcar #'whale-line--map-segment right))))))
+
+(defun whale-line--map-segment (segment)
+  "Map SEGMENT to its priority declaration."
+  (when (whale-line--valid-segment-p segment)
+    (assoc segment whale-line--priorities)))
+
+(defun whale-line--valid-segment-p (segment)
+  "Check that SEGMENT can be included."
+  (let ((verify-sym (intern (format "whale-line-%s--verify" (symbol-name segment)))))
+
+    (if (fboundp verify-sym)
+        (funcall verify-sym)
+      t)))
 
 (defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
@@ -237,9 +250,15 @@ Optionally with a PRIORITY."
   (let ((prio (or priority t)))
     (whale-line--set-segment-priority segment prio)))
 
+(defun whale-line--add-augment (augment)
+  "Add AUGMENT to the list of augments.
+
+Optionally with a PRIORITY."
+  (push augment whale-line--augments))
+
 ;;; -- Macros
 
-(cl-defmacro whale-line--setup (name &key setup teardown hooks advice)
+(cl-defmacro whale-line--setup (name &key setup teardown hooks advice verify)
   "Create setup for NAME.
 
 HOOKS is a list of functions that will call the setter.
@@ -248,16 +267,25 @@ ADVICE is a cons cell of the form (combinator .
 functions-to-advise) that will also call the setter.
 
 SETUP is the function called on setup. TEARDOWN is the function
-called on teardown."
+called on teardown.
+
+If VERIFY is t, the verify function will be called before
+execution of the setup. If verification fails, the function will
+return early."
   (declare (indent defun))
 
   (let ((setter-sym (intern (format "whale-line-%s--action" (symbol-name name))))
         (setup-sym (intern (format "whale-line-%s--setup" (symbol-name name))))
-        (teardown-sym (intern (format "whale-line-%s--teardown" (symbol-name name)))))
+        (teardown-sym (intern (format "whale-line-%s--teardown" (symbol-name name))))
+        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name)))))
 
     `(progn
-       (defun ,setup-sym (&rest _)
+       (cl-defun ,setup-sym (&rest _)
          ,(format "Set up %s segment." name)
+
+         ,(when verify
+            `(unless (,verify-sym)
+               (cl-return-from ,setup-sym)))
 
          ,@(mapcar (lambda (it)
                      `(add-hook ',it #',setter-sym))
@@ -338,8 +366,8 @@ HOOKS is a list of functions that will call the setter.
 ADVICE is a cons cell of the form combinator .
 functions-to-advise that will also call the setter.
 
-VERIFY is a function called before setup. If it returns nil, the
-segment will not be added.
+VERIFY is a function called before the segments are built. If it
+returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
@@ -348,13 +376,15 @@ A left margin is added unless DENSE is t.
 This will also add the segment with PRIORITY or t."
   (declare (indent defun))
 
-  (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
-        (setter (intern (format "whale-line-%s--action" (symbol-name name))))
-        (getter-sym (intern (format "whale-line-%s--get-segment" (symbol-name name))))
-        (prio (or priority t)))
+  (let* ((sym-name (symbol-name name))
+         (formatter (lambda (fs) (intern (format fs sym-name))))
+         (segment (funcall formatter "whale-line-%s--segment"))
+         (setter (funcall formatter "whale-line-%s--action"))
+         (getter-sym (funcall formatter "whale-line-%s--get-segment"))
+         (verify-sym (funcall formatter "whale-line-%s--verify"))
+         (prio (or priority t)))
 
-    (if (and (not (bound-and-true-p whale-line--testing))
-             (or (null verify) (funcall verify)))
+    (if (not (bound-and-true-p whale-line--testing))
         `(progn
            (defvar ,segment 'initial)
 
@@ -365,7 +395,10 @@ This will also add the segment with PRIORITY or t."
                (setq-local ,segment nil)))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
-           (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown)
+           (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
+           ,(when verify
+              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
+
            (whale-line--add-segment ',name ',prio))
       `(progn
          (whale-line--omit ,name static)))))
@@ -375,12 +408,12 @@ This will also add the segment with PRIORITY or t."
 
 GETTER is the function to call on re-render.
 
-CONDITION is the conndition to evaluate before calling the
+CONDITION is the condition to evaluate before calling the
 renderer. If NEEDS-CURRENT is truthy, it will be an additional
 condition.
 
-VERIFY is a function called before setup. If it returns nil, the
-segment will not be added.
+VERIFY is a function called before the segments are built. If it
+returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
@@ -391,11 +424,11 @@ The segment will be added with PRIORITY or t."
 
   (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
         (getter-sym (intern (format "whale-line-%s--get-segment" (symbol-name name))))
+        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name))))
         (prio (or priority t))
         (con (or condition t)))
 
-    (if (and (not (bound-and-true-p whale-line--testing))
-             (or (null verify) (funcall verify)))
+    (if (not (bound-and-true-p whale-line--testing))
         `(progn
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
@@ -404,33 +437,36 @@ The segment will be added with PRIORITY or t."
                  ""))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name))
-           (whale-line--setup ,name :setup ,setup :teardown ,teardown)
+           (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
+           ,(when verify
+              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
            (whale-line--add-segment ',name ',prio))
       `(progn
          (whale-line--omit ,name dynamic)))))
 
-(cl-defmacro whale-line-create-augment (name &key verify action hooks advice setup teardown)
+(cl-defmacro whale-line-create-augment (name &key action hooks advice setup teardown verify)
   "Create augment(-or) named NAME.
-
-VERIFY is an optional function called before augmenting. If that
-function returns nil, a user error will indicate it didn't take
-place.
 
 ACTION is the function to call for HOOKS.
 
 ADVICE is an cons cell of the form combinator .
 functions-to-advise to call ACTION.
 
-Additional SETUP and TEARDOWN function can be added for more control."
+Additional SETUP and TEARDOWN function can be added for more control.
+
+If VERIFY is t, the setup will verify before being executed."
   (declare (indent defun))
 
-  (let ((augment (intern (format "whale-line-%s--action" (symbol-name name)))))
+  (let ((augment (intern (format "whale-line-%s--action" (symbol-name name))))
+        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name)))))
 
-    (if (and (not (bound-and-true-p whale-line--testing))
-             (or (null verify) (funcall verify)))
+    (if (not (bound-and-true-p whale-line--testing))
         `(progn
            (whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t)
-           (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown))
+           (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
+           ,(when verify
+              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))
+           (whale-line--add-augment ',name))
       `(progn
          (whale-line--omit ,name augment)))))
 
