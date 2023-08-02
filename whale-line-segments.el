@@ -72,6 +72,7 @@
 (declare-function doc-view-last-page-number "ext:doc-view.el")
 
 (whale-line-create-static-segment margin
+  :dense t
   :getter whale-line--spacer)
 
 (defun wls--buffer-name ()
