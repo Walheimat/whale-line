@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
-;; Version: 0.6.0
+;; Version: 0.6.1
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
 
