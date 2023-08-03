@@ -46,8 +46,8 @@
                                  global-mode-string
                                  project
                                  vc
-                                 animation
-                                 tab-bar)
+                                 tab-bar
+                                 animation)
   "Segments shown in the mode line.
 
 Note that all symbols before symbol `|' are shown on the left,
