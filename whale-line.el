@@ -47,6 +47,14 @@
 
 ;;; -- API
 
+(defun whale-line-rebuild ()
+  "Rebuild the segments.
+
+Only necessary if you have changed `whale-line-segments'."
+  (interactive)
+
+  (whale-line--build-segments))
+
 ;;;###autoload
 (define-minor-mode whale-line-mode
   "Toggle mood-line on or off."

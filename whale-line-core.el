@@ -32,8 +32,7 @@
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom whale-line-segments '(margin
-                                 icons
+(defcustom whale-line-segments '(icons
                                  buffer-name
                                  org
                                  buffer-status
@@ -47,9 +46,8 @@
                                  global-mode-string
                                  project
                                  vc
-                                 tab-bar
                                  animation
-                                 margin)
+                                 tab-bar)
   "Segments shown in the mode line.
 
 Note that all symbols before symbol `|' are shown on the left,
@@ -215,11 +213,29 @@ ellipsis."
 
 ;;; -- Segments and augments
 
-(defun whale-line--pad-segment (segment side)
-  "Add padding to SEGMENT's SIDE based on its position."
-  (if (assoc segment (plist-get whale-line--segments side))
-      (whale-line--spacer)
-    ""))
+(defun whale-line--pad-segment (segment render)
+  "Add padding to SEGMENT's RENDER based on its position."
+  (let* ((render (if (listp render) render (list render)))
+         (padded
+          (delq
+           nil
+           `(
+             ,(when (and (assoc segment (plist-get whale-line--segments :left)))
+                (whale-line--spacer))
+             ,@render
+             ,(when (assoc segment (plist-get whale-line--segments :right))
+                (whale-line--spacer))))))
+
+    (if (whale-line--empty-render-p padded)
+        nil
+      padded)))
+
+(defun whale-line--empty-render-p (render)
+  "Check if RENDER is empty."
+  (or (equal render '(" " ""))
+      (equal render '("" " "))
+      (equal render '(" " " "))
+      (equal render '(" "))))
 
 (defun whale-line--build-segments ()
   "Build the segments."
@@ -252,8 +268,9 @@ ellipsis."
 (defun whale-line--add-segment (segment &optional priority)
   "Add SEGMENT to the list of segments.
 
-Optionally with a PRIORITY."
+Optionally with a PRIORITY"
   (let ((prio (or priority t)))
+
     (whale-line--set-segment-priority segment prio)))
 
 (defun whale-line--add-augment (augment)
@@ -361,7 +378,7 @@ nothing for augments."
        (unless (bound-and-true-p whale-line--testing)
          (message "Couldn't add %s `%s' segment" ',type ',name)))))
 
-(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown dense priority)
+(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown priority)
   "Create a static segment named NAME.
 
 GETTER is the form to evaluate to get the string (the setter is
@@ -376,8 +393,6 @@ VERIFY is a function called before the segments are built. If it
 returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
-
-A left margin is added unless DENSE is t.
 
 This will also add the segment with PRIORITY or t."
   (declare (indent defun))
@@ -397,10 +412,7 @@ This will also add the segment with PRIORITY or t."
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
              (if-let ((str (,getter-sym)))
-                 (setq-local ,segment ,(if dense 'str `(concat
-                                                        (whale-line--pad-segment ',name :left)
-                                                        str
-                                                        (whale-line--pad-segment ',name :right))))
+                 (setq-local ,segment str)
                (setq-local ,segment nil)))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
@@ -412,7 +424,7 @@ This will also add the segment with PRIORITY or t."
       `(progn
          (whale-line--omit ,name static)))))
 
-(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown dense priority)
+(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown priority)
   "Create a dynamic segment name NAME.
 
 GETTER is the function to call on re-render.
@@ -425,8 +437,6 @@ VERIFY is a function called before the segments are built. If it
 returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
-
-A left margin is added unless DENSE is t.
 
 The segment will be added with PRIORITY or t."
   (declare (indent defun))
@@ -442,10 +452,7 @@ The segment will be added with PRIORITY or t."
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
-                   ,(if dense `(,getter-sym) `(concat
-                                               (whale-line--pad-segment ',name :left)
-                                               (,getter-sym)
-                                               (whale-line--pad-segment ',name :right))))
+                   (,getter-sym))
                  ""))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name))
@@ -525,18 +532,19 @@ Optionally FILTER out low priority segments."
   (delq nil (mapcar
              (lambda (it)
                (when-let* ((should-use (cdr it))
-                           (name (symbol-name (car it)))
+                           (sym (car it))
+                           (name (symbol-name sym))
                            (segment (intern (format "whale-line-%s--segment" name)))
                            (setter (intern (format "whale-line-%s--action" name))))
 
                  (if (functionp segment)
-                     `(:eval (,segment))
+                     `(:eval (whale-line--pad-segment ',sym (,segment)))
                    (let* ((val (symbol-value segment))
                           (eval (pcase val
                                   ('initial `(,setter))
                                   (_ segment))))
 
-                     `(:eval ,eval)))))
+                     `(:eval (whale-line--pad-segment ',sym ,eval))))))
              segments)))
 
 (provide 'whale-line-core)

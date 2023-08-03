@@ -121,10 +121,16 @@
 (ert-deftest wla--animate ()
   (bydi (force-mode-line-update)
 
-    (should (string= " (__.- >{" (whale-line-animation--animate)))
-    (bydi-was-called force-mode-line-update)
+    (defvar whale-line--frame-index)
+    (defvar whale-line-animation-key-frames)
 
-    (should (string= " (__.' >{" (whale-line-animation--animate)))))
+    (let ((whale-line-animation-key-frames [" .." ".. "])
+          (whale-line--frame-index 0))
+
+      (should (equal '((:propertize " .." face whale-line-emphasis)) (whale-line-animation--animate)))
+      (bydi-was-called force-mode-line-update)
+
+      (should (equal '((:propertize ".. " face whale-line-emphasis)) (whale-line-animation--animate))))))
 
 (ert-deftest wla--start-timer ()
   (bydi (run-with-timer)
@@ -226,13 +232,13 @@
       (with-temp-buffer
         (whale-line-flycheck--underline 'status)
 
-        (should (string= (propertize " test" 'face 'success 'help-echo "testing") whale-line-buffer-name--segment))
+        (should (equal '((:propertize "test" face success help-echo "testing")) whale-line-buffer-name--segment))
 
         (setq text nil)
 
         (whale-line-flycheck--underline 'status)
 
-        (should (string= (propertize " test" 'face 'success) whale-line-buffer-name--segment))))))
+        (should (equal '((:propertize "test" face success)) whale-line-buffer-name--segment))))))
 
 (ert-deftest wli--icon ()
   (bydi ((:mock all-the-icons-faicon :return "I"))
@@ -248,12 +254,12 @@
       (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
 
 (ert-deftest wli--prepend-icon-to-project-segment ()
-  (bydi ((:mock whale-line-icons--icon :return "I")
-         (:sometimes display-graphic-p))
+  (bydi ((:sometimes display-graphic-p))
 
     (should-not (whale-line-icons--prepend-icon-to-project-segment nil))
 
-    (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "I proj"))
+    (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) " " "proj")
+                   (whale-line-icons--prepend-icon-to-project-segment "proj")))
 
     (bydi-toggle-sometimes)
     (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "proj"))))
@@ -261,12 +267,14 @@
 (ert-deftest wli--prepend-icon-to-vc-segment ()
   (let ((name "/test/tmp"))
 
-    (bydi ((:mock whale-line-icons--icon :return "I")
-           (:sometimes display-graphic-p)
-           (buffer-file-name . (lambda () name)))
+    (bydi ((:sometimes display-graphic-p)
+           (:mock buffer-file-name :return name))
 
       (should-not (whale-line-icons--prepend-icon-to-vc-segment nil))
-      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "I vc"))
+      (should (equal '((:eval (whale-line-icons--icon whale-line-icons-vc-icon :face (whale-line-vc--face-for-state) :height 0.85 :v-adjust 0.0))
+                       " "
+                       "vc")
+                     (whale-line-icons--prepend-icon-to-vc-segment "vc")))
 
       (bydi-toggle-sometimes)
       (setq name nil)
@@ -283,26 +291,23 @@
 
     (with-temp-buffer
       (bydi ((:mock buffer-file-name :return name)
-             (:mock buffer-modified-p :return modified)
-             (:mock whale-line-icons--icon :return "I"))
+             (:mock buffer-modified-p :return modified))
 
         (setq buffer-read-only t)
 
-        (should (string= " I" (whale-line-icons--advise-buffer-status-segment)))
-        (bydi-was-called-with whale-line-icons--icon '("read-only" :height 0.85 :v-adjust 0.0))
+        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-buffer-read-only-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
 
         (bydi-clear-mocks)
         (setq buffer-read-only nil)
 
-        (should (string= " I" (whale-line-icons--advise-buffer-status-segment)))
-        (bydi-was-called-with whale-line-icons--icon '("no-file" :height 0.85 :v-adjust 0.0))
+        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-no-buffer-file-name-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
 
         (bydi-clear-mocks)
         (setq name "/tmp/test.el"
               modified t)
 
-        (should (string= " I" (whale-line-icons--advise-buffer-status-segment)))
-        (bydi-was-called-with whale-line-icons--icon '("modified" :height 0.85 :v-adjust 0.0))
+        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-buffer-modified-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
+
         (setq modified nil)
 
         (should (string= "" (whale-line-icons--advise-buffer-status-segment)))))))
@@ -311,7 +316,7 @@
   (with-temp-buffer
     (bydi ((:sometimes window-dedicated-p)
            (:mock whale-line-icons--icon :return "I"))
-      (should (string= " I" (whale-line-icons--advise-window-status-segment)))
+      (should (equal '((:eval (whale-line-icons--icon whale-line-icons-window-dedicated-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-window-status-segment)))
 
       (bydi-toggle-sometimes)
       (should (string= "" (whale-line-icons--advise-window-status-segment))))))
@@ -357,34 +362,37 @@
         (should (whale-line-lsp--active-p))))))
 
 (ert-deftest wll--indicate-session--icons ()
-  (bydi ((:always whale-line--enabled-feature-p)
-         (:mock whale-line-icons--get-segment :return (propertize "icon" 'face '(:inherit ert-test-result-expected)))
-         (:sometimes whale-line-lsp--active-p))
+  (let ((whale-line-segments '(icons)))
+    (bydi ((:mock whale-line-icons--get-segment :return (propertize "icon" 'face '(:inherit ert-test-result-expected)))
+           (:sometimes whale-line-lsp--active-p))
 
-    (with-temp-buffer
-      (whale-line-lsp--indicate-session)
+      (with-temp-buffer
+        (whale-line-lsp--indicate-session)
 
-      (should (string= (propertize "icon" 'face 'whale-line-indicate) whale-line-icons--segment))
+        (should (equal '((:propertize "icon" face (:inherit whale-line-indicate))) whale-line-icons--segment))
 
-      (bydi-toggle-sometimes)
+        (bydi-toggle-sometimes)
 
-      (whale-line-lsp--indicate-session)
-      (should (string= "icon" whale-line-icons--segment)))))
+        (whale-line-lsp--indicate-session)
+        (should (string= "icon" whale-line-icons--segment))))))
 
 (ert-deftest wll--indicate-session--text ()
   (let ((name "test")
         (whale-line-lsp-delimiters '("-" "-"))
-        (delim (propertize "-" 'face 'whale-line-indicate)))
+        (delim (propertize "-" 'face 'whale-line-indicate))
+        (whale-line-segments '()))
 
-    (bydi ((:ignore whale-line--enabled-feature-p)
-           (:mock whale-line-buffer-name--get-segment :return name)
+    (bydi ((:mock whale-line-buffer-name--get-segment :return name)
            (:sometimes whale-line-lsp--active-p)
            (:mock whale-line--spacer :return ""))
 
       (with-temp-buffer
         (whale-line-lsp--indicate-session)
 
-        (should (string= (concat delim "test" delim) whale-line-buffer-name--segment))))))
+        (should (equal '((:propertize "-" face whale-line-indicate)
+                         "test"
+                         (:propertize "-" face whale-line-indicate))
+                       whale-line-buffer-name--segment))))))
 
 (ert-deftest whale-line-minions--list ()
   (defvar minions-mode)
@@ -402,14 +410,15 @@
       (with-temp-buffer
         (setq-local minions-mode t)
 
-        (should (equal '((:propertize ("" ((prominent " prm")))
+        (should (equal '((:propertize (:eval (minions--prominent-modes))
                                       face whale-line-shadow)
                          " "
-                         (:propertize " min"
+                         (:propertize (:eval minions-mode-line-lighter)
                                       face whale-line-shadow
-                                      local-map nil
+                                      local-map (:eval minions-mode-line-minor-modes-map)
                                       mouse-face whale-line-highlight))
                        (whale-line-minions--list)))))))
+
 (ert-deftest wlo--maybe-truncate--truncates ()
   (let ((whale-line-org-max-heading-length 5))
 

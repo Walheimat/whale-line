@@ -34,11 +34,7 @@
          (if-let
              ((str
                (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment
-                         (concat
-                          (whale-line--pad-segment 'test :left)
-                          str
-                          (whale-line--pad-segment 'test :right)))
+             (setq-local whale-line-test--segment str)
            (setq-local whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -66,11 +62,7 @@
          (if-let
              ((str
                (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment
-                         (concat
-                          (whale-line--pad-segment 'test :left)
-                          str
-                          (whale-line--pad-segment 'test :right)))
+             (setq-local whale-line-test--segment str)
            (setq-local whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -88,7 +80,6 @@
        :verify (lambda () t)
        :teardown ignore
        :setup ignore
-       :dense t
        :priority low)
      '(progn
        (defvar whale-line-test--segment 'initial)
@@ -124,10 +115,7 @@
          "Render `test' segment."
          (or
           (when t
-            (concat
-             (whale-line--pad-segment 'test :left)
-             (whale-line-test--get-segment)
-             (whale-line--pad-segment 'test :right)))
+            (whale-line-test--get-segment))
           ""))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
@@ -141,8 +129,7 @@
     (bydi-match-expansion
      (whale-line-create-dynamic-segment test
        :getter ignore
-       :condition buffer-file-name
-       :dense t)
+       :condition buffer-file-name)
      '(progn
        (defun whale-line-test--segment ()
          "Render `test' segment."
@@ -403,13 +390,11 @@
     (should (whale-line--valid-segment-p 'test))))
 
 (ert-deftest whale-line--pad-segment ()
-  (let ((whale-line--segments '(:left ((one . t)) :right ((two . t)))))
+  (let ((whale-line--segments '(:left ((one . t) (three . t)) :right ((two . t)))))
 
-    (should (string= " " (whale-line--pad-segment 'one :left)))
-    (should (string= "" (whale-line--pad-segment 'one :right)))
-
-    (should (string= "" (whale-line--pad-segment 'two :left)))
-    (should (string= " " (whale-line--pad-segment 'two :right)))))
+    (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
+    (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
+    (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))))
 
 (ert-deftest whale-line--add-augment ()
   (let ((whale-line--augments '(a)))
@@ -456,9 +441,9 @@
           (whale-line-one--segment "one")
           (whale-line-four--segment 'initial))
 
-      (should (equal '((:eval whale-line-one--segment)
-                       (:eval (whale-line-three--segment))
-                       (:eval (whale-line-four--action)))
+      (should (equal '((:eval (whale-line--pad-segment 'one whale-line-one--segment))
+                       (:eval (whale-line--pad-segment 'three (whale-line-three--segment)))
+                       (:eval (whale-line--pad-segment 'four (whale-line-four--action))))
                      (whale-line--render-segments segments))))))
 
 (ert-deftest whale-line--setup ()

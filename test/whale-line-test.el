@@ -46,6 +46,12 @@
 
       (bydi-was-called whale-line-mode--teardown))))
 
+(ert-deftest whale-line-rebuild ()
+  (bydi (whale-line--build-segments)
+
+    (whale-line-rebuild)
+    (bydi-was-called whale-line--build-segments)))
+
 ;;; whale-line-test.el ends here
 
 ;; Local Variables:

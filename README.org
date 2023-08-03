@@ -28,7 +28,11 @@ with =make package-install=.
 ** Configuration
 
 The position and order of the segments can be controlled by
-customizing =whale-line-segments=.
+customizing =whale-line-segments=. You can freely re-arrange them,
+leave some out, add your custom ones.
+
+If you move, add or remove a segment after loading the package, you
+will need to call =whale-line-rebuild=.
 
 #+BEGIN_SRC emacs-lisp
 (use-package whale-line
@@ -36,8 +40,7 @@ customizing =whale-line-segments=.
   (whale-line-mode +1)
 
   :custom
-  (whale-line-segments '(margin
-                         icons
+  (whale-line-segments '(icons
                          buffer-name
                          org
                          buffer-status
@@ -52,8 +55,7 @@ customizing =whale-line-segments=.
                          project
                          vc
                          tab-bar
-                         animation
-                         margin))
+                         animation))
 
   ;; Strategy to use when there's not enough space to render all segments.
   (whale-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.

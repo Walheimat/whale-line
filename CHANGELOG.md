@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Segments are now padded based on the side they're on (left padding
+  on the left, right padding on the right). This is done during mode
+  line formatting. This means that segments can be freely positioned
+  and will have the correct padding based on their position.
+
 ### Changed
 
 - Verification is no longer performed on macro expansion. Instead,
@@ -14,10 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defined verification is not added. Furthermore, such a segment's (or
   augment's) setup function will return early as well.
 
-### Fixed
+### Removed
 
-- Segments are now padded based on the side they're on (left padding
-  on the left, right padding on the right).
+- Keyword `:dense` has been removed from macros. This means some
+  segments that previously avoided having both a natural and an added
+  padding have double padding for now. Resolving this will be part of
+  a future fix.
 
 ## [v0.6.0]
 
