@@ -10,25 +10,11 @@
 
 (defvar rectangle (ert-resource-file "rectangle.txt"))
 
-(ert-deftest wls--buffer-name ()
-  (let ((map (make-sparse-keymap))
-        (mode-line-buffer-identification nil))
-
-    (bydi ((:mock buffer-name :return "buffer"))
-
-      (should (equal '((:propertize "%b"
-                                    help-echo nil
-                                    mouse-face whale-line-highlight
-                                    local-map nil))
-                       (whale-line-segments--buffer-name)))
-
-      (setq mode-line-buffer-identification  (propertize "name" 'help-echo "test" 'local-map map))
-
-      (should (equal `((:propertize "%b"
-                                    help-echo "test"
-                                    mouse-face whale-line-highlight
-                                    local-map ,map))
-                     (whale-line-segments--buffer-name))))))
+(ert-deftest wls--buffer-identification ()
+  (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
+                                mouse-face whale-line-highlight
+                                face whale-line-neutral))
+                 (whale-line-segments--buffer-identification))))
 
 (ert-deftest wls--buffer-status ()
   (with-temp-buffer
@@ -209,10 +195,8 @@
     (bydi ((:mock flycheck-count-errors :with bydi-rf))
       (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-flycheck--get-error-help 'finished))))))
 
-
-
 (ert-deftest wlf--underline ()
-  (let ((whale-line-buffer-name--segment nil)
+  (let ((whale-line-buffer-identification--segment nil)
         (segment "test")
         (text "testing"))
 
@@ -223,13 +207,13 @@
       (with-temp-buffer
         (whale-line-flycheck--underline 'status)
 
-        (should (equal '((:propertize "test" face success help-echo "testing")) whale-line-buffer-name--segment))
+        (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success help-echo "testing")) whale-line-buffer-identification--segment))
 
         (setq text nil)
 
         (whale-line-flycheck--underline 'status)
 
-        (should (equal '((:propertize "test" face success)) whale-line-buffer-name--segment))))))
+        (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success)) whale-line-buffer-identification--segment))))))
 
 (ert-deftest wli--icon ()
   (bydi ((:mock all-the-icons-faicon :return "I"))

@@ -66,19 +66,17 @@
 (declare-function image-mode-window-get "ext:image-mode.el")
 (declare-function doc-view-last-page-number "ext:doc-view.el")
 
-(defun wls--buffer-name ()
+
+;;;; -- Buffer identification
+
+(defun wls--buffer-identification ()
   "Get the buffer name."
-  (let* ((identification (whale-line--car-safe-until
-                          mode-line-buffer-identification
-                          #'stringp
-                          (buffer-name)))
-         (help (get-text-property 0 'help-echo identification))
-         (map (get-text-property 0 'local-map identification)))
+  '((:propertize (:eval (propertized-buffer-identification "%b"))
+                 mouse-face whale-line-highlight
+                 face whale-line-neutral)))
 
-    `((:propertize "%b" help-echo ,help mouse-face whale-line-highlight local-map ,map))))
-
-(whale-line-create-static-segment buffer-name
-  :getter wls--buffer-name
+(whale-line-create-static-segment buffer-identification
+  :getter wls--buffer-identification
   :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook)
   :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
@@ -239,7 +237,6 @@ Forces a mode-line update and returns the current frame."
 ;;; -- Flycheck
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
-(declare-function whale-line-buffer-name--get-segment "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
 (defface wlf-running
@@ -278,13 +275,14 @@ Returns nil if not checking or if no errors were found."
 (defun wlf--underline (status &rest _r)
   "Underline buffer name based on STATUS."
   (let ((face (wlf--get-face-for-status status))
-        (text (wlf--get-error-help status))
-        (segment (whale-line-buffer-name--get-segment)))
+        (text (wlf--get-error-help status)))
 
-	(setq-local whale-line-buffer-name--segment
+	(setq-local whale-line-buffer-identification--segment
                 (if text
-					`((:propertize ,segment face ,face help-echo ,text))
-				  `((:propertize ,segment face ,face))))))
+					`((:propertize (:eval (propertized-buffer-identification "%b"))
+                                   face ,face help-echo ,text))
+				      `((:propertize (:eval (propertized-buffer-identification "%b"))
+                                     face ,face))))))
 
 (whale-line-create-augment flycheck
   :verify (lambda () (require 'flycheck nil t))
@@ -468,7 +466,7 @@ icon name and the face.")
 (declare-function lsp-workspaces "ext:lsp-mode.el")
 (declare-function whale-line--is-current-window-p "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
-(declare-function whale-line-buffer-name--get-segment "whale-line.el")
+(declare-function whale-line-buffer-identification--get-segment "whale-line.el")
 (declare-function whale-line-icons--get-segment "whale-line-icons.el")
 (declare-function whale-line-icons--action "whale-line-icons.el")
 
@@ -540,7 +538,6 @@ icon name and the face.")
 (declare-function org-heading-components "ext:org.el")
 (declare-function org-link-display-format "ext:org.el")
 (declare-function org-up-heading-safe "ext:org.el")
-(declare-function whale-line-buffer-name--segment "whale-line.el")
 (declare-function whale-line--spacer "whale-line.el")
 
 (defun wlo--maybe-truncate (heading)

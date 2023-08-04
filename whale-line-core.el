@@ -33,7 +33,7 @@
   :group 'mode-line)
 
 (defcustom whale-line-segments '(icons
-                                 buffer-name
+                                 buffer-identification
                                  org
                                  buffer-status
                                  position

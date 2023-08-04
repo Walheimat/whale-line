@@ -41,7 +41,7 @@ will need to call =whale-line-rebuild=.
 
   :custom
   (whale-line-segments '(icons
-                         buffer-name
+                         buffer-identification
                          org
                          buffer-status
                          position

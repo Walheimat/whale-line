@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `global-mode-string` is now `misc-info` and returns the
   equivalent information in `mode-line-misc-info`.
 - Segment `process` now returns `mode-line-process` as-is.
+- Segment `buffer-name` is now `buffer-identification` and was
+  simplified.
 
 ### Removed
 
