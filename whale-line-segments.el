@@ -80,7 +80,7 @@
          (help (get-text-property 0 'help-echo identification))
          (map (get-text-property 0 'local-map identification)))
 
-    (propertize "%b" 'help-echo help 'mouse-face 'whale-line-highlight 'local-map map)))
+    `((:propertize "%b" help-echo ,help mouse-face whale-line-highlight local-map ,map))))
 
 (whale-line-create-static-segment buffer-name
   :getter wls--buffer-name
@@ -89,14 +89,16 @@
 
 (defun wls--buffer-status ()
   "Render buffer status segment."
-  (cond
-   (buffer-read-only
-    (propertize "@" 'face 'whale-line-contrast))
-   ((not (buffer-file-name))
-    (propertize "&" 'face 'whale-line-shadow))
-   ((buffer-modified-p)
-    (propertize "*" 'face 'whale-line-emphasis))
-   (t "")))
+  (let ((render (cond
+                 (buffer-read-only
+                  '((:propertize "@" face whale-line-contrast)))
+                 ((not (buffer-file-name))
+                  '((:propertize "&" face whale-line-shadow)))
+                 ((buffer-modified-p)
+                  '((:propertize "*" face whale-line-emphasis)))
+                 (t ""))))
+
+    render))
 
 (whale-line-create-dynamic-segment buffer-status
   :getter wls--buffer-status)
@@ -104,7 +106,7 @@
 (defun wls--window-status ()
   "Render window status segment."
   (when (window-dedicated-p)
-    (propertize "^" 'face 'whale-line-shadow)))
+    '((:propertize "^" face whale-line-shadow))))
 
 (whale-line-create-dynamic-segment window-status
   :getter wls--window-status
@@ -123,7 +125,7 @@
                "f: %l:%c %p%")
 
               (t "%l:%c %p%"))))
-    (propertize str 'face 'whale-line-shadow)))
+    `((:propertize ,str face whale-line-shadow))))
 
 (whale-line-create-dynamic-segment position
   :getter wls--position
@@ -164,11 +166,11 @@
          (end (region-end))
          (lines (count-lines beg (min end (point-max)))))
 
-    (propertize (if (bound-and-true-p rectangle-mark-mode)
-                    (let ((columns (whale-line-selection--get-columns beg end)))
-                      (format " %dx%d " lines columns))
-                  (format " %d " lines))
-                'face 'region)))
+    `((:propertize ,(if (bound-and-true-p rectangle-mark-mode)
+                        (let ((columns (whale-line-selection--get-columns beg end)))
+                          (format " %dx%d " lines columns))
+                      (format " %d " lines))
+                   face region))))
 
 (whale-line-create-dynamic-segment selection
   :condition mark-active
@@ -228,7 +230,7 @@ Forces a mode-line update and returns the current frame."
          (cursors (or mc-cursors iedit-cursors)))
 
     (when cursors
-      (propertize (format " %d " cursors) 'face 'whale-line-highlight))))
+      `((:propertize ,(format " %d " cursors) face whale-line-highlight)))))
 
 (whale-line-create-dynamic-segment cursors
   :getter whale-line-cursors--count
@@ -362,8 +364,7 @@ icon name and the face.")
 
 (defun wli--prepend-icon-to-project-segment (str)
   "Advise info getter to prepend an icon before STR."
-  (if (and (stringp str)
-           (display-graphic-p))
+  (if (stringp str)
       (list
        '(:eval (wli--icon wli-project-icon
                  :face 'whale-line-emphasis
@@ -376,7 +377,6 @@ icon name and the face.")
 (defun wli--prepend-icon-to-vc-segment (str)
   "Advise info getter to prepend an icon before STR."
   (if (and (stringp str)
-           (display-graphic-p)
            (buffer-file-name))
       (list
        '(:eval (wli--icon wli-vc-icon
@@ -409,14 +409,13 @@ icon name and the face.")
 
 (defun wli--get ()
   "Get the buffer icon segment."
-  (when (display-graphic-p)
-    (let ((icon (all-the-icons-icon-for-buffer)))
+  (let ((icon (all-the-icons-icon-for-buffer)))
 
-      (propertize (if (or (null icon) (symbolp icon))
-                      (wli--icon wli-buffer-fallback-icon)
-                    icon)
-                  'help-echo (format "%s" (format-mode-line mode-name))
-                  'display '(raise -0.135)))))
+    `((:propertize ,(if (or (null icon) (symbolp icon))
+                       '(:eval (wli--icon wli-buffer-fallback-icon))
+                     icon)
+                   help-echo ,(format "%s" (format-mode-line mode-name))
+                   display (raise -0.135)))))
 
 (whale-line-create-static-segment icons
   :verify (lambda () (require 'all-the-icons nil t))
@@ -484,21 +483,27 @@ icon name and the face.")
 (defun wll--indicate-session (&rest _args)
   "Indicate an active LSP session."
   (if (memq 'icons whale-line-segments)
-      (when-let* ((icon (whale-line-icons--get-segment))
+      (when-let* ((icon (all-the-icons-icon-for-buffer))
                   (f-props (get-text-property 0 'face icon))
                   (f-new (copy-tree f-props)))
         (if (wll--active-p)
             (progn
               (plist-put f-new :inherit 'whale-line-indicate)
               (setq-local whale-line-icons--segment `((:propertize ,icon face ,f-new))))
-          (setq-local whale-line-icons--segment icon)))
+          (setq-local whale-line-icons--segment (whale-line-icons--get))))
     (when (wll--active-p)
-      (let ((left (nth 0 wll-delimiters))
-            (right (nth 1 wll-delimiters))
-            (str (or (whale-line-buffer-name--get-segment) "")))
+      (let* ((left (nth 0 wll-delimiters))
+             (right (nth 1 wll-delimiters))
+             (identification (whale-line--car-safe-until
+                              mode-line-buffer-identification
+                              #'stringp
+                              (buffer-name)))
+             (help (get-text-property 0 'help-echo identification))
+             (map (get-text-property 0 'local-map identification)))
+
         (setq-local whale-line-buffer-name--segment
                     `((:propertize ,left face whale-line-indicate)
-                      ,(string-trim str)
+                      (:propertize "%b" help-echo ,help mouse-face whale-line-highlight local-map ,map)
                       (:propertize ,right face whale-line-indicate)))))))
 
 (whale-line-create-augment lsp
@@ -537,7 +542,7 @@ icon name and the face.")
         ,(whale-line--spacer)
         (:propertize (:eval minions-mode-line-lighter)
                      face whale-line-shadow
-                     local-map (:eval minions-mode-line-minor-modes-map)
+                     local-map ,minions-mode-line-minor-modes-map
                      mouse-face whale-line-highlight))
     minor-mode-alist))
 

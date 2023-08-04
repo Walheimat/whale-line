@@ -16,47 +16,44 @@
 
     (bydi ((:mock buffer-name :return "buffer"))
 
-      (should (string= (propertize "%b"
-                                   'help-echo nil
-                                   'mouse-face 'whale-line-highlight
-                                   'local-map nil)
+      (should (equal '((:propertize "%b"
+                                    help-echo nil
+                                    mouse-face whale-line-highlight
+                                    local-map nil))
                        (whale-line-segments--buffer-name)))
 
-      (setq mode-line-buffer-identification `(((propertize
-                                                "name"
-                                                'help-echo "test"
-                                                'local-map map))))
+      (setq mode-line-buffer-identification  (propertize "name" 'help-echo "test" 'local-map map))
 
-      (should (string= (propertize "%b"
-                                   'help-echo "test"
-                                   'mouse-face 'whale-line-highlight
-                                   'local-map map)
-                       (whale-line-segments--buffer-name))))))
+      (should (equal `((:propertize "%b"
+                                    help-echo "test"
+                                    mouse-face whale-line-highlight
+                                    local-map ,map))
+                     (whale-line-segments--buffer-name))))))
 
 (ert-deftest wls--buffer-status ()
   (with-temp-buffer
     (read-only-mode)
 
-    (should (string= "@" (substring-no-properties (whale-line-segments--buffer-status))))
+    (should (propertized-string= "@" (whale-line-segments--buffer-status)))
 
     (read-only-mode -1)
 
-    (should (string= "&" (substring-no-properties (whale-line-segments--buffer-status)))))
+    (should (propertized-string= "&" (whale-line-segments--buffer-status))))
 
   (ert-with-temp-file buffer-status :buffer current
     (with-current-buffer current
-      (should (string= "" (substring-no-properties (whale-line-segments--buffer-status))))
+      (should (propertized-string= "" (whale-line-segments--buffer-status)))
 
       (insert "test")
 
-      (should (string= "*" (substring-no-properties (whale-line-segments--buffer-status)))))))
+      (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
 
 (ert-deftest wls--window-status ()
   (should-not (whale-line-segments--window-status))
 
   (set-window-dedicated-p (selected-window) t)
 
-  (should (string= "^" (substring-no-properties (whale-line-segments--window-status))))
+  (should (propertized-string= "^" (whale-line-segments--window-status)))
 
   (set-window-dedicated-p (selected-window) nil))
 
@@ -67,16 +64,16 @@
     (with-temp-buffer
       (setq major-mode 'doc-view-mode)
 
-      (should (string= "1/2" (substring-no-properties (whale-line-segments--position))))))
+      (should (propertized-string= "1/2" (whale-line-segments--position)))))
 
   (with-temp-buffer
-    (should (string= "%l:%c %p%" (substring-no-properties (whale-line-segments--position))))
+    (should (propertized-string= "%l:%c %p%" (whale-line-segments--position)))
 
     (defvar follow-mode)
 
     (setq follow-mode t)
 
-    (should (string= "f: %l:%c %p%" (substring-no-properties (whale-line-segments--position))))))
+    (should (propertized-string= "f: %l:%c %p%" (whale-line-segments--position)))))
 
 (ert-deftest wls--misc-info ()
   (let ((mode-line-misc-info '("a" "b")))
@@ -100,7 +97,7 @@
     (push-mark)
     (goto-char (point-max))
 
-    (should (string= (propertize " 3 " 'face 'region) (whale-line-segments--selection)))))
+    (should (propertized-string= " 3 " (whale-line-segments--selection)))))
 
 (ert-deftest whale-line-segments--selection--rectangle ()
   (with-temp-buffer
@@ -109,7 +106,7 @@
     (rectangle-mark-mode)
     (goto-char (1- (point-max)))
 
-    (should (string= (propertize " 3x9 " 'face 'region) (whale-line-segments--selection)))))
+    (should (propertized-string= " 3x9 " (whale-line-segments--selection)))))
 
 (ert-deftest wla--animate ()
   (bydi (force-mode-line-update)
@@ -165,14 +162,15 @@
       (with-temp-buffer
         (setq-local multiple-cursors-mode t)
 
-        (should (string= " 2 " (whale-line-cursors--count)))))
+        (should (propertized-string= " 2 " (whale-line-cursors--count)))))
 
     (bydi ((:mock iedit-counter :return 3))
 
       (with-temp-buffer
         (setq-local iedit-mode t)
 
-        (should (string= " 3 " (whale-line-cursors--count)))))))
+        (should (propertized-string= " 3 " (whale-line-cursors--count)))))))
+
 (ert-deftest wlf--get-face-for-status ()
   (should (equal 'whale-line-neutral (whale-line-flycheck--get-face-for-status nil)))
   (should (equal 'whale-line-flycheck-running (whale-line-flycheck--get-face-for-status 'running)))
@@ -247,15 +245,8 @@
       (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
 
 (ert-deftest wli--prepend-icon-to-project-segment ()
-  (bydi ((:sometimes display-graphic-p))
-
-    (should-not (whale-line-icons--prepend-icon-to-project-segment nil))
-
-    (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) " " "proj")
-                   (whale-line-icons--prepend-icon-to-project-segment "proj")))
-
-    (bydi-toggle-sometimes)
-    (should (string= (whale-line-icons--prepend-icon-to-project-segment "proj") "proj"))))
+  (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) " " "proj")
+                 (whale-line-icons--prepend-icon-to-project-segment "proj"))))
 
 (ert-deftest wli--prepend-icon-to-vc-segment ()
   (let ((name "/test/tmp"))
@@ -273,6 +264,9 @@
       (setq name nil)
 
       (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "vc")))))
+
+(ert-deftest wli--prepend-icon-to-project-segment--returns-non-strings ()
+  (should (equal '("hi") (whale-line-icons--prepend-icon-to-project-segment '("hi")))))
 
 (ert-deftest wli--advise-buffer-status-segment ()
   (let ((buffer-read-only nil)
@@ -314,24 +308,21 @@
       (bydi-toggle-sometimes)
       (should (string= "" (whale-line-icons--advise-window-status-segment))))))
 
-(ert-deftest wli--get--nil-for-non-display ()
-  (bydi ((:ignore display-graphic-p))
-    (should-not (whale-line-icons--get))))
-
 (ert-deftest wli--get--fallback ()
   (bydi ((:always display-graphic-p)
          (:ignore all-the-icons-icon-for-buffer)
-         (:mock whale-line-icons--icon :return "?")
-         (:mock format-mode-line "echo"))
+         (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--get) (propertize "?" 'help-echo "echo" 'display '(raise -0.135))))))
+    (should (equal (whale-line-icons--get)
+                   '((:propertize (:eval (whale-line-icons--icon whale-line-icons-buffer-fallback-icon))
+                                  help-echo "echo" display (raise -0.135)))))))
 
 (ert-deftest wli--get ()
-  (bydi ((:always display-graphic-p)
-         (:mock all-the-icons-icon-for-buffer :return "?")
-         (:mock format-mode-line "echo"))
+  (bydi ((:mock all-the-icons-icon-for-buffer :return "?")
+         (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--get) (propertize "?" 'help-echo "echo" 'display '(raise -0.135))))))
+    (should (equal (whale-line-icons--get)
+                   '((:propertize "?" help-echo "echo" display (raise -0.135)))))))
 
 (ert-deftest wll--active-p ()
   (let ((feature nil))
@@ -356,7 +347,8 @@
 
 (ert-deftest wll--indicate-session--icons ()
   (let ((whale-line-segments '(icons)))
-    (bydi ((:mock whale-line-icons--get-segment :return (propertize "icon" 'face '(:inherit ert-test-result-expected)))
+    (bydi ((:mock all-the-icons-icon-for-buffer :return (propertize "icon" 'face '(:inherit ert-test-result-expected)))
+           (:mock whale-line-icons--get :return "icon")
            (:sometimes whale-line-lsp--active-p))
 
       (with-temp-buffer
@@ -377,13 +369,14 @@
 
     (bydi ((:mock whale-line-buffer-name--get-segment :return name)
            (:sometimes whale-line-lsp--active-p)
-           (:mock whale-line--spacer :return ""))
+           (:mock whale-line--spacer :return "")
+           (:mock whale-line--car-safe-until :return "hello"))
 
       (with-temp-buffer
         (whale-line-lsp--indicate-session)
 
         (should (equal '((:propertize "-" face whale-line-indicate)
-                         "test"
+                         (:propertize "%b" help-echo nil mouse-face whale-line-highlight local-map nil)
                          (:propertize "-" face whale-line-indicate))
                        whale-line-buffer-name--segment))))))
 
@@ -408,7 +401,7 @@
                          " "
                          (:propertize (:eval minions-mode-line-lighter)
                                       face whale-line-shadow
-                                      local-map (:eval minions-mode-line-minor-modes-map)
+                                      local-map nil
                                       mouse-face whale-line-highlight))
                        (whale-line-minions--list)))))))
 
