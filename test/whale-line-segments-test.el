@@ -110,7 +110,8 @@
 
 (ert-deftest wla--start-timer ()
   (bydi (run-with-timer)
-    (let ((whale-line-animation--timer nil))
+    (let ((whale-line-animation--timer nil)
+          (whale-line-animation-speed 0.4))
 
       (whale-line-animation--start-timer)
       (bydi-was-called-with run-with-timer '(0 0.4 whale-line-animation--get-segment))
