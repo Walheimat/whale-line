@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Segment `global-mode-string` is now `misc-info` and returns the
+  equivalent information in `mode-line-misc-info`.
+- Segment `process` now returns `mode-line-process` as-is.
+
 ## [v0.6.1]
 
 ### Added
@@ -20,9 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   during building the segments, any segment that doesn't pass a
   defined verification is not added. Furthermore, such a segment's (or
   augment's) setup function will return early as well.
-- Segment `global-mode-string` is now `misc-info` and returns the
-  equivalent information in `mode-line-misc-info`.
-- Segment `process` now returns `mode-line-process` as-is.
 
 ### Removed
 
