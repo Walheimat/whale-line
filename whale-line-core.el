@@ -43,7 +43,7 @@
                                  window-status
                                  |
                                  minor-modes
-                                 global-mode-string
+                                 misc-info
                                  project
                                  vc
                                  tab-bar

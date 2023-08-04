@@ -51,7 +51,7 @@ will need to call =whale-line-rebuild=.
                          window-status
                          | ;; Divides into left and right.
                          minor-modes
-                         global-mode-string
+                         misc-info
                          project
                          vc
                          tab-bar
@@ -77,7 +77,7 @@ will need to call =whale-line-rebuild=.
 
 ** Example Screenshot
 
-Modeline in a split split frame (theme is =kaolin-galaxy=).
+Modeline in a split frame (theme is =kaolin-galaxy=).
 
 [[file:assets/mode-line-selected.png]]
 
@@ -89,7 +89,6 @@ The left window is selected and shows:
 - buffer-status (edited)
 - file position
 - selection (6 lines)
-- =global-mode-string=
 - minimized minor modes using =minions=
 - project
 - version control status (unedited)

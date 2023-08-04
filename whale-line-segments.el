@@ -129,12 +129,13 @@
   :getter wls--position
   :priority current)
 
-(defun wls--global-mode-string ()
-  "Render `global-mode-string' segment."
-  (cons (whale-line--spacer) (cdr global-mode-string)))
+(defun wls--misc-info ()
+  "Render the misc info segment."
+  mode-line-misc-info)
 
-(whale-line-create-dynamic-segment global-mode-string
-  :getter wls--global-mode-string
+(whale-line-create-dynamic-segment misc-info
+  :condition mode-line-misc-info
+  :getter wls--misc-info
   :priority current-low)
 
 (whale-line-create-dynamic-segment minor-modes
@@ -143,14 +144,7 @@
 
 (defun wls--process ()
   "Get process segment."
-  (let ((mlp mode-line-process))
-
-    (cond
-     ((listp mlp)
-      (cons (whale-line--spacer) (cdr mlp)))
-     ((stringp mlp)
-      (propertize (concat (whale-line--spacer) mlp) 'face 'whale-line-shadow))
-     (t ""))))
+  mode-line-process)
 
 (whale-line-create-dynamic-segment process
   :getter wls--process

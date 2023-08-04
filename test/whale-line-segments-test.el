@@ -78,22 +78,15 @@
 
     (should (string= "f: %l:%c %p%" (substring-no-properties (whale-line-segments--position))))))
 
-(ert-deftest wls--global-mode-string ()
-  (let ((global-mode-string '("a" "b")))
+(ert-deftest wls--misc-info ()
+  (let ((mode-line-misc-info '("a" "b")))
 
-    (should (equal '(" " "b") (whale-line-segments--global-mode-string)))))
+    (should (equal '("a" "b") (whale-line-segments--misc-info)))))
 
 (ert-deftest wls--process ()
   (let ((mode-line-process '("a" "b")))
-    (should (equal '(" " "b") (whale-line-segments--process)))
 
-    (setq mode-line-process "c")
-
-    (should (string= " c" (whale-line-segments--process)))
-
-    (setq mode-line-process 'test)
-
-    (should (string= "" (whale-line-segments--process)))))
+    (should (equal '("a" "b") (whale-line-segments--process)))))
 
 (ert-deftest whale-line-selection--get-columns ()
   (with-temp-buffer
