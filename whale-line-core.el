@@ -37,6 +37,7 @@
                                  org
                                  buffer-status
                                  position
+                                 lsp
                                  selection
                                  cursors
                                  process

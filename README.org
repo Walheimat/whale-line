@@ -45,6 +45,7 @@ will need to call =whale-line-rebuild=.
                          org
                          buffer-status
                          position
+                         lsp
                          selection
                          cursors
                          process

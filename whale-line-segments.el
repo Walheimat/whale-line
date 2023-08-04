@@ -34,11 +34,6 @@
   :group 'whale-line
   :type 'boolean)
 
-(defcustom whale-line-lsp-delimiters '("[" "]")
-  "The delimiters to indicate LSP status for buffer names."
-  :group 'whale-line
-  :type '(repeat string))
-
 (defcustom whale-line-org-delimiter "/"
   "The delimiter between file name and heading name."
   :group 'whale-line
@@ -348,6 +343,11 @@ icon name and the face.")
   :group 'whale-line
   :type whale-line-icon-type)
 
+(defcustom whale-line-icons-lsp-icon '(faicon . ("server" whale-line-contrast))
+  "Icon used to indicate active LSP session."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
 (defun wli--icon (specs &rest plist)
   "Get icon in SPECS with PLIST properties."
   (declare (indent defun))
@@ -480,46 +480,24 @@ icon name and the face.")
    ((featurep 'eglot)
     (bound-and-true-p eglot--managed-mode))))
 
-(defun wll--indicate-session (&rest _args)
+(defun wll--segment (&rest _args)
   "Indicate an active LSP session."
   (if (memq 'icons whale-line-segments)
-      (when-let* ((icon (all-the-icons-icon-for-buffer))
-                  (f-props (get-text-property 0 'face icon))
-                  (f-new (copy-tree f-props)))
-        (if (wll--active-p)
-            (progn
-              (plist-put f-new :inherit 'whale-line-indicate)
-              (setq-local whale-line-icons--segment `((:propertize ,icon face ,f-new))))
-          (setq-local whale-line-icons--segment (whale-line-icons--get))))
+      (when (wll--active-p)
+        '((:propertize (:eval (wli--icon wli-lsp-icon :height 0.85 :v-adjust 0.0))
+                       help-echo "Connected to LSP server")))
     (when (wll--active-p)
-      (let* ((left (nth 0 wll-delimiters))
-             (right (nth 1 wll-delimiters))
-             (identification (whale-line--car-safe-until
-                              mode-line-buffer-identification
-                              #'stringp
-                              (buffer-name)))
-             (help (get-text-property 0 'help-echo identification))
-             (map (get-text-property 0 'local-map identification)))
+      '((:propertize "LSP" face whale-line-indicate)))))
 
-        (setq-local whale-line-buffer-name--segment
-                    `((:propertize ,left face whale-line-indicate)
-                      (:propertize "%b" help-echo ,help mouse-face whale-line-highlight local-map ,map)
-                      (:propertize ,right face whale-line-indicate)))))))
-
-(whale-line-create-augment lsp
-  :action wll--indicate-session
+(whale-line-create-static-segment lsp
+  :getter wll--segment
 
   :hooks
   (lsp-after-initialize-hook
    lsp-after-uninitialized-functions
    lsp-after-open-hook
    eglot-server-initialized-hook
-   eglot-managed-mode-hook)
-
-  :teardown
-  (lambda ()
-    (when (memq 'icons whale-line-segments)
-      (whale-line-icons--action))))
+   eglot-managed-mode-hook))
 
 
 ;;; -- Minions

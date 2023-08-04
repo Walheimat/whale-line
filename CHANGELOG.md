@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Segment `lsp` and custom variable `whale-line-icons-lsp-icon`.
+
 ### Changed
 
 - Segment `global-mode-string` is now `misc-info` and returns the
   equivalent information in `mode-line-misc-info`.
 - Segment `process` now returns `mode-line-process` as-is.
+
+### Removed
+
+- Augment `lsp` and custom variable `whale-line-lsp-delimiters`.
 
 ## [v0.6.1]
 

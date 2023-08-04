@@ -345,40 +345,31 @@
         (setq-local eglot--managed-mode t)
         (should (whale-line-lsp--active-p))))))
 
-(ert-deftest wll--indicate-session--icons ()
+(ert-deftest wll--segment--icons ()
   (let ((whale-line-segments '(icons)))
-    (bydi ((:mock all-the-icons-icon-for-buffer :return (propertize "icon" 'face '(:inherit ert-test-result-expected)))
-           (:mock whale-line-icons--get :return "icon")
-           (:sometimes whale-line-lsp--active-p))
+    (bydi ((:sometimes whale-line-lsp--active-p))
 
       (with-temp-buffer
-        (whale-line-lsp--indicate-session)
-
-        (should (equal '((:propertize "icon" face (:inherit whale-line-indicate))) whale-line-icons--segment))
+        (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-lsp-icon :height 0.85 :v-adjust 0.0))
+                                      help-echo "Connected to LSP server"))
+                       (whale-line-lsp--segment)))
 
         (bydi-toggle-sometimes)
 
-        (whale-line-lsp--indicate-session)
-        (should (string= "icon" whale-line-icons--segment))))))
+        (should-not (whale-line-lsp--segment))))))
 
-(ert-deftest wll--indicate-session--text ()
-  (let ((name "test")
-        (whale-line-lsp-delimiters '("-" "-"))
-        (delim (propertize "-" 'face 'whale-line-indicate))
-        (whale-line-segments '()))
+(ert-deftest wll--segment--text ()
+  (let ((whale-line-segments '()))
 
-    (bydi ((:mock whale-line-buffer-name--get-segment :return name)
-           (:sometimes whale-line-lsp--active-p)
-           (:mock whale-line--spacer :return "")
-           (:mock whale-line--car-safe-until :return "hello"))
+    (bydi ((:sometimes whale-line-lsp--active-p))
 
       (with-temp-buffer
-        (whale-line-lsp--indicate-session)
+        (should (equal '((:propertize "LSP" face whale-line-indicate))
+                       (whale-line-lsp--segment)))
 
-        (should (equal '((:propertize "-" face whale-line-indicate)
-                         (:propertize "%b" help-echo nil mouse-face whale-line-highlight local-map nil)
-                         (:propertize "-" face whale-line-indicate))
-                       whale-line-buffer-name--segment))))))
+        (bydi-toggle-sometimes)
+
+        (should-not (whale-line-lsp--segment))))))
 
 (ert-deftest whale-line-minions--list ()
   (defvar minions-mode)
