@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `process` now returns `mode-line-process` as-is.
 - Segment `buffer-name` is now `buffer-identification` and was
   simplified.
+- Default animation speed was reduced to 1.0.
 
 ### Removed
 

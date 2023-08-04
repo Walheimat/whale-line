@@ -24,7 +24,7 @@
   :group 'whale-line
   :type '(vector string))
 
-(defcustom whale-line-animation-speed 0.4
+(defcustom whale-line-animation-speed 1.0
   "Animation speed."
   :group 'whale-line
   :type 'float)
