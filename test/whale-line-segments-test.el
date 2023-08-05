@@ -426,7 +426,6 @@
 
       (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-org--collect-headings))))))
 
-
 (ert-deftest wlo--build-segment ()
   (defmacro org-with-wide-buffer (&rest body)
     "Mock implementation that just expands BODY."
@@ -486,7 +485,6 @@
            (:mock project-name :return "project"))
       (should (string= "project" (whale-line-project--get))))))
 
-
 (ert-deftest wltb--get-explicit-name ()
   (bydi ((:mock tab-bar--current-tab :with (lambda () '((explicit-name . t) (name . "test-tab")))))
     (should (string= (whale-line-tab-bar--get-explicit-name) " test-tab "))))
@@ -545,7 +543,6 @@
         (with-current-buffer (find-file-noselect testing)
           (setq-local vc-mode " Git:feature/tests")
           (should (string= "tests" (whale-line-vc--get-info))))))))
-
 
 ;;; whale-line-segments-test.el ends here
 

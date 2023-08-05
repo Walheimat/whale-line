@@ -504,7 +504,6 @@ If LOW-SPACE is t, additional segments are filtered."
                   (whale-line--filter-for-other low-space))))
     (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
 
-
 (defun whale-line--filter-for-current (&optional low-space)
   "Build the filter for current window.
 

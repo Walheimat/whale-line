@@ -285,7 +285,6 @@ Forces a mode-line update and returns the current frame."
 ;;; -- Flycheck
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
-(declare-function whale-line--spacer "whale-line.el")
 
 (defface wlf-running
   '((t (:underline (:style wave)
@@ -448,7 +447,6 @@ Returns nil if not checking or if no errors were found."
 
   :advice (:override . (wls--window-status)))
 
-
 ;;;; -- Buffer icon segment
 
 (defun wli--buffer-icon ()
@@ -500,13 +498,8 @@ Returns nil if not checking or if no errors were found."
    eglot-server-initialized-hook
    eglot-managed-mode-hook))
 
-
 ;;; -- Minions
 
-(declare-function whale-line--set-selected-window "whale-line.el")
-(declare-function whale-line--is-current-window-p "whale-line.el")
-(declare-function whale-line--spacer "whale-line.el")
-(declare-function whale-line-minor-modes--segment "whale-line.el")
 (declare-function minions--prominent-modes "ext:minions.el")
 
 (defvar minor-modes-alist)
@@ -541,7 +534,6 @@ Returns nil if not checking or if no errors were found."
 (declare-function org-heading-components "ext:org.el")
 (declare-function org-link-display-format "ext:org.el")
 (declare-function org-up-heading-safe "ext:org.el")
-(declare-function whale-line--spacer "whale-line.el")
 
 (defun wlo--maybe-truncate (heading)
   "Maybe truncate HEADING."
@@ -600,11 +592,9 @@ Returns nil if not checking or if no errors were found."
 
 ;;; -- Project
 
-(declare-function whale-line--spacer "whale-line.el")
 (declare-function projectile-project-root "ext:projectile.el")
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
-
 
 (defun wlp--display-for-buffer-p ()
   "Check if current buffer should show project information.
@@ -664,9 +654,6 @@ Only consider Dired buffers and file buffers."
   :priority current-low)
 
 ;;; -- VC
-
-(declare-function whale-line--is-current-window-p "whale-line.el")
-(declare-function whale-line--spacer "whale-line.el")
 
 (defvar-local wlvc--state nil)
 
