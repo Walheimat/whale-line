@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `buffer-name` is now `buffer-identification` and was
   simplified.
 - Default animation speed was reduced to 1.0.
+- Segment `icons` was replaced by `buffer-icon`. The augmentations of
+  other segments were spliced out as `iconify-*`.
 
 ### Removed
 

@@ -40,7 +40,7 @@ will need to call =whale-line-rebuild=.
   (whale-line-mode +1)
 
   :custom
-  (whale-line-segments '(icons
+  (whale-line-segments '(buffer-icon
                          buffer-identification
                          org
                          buffer-status

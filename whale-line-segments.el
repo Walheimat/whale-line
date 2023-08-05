@@ -61,11 +61,59 @@
   :type '(choice (const project)
                  (const projectile)))
 
+(defconst whale-line-icon-type
+  '(cons symbol
+         (restricted-sexp
+          :match-alternatives
+          (stringp listp)))
+  "Icon type as a cons cell of the icon library and the icons specs.
+The specs are either a string of the icon name or a list of the
+icon name and the face.")
+
+(defcustom whale-line-icons-project-icon '(faicon . "folder-open")
+  "Icon used for the project segment."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-vc-icon '(faicon . "code-fork")
+  "Icon used for the VC segment."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-buffer-read-only-icon '(faicon . ("lock" whale-line-contrast))
+  "Icon used to indicate buffer is read-only."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-no-buffer-file-name-icon '(faicon . ("sticky-note-o" whale-line-shadow))
+  "Icon used to indicate buffer has no file name."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-buffer-modified-icon '(faicon . ("pencil" whale-line-emphasis))
+  "Icon used to indicate buffer has been modified."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-window-dedicated-icon '(faicon . ("link" whale-line-shadow))
+  "Icon used to indicate a window is dedicated to its buffer."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-buffer-fallback-icon '(faicon . ("question-circle" whale-line-contrast))
+  "Icon used when a buffer has no associated icon."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
+(defcustom whale-line-icons-lsp-icon '(faicon . ("server" whale-line-contrast))
+  "Icon used to indicate active LSP session."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
 ;;; -- Basic segments
 
 (declare-function image-mode-window-get "ext:image-mode.el")
 (declare-function doc-view-last-page-number "ext:doc-view.el")
-
 
 ;;;; -- Buffer identification
 
@@ -77,7 +125,7 @@
 
 (whale-line-create-static-segment buffer-identification
   :getter wls--buffer-identification
-  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook)
+  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook)
   :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
 (defun wls--buffer-status ()
@@ -284,8 +332,12 @@ Returns nil if not checking or if no errors were found."
 				      `((:propertize (:eval (propertized-buffer-identification "%b"))
                                      face ,face))))))
 
+(defun wlf--can-use-flycheck-p ()
+  "Verify that flycheck augment can be used."
+  (require 'flycheck nil t))
+
 (whale-line-create-augment flycheck
-  :verify (lambda () (require 'flycheck nil t))
+  :verify wlf--can-use-flycheck-p
 
   :action wlf--underline
 
@@ -296,55 +348,6 @@ Returns nil if not checking or if no errors were found."
 
 (declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
 (declare-function all-the-icons-faicon "ext:all-the-icons.el")
-
-(defconst whale-line-icon-type
-  '(cons symbol
-         (restricted-sexp
-          :match-alternatives
-          (stringp listp)))
-  "Icon type as a cons cell of the icon library and the icons specs.
-The specs are either a string of the icon name or a list of the
-icon name and the face.")
-
-(defcustom whale-line-icons-project-icon '(faicon . "folder-open")
-  "Icon used for the project segment."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-vc-icon '(faicon . "code-fork")
-  "Icon used for the VC segment."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-buffer-read-only-icon '(faicon . ("lock" whale-line-contrast))
-  "Icon used to indicate buffer is read-only."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-no-buffer-file-name-icon '(faicon . ("sticky-note-o" whale-line-shadow))
-  "Icon used to indicate buffer has no file name."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-buffer-modified-icon '(faicon . ("pencil" whale-line-emphasis))
-  "Icon used to indicate buffer has been modified."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-window-dedicated-icon '(faicon . ("link" whale-line-shadow))
-  "Icon used to indicate a window is dedicated to its buffer."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-buffer-fallback-icon '(faicon . ("question-circle" whale-line-contrast))
-  "Icon used when a buffer has no associated icon."
-  :group 'whale-line
-  :type whale-line-icon-type)
-
-(defcustom whale-line-icons-lsp-icon '(faicon . ("server" whale-line-contrast))
-  "Icon used to indicate active LSP session."
-  :group 'whale-line
-  :type whale-line-icon-type)
 
 (defun wli--icon (specs &rest plist)
   "Get icon in SPECS with PLIST properties."
@@ -360,6 +363,12 @@ icon name and the face.")
         (apply fun (append (list icon :face face) plist))
       (apply fun (append (list icon) plist)))))
 
+(defun wli--can-use-icons-p ()
+  "Check whether icons can be used."
+  (require 'all-the-icons nil t))
+
+;;;; -- Icon for project
+
 (defun wli--prepend-icon-to-project-segment (str)
   "Advise info getter to prepend an icon before STR."
   (if (stringp str)
@@ -371,6 +380,15 @@ icon name and the face.")
        (whale-line--spacer)
        str)
     str))
+
+(whale-line-create-augment iconify-project
+  :verify wli--can-use-icons-p
+
+  :action wli--prepend-icon-to-project-segment
+
+  :advice (:filter-return . (wlp--get-segment)))
+
+;;;; -- Icon for VC
 
 (defun wli--prepend-icon-to-vc-segment (str)
   "Advise info getter to prepend an icon before STR."
@@ -384,6 +402,15 @@ icon name and the face.")
        (whale-line--spacer)
        str)
     str))
+
+(whale-line-create-augment iconify-vc
+  :verify wli--can-use-icons-p
+
+  :action wli--prepend-icon-to-vc-segment
+
+  :advice (:filter-return . (wlvc--get-segment)))
+
+;;;; -- Icon for buffer status
 
 (defun wli--advise-buffer-status-segment ()
   "Advise buffer line segment to use icons."
@@ -399,13 +426,32 @@ icon name and the face.")
         `((:eval (wli--icon ,icon :height 0.85 :v-adjust 0.0)))
       "")))
 
+(whale-line-create-augment iconify-buffer-status
+  :verify wli--can-use-icons-p
+
+  :action wli--advise-buffer-status-segment
+
+  :advice (:override . (wls--buffer-status)))
+
+;;;; -- Icon for window status
+
 (defun wli--advise-window-status-segment ()
   "Advise window status segment to use icons."
   (if (window-dedicated-p)
       '((:eval (wli--icon wli-window-dedicated-icon :height 0.85 :v-adjust 0.0)))
     ""))
 
-(defun wli--get ()
+(whale-line-create-augment iconify-window-status
+  :verify wli--can-use-icons-p
+
+  :action wli--advise-window-status-segment
+
+  :advice (:override . (wls--window-status)))
+
+
+;;;; -- Buffer icon segment
+
+(defun wli--buffer-icon ()
   "Get the buffer icon segment."
   (let ((icon (all-the-icons-icon-for-buffer)))
 
@@ -415,60 +461,17 @@ icon name and the face.")
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
-(whale-line-create-static-segment icons
-  :verify (lambda () (require 'all-the-icons nil t))
-
-  :getter wli--get
+(whale-line-create-static-segment buffer-icon
+  :verify wli--can-use-icons-p
 
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
 
-  :setup
-  (lambda ()
-    (advice-add
-     #'whale-line-project--get-segment :filter-return
-     #'wli--prepend-icon-to-project-segment)
-    (whale-line-project--action)
-
-    (advice-add
-     #'whale-line-vc--get-segment :filter-return
-     #'wli--prepend-icon-to-vc-segment)
-    (whale-line-vc--action)
-
-    (advice-add
-     #'whale-line-window-status--segment :override
-     #'wli--advise-window-status-segment)
-
-    (when wli-prettify-buffer-status
-      (advice-add
-       #'whale-line-buffer-status--segment
-       :override #'wli--advise-buffer-status-segment)))
-
-  :teardown
-  (lambda ()
-    (advice-remove
-     #'whale-line-project--get-segment
-     #'wli--prepend-icon-to-project-segment)
-    (whale-line-project--action)
-
-    (advice-remove
-     #'whale-line-vc--get-segment
-     #'wli--prepend-icon-to-vc-segment)
-    (whale-line-vc--action)
-
-    (when wli-prettify-buffer-status
-      (advice-remove
-       #'whale-line-buffer-status--segment
-       #'wli--advise-buffer-status-segment))))
+  :getter wli--buffer-icon)
 
 ;;; -- LSP
 
 (declare-function lsp-workspaces "ext:lsp-mode.el")
-(declare-function whale-line--is-current-window-p "whale-line.el")
-(declare-function whale-line--spacer "whale-line.el")
-(declare-function whale-line-buffer-identification--get-segment "whale-line.el")
-(declare-function whale-line-icons--get-segment "whale-line-icons.el")
-(declare-function whale-line-icons--action "whale-line-icons.el")
 
 (defun wll--active-p ()
   "Check if an LSP mode is active."

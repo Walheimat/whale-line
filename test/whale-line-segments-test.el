@@ -158,6 +158,15 @@
 
         (should (propertized-string= " 3 " (whale-line-cursors--count)))))))
 
+(ert-deftest wli--can-use-flycheck-p ()
+  (bydi ((:sometimes require))
+
+    (should (whale-line-flycheck--can-use-flycheck-p))
+
+    (bydi-toggle-sometimes)
+
+    (should-not (whale-line-flycheck--can-use-flycheck-p))))
+
 (ert-deftest wlf--get-face-for-status ()
   (should (equal 'whale-line-neutral (whale-line-flycheck--get-face-for-status nil)))
   (should (equal 'whale-line-flycheck-running (whale-line-flycheck--get-face-for-status 'running)))
@@ -229,6 +238,15 @@
       (should (equal (whale-line-icons--icon test-icon :height 0.42) "I"))
       (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
 
+(ert-deftest wli--can-use-icons-p ()
+  (bydi ((:sometimes require))
+
+    (should (whale-line-icons--can-use-icons-p))
+
+    (bydi-toggle-sometimes)
+
+    (should-not (whale-line-icons--can-use-icons-p))))
+
 (ert-deftest wli--prepend-icon-to-project-segment ()
   (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) " " "proj")
                  (whale-line-icons--prepend-icon-to-project-segment "proj"))))
@@ -293,20 +311,19 @@
       (bydi-toggle-sometimes)
       (should (string= "" (whale-line-icons--advise-window-status-segment))))))
 
-(ert-deftest wli--get--fallback ()
-  (bydi ((:always display-graphic-p)
-         (:ignore all-the-icons-icon-for-buffer)
+(ert-deftest wli--buffer-icon--fallback ()
+  (bydi ((:ignore all-the-icons-icon-for-buffer)
          (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--get)
+    (should (equal (whale-line-icons--buffer-icon)
                    '((:propertize (:eval (whale-line-icons--icon whale-line-icons-buffer-fallback-icon))
                                   help-echo "echo" display (raise -0.135)))))))
 
-(ert-deftest wli--get ()
+(ert-deftest wli--buffer-icon ()
   (bydi ((:mock all-the-icons-icon-for-buffer :return "?")
          (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--get)
+    (should (equal (whale-line-icons--buffer-icon)
                    '((:propertize "?" help-echo "echo" display (raise -0.135)))))))
 
 (ert-deftest wll--active-p ()

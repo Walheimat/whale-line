@@ -32,7 +32,7 @@
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom whale-line-segments '(icons
+(defcustom whale-line-segments '(buffer-icon
                                  buffer-identification
                                  org
                                  buffer-status
@@ -482,7 +482,8 @@ If VERIFY is t, the setup will verify before being executed."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
-           (whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t)
+           ,(when action
+              `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
            (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))
