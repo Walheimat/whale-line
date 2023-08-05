@@ -248,8 +248,8 @@
     (should-not (whale-line-icons--can-use-icons-p))))
 
 (ert-deftest wli--prepend-icon-to-project-segment ()
-  (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) " " "proj")
-                 (whale-line-icons--prepend-icon-to-project-segment "proj"))))
+  (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) (:eval (whale-line--spacer)) "proj")
+                 (whale-line-icons--prepend-icon-to-project-segment '("proj")))))
 
 (ert-deftest wli--prepend-icon-to-vc-segment ()
   (let ((name "/test/tmp"))
@@ -269,7 +269,7 @@
       (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "vc")))))
 
 (ert-deftest wli--prepend-icon-to-project-segment--returns-non-strings ()
-  (should (equal '("hi") (whale-line-icons--prepend-icon-to-project-segment '("hi")))))
+  (should (string= "hi" (whale-line-icons--prepend-icon-to-project-segment "hi"))))
 
 (ert-deftest wli--advise-buffer-status-segment ()
   (let ((buffer-read-only nil)

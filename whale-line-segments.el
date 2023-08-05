@@ -368,17 +368,17 @@ Returns nil if not checking or if no errors were found."
 
 ;;;; -- Icon for project
 
-(defun wli--prepend-icon-to-project-segment (str)
-  "Advise info getter to prepend an icon before STR."
-  (if (stringp str)
-      (list
-       '(:eval (wli--icon wli-project-icon
+(defun wli--prepend-icon-to-project-segment (segment)
+  "Advise info getter to prepend an icon before SEGMENT."
+  (if (and segment
+           (listp segment))
+      `((:eval (wli--icon wli-project-icon
                  :face 'whale-line-emphasis
                  :height 0.85
                  :v-adjust 0.0))
-       (whale-line--spacer)
-       str)
-    str))
+        (:eval (whale-line--spacer))
+        ,@segment)
+    segment))
 
 (whale-line-create-augment iconify-project
   :verify wli--can-use-icons-p
