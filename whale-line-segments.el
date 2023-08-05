@@ -137,7 +137,7 @@ icon name and the face.")
                   '((:propertize "&" face whale-line-shadow)))
                  ((buffer-modified-p)
                   '((:propertize "*" face whale-line-emphasis)))
-                 (t ""))))
+                 (t nil))))
 
     render))
 
@@ -328,8 +328,8 @@ Returns nil if not checking or if no errors were found."
                 (if text
 					`((:propertize (:eval (propertized-buffer-identification "%b"))
                                    face ,face help-echo ,text))
-				      `((:propertize (:eval (propertized-buffer-identification "%b"))
-                                     face ,face))))))
+				  `((:propertize (:eval (propertized-buffer-identification "%b"))
+                                 face ,face))))))
 
 (defun wlf--can-use-flycheck-p ()
   "Verify that flycheck augment can be used."
@@ -389,18 +389,18 @@ Returns nil if not checking or if no errors were found."
 
 ;;;; -- Icon for VC
 
-(defun wli--prepend-icon-to-vc-segment (str)
-  "Advise info getter to prepend an icon before STR."
-  (if (and (stringp str)
+(defun wli--prepend-icon-to-vc-segment (segment)
+  "Advise info getter to prepend an icon before SEGMENT."
+  (if (and segment
+           (listp segment)
            (buffer-file-name))
-      (list
-       '(:eval (wli--icon wli-vc-icon
+      `((:eval (wli--icon wli-vc-icon
                  :face (whale-line-vc--face-for-state)
                  :height 0.85
                  :v-adjust 0.0))
-       (whale-line--spacer)
-       str)
-    str))
+        (:eval (whale-line--spacer))
+        ,@segment)
+    segment))
 
 (whale-line-create-augment iconify-vc
   :verify wli--can-use-icons-p
@@ -413,17 +413,15 @@ Returns nil if not checking or if no errors were found."
 
 (defun wli--advise-buffer-status-segment ()
   "Advise buffer line segment to use icons."
-  (let ((icon (cond
-               (buffer-read-only 'wli-buffer-read-only-icon)
-               ((not (buffer-file-name))
-                'wli-no-buffer-file-name-icon)
-               ((buffer-modified-p)
-                'wli-buffer-modified-icon)
-               (t nil))))
+  (when-let ((icon (cond
+                    (buffer-read-only 'wli-buffer-read-only-icon)
+                    ((not (buffer-file-name))
+                     'wli-no-buffer-file-name-icon)
+                    ((buffer-modified-p)
+                     'wli-buffer-modified-icon)
+                    (t nil))))
 
-    (if icon
-        `((:eval (wli--icon ,icon :height 0.85 :v-adjust 0.0)))
-      "")))
+    `((:eval (wli--icon ,icon :height 0.85 :v-adjust 0.0)))))
 
 (whale-line-create-augment iconify-buffer-status
   :verify wli--can-use-icons-p
@@ -436,9 +434,8 @@ Returns nil if not checking or if no errors were found."
 
 (defun wli--advise-window-status-segment ()
   "Advise window status segment to use icons."
-  (if (window-dedicated-p)
-      '((:eval (wli--icon wli-window-dedicated-icon :height 0.85 :v-adjust 0.0)))
-    ""))
+  (when (window-dedicated-p)
+    '((:eval (wli--icon wli-window-dedicated-icon :height 0.85 :v-adjust 0.0)))))
 
 (whale-line-create-augment iconify-window-status
   :verify wli--can-use-icons-p
@@ -454,8 +451,8 @@ Returns nil if not checking or if no errors were found."
   (let ((icon (all-the-icons-icon-for-buffer)))
 
     `((:propertize ,(if (or (null icon) (symbolp icon))
-                       '(:eval (wli--icon wli-buffer-fallback-icon))
-                     icon)
+                        '(:eval (wli--icon wli-buffer-fallback-icon))
+                      icon)
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
@@ -565,18 +562,16 @@ Returns nil if not checking or if no errors were found."
   (org-with-wide-buffer
    (goto-char (window-start))
    (unless (org-before-first-heading-p)
-     (let ((headings (wlo--collect-headings)))
-       (if (null headings)
-           ""
-         (pcase wlo-include
-           ('current (nth 0 headings))
-           ('current-and-root
-            (if (> (length headings) 1)
-                (concat
-                 (wlo--maybe-truncate (car (last headings)))
-                 (whale-line--spacer)
-                 (nth 0 headings))
-              (nth 0 headings)))))))))
+     (when-let ((headings (wlo--collect-headings)))
+       (pcase wlo-include
+         ('current (nth 0 headings))
+         ('current-and-root
+          (if (> (length headings) 1)
+              (concat
+               (wlo--maybe-truncate (car (last headings)))
+               (whale-line--spacer)
+               (nth 0 headings))
+            (nth 0 headings))))))))
 
 (whale-line-create-dynamic-segment org
   :getter
@@ -606,7 +601,7 @@ Only consider Dired buffers and file buffers."
 
 (defvar wlp--regexp ".+\\(\\/.+\\)\\/$")
 
-(defun wlp--get ()
+(defun wlp--segment ()
   "Get the project segment."
   (when-let* ((candidate (wlp--display-for-buffer-p))
               (p-root (pcase wlp-provider
@@ -622,12 +617,12 @@ Only consider Dired buffers and file buffers."
                          (substring (match-string 1 p-root) 1))
                         ('project
                          (project-name (project-current)))
-                        (_ ""))))
+                        (_ nil))))
 
-    (propertize p-name 'face 'whale-line-emphasis 'help-echo p-root)))
+    `((:propertize ,p-name face whale-line-emphasis help-echo ,p-root))))
 
 (whale-line-create-static-segment project
-  :getter wlp--get
+  :getter wlp--segment
 
   :hooks
   (find-file-hook))
@@ -640,7 +635,7 @@ Only consider Dired buffers and file buffers."
               ((alist-get 'explicit-name tab))
               (name (alist-get 'name tab)))
 
-    (propertize (concat " " name " ") 'face 'whale-line-highlight)))
+    `((:propertize ,(concat " " name " ") face whale-line-highlight))))
 
 (whale-line-create-static-segment tab-bar
   :verify
@@ -688,15 +683,15 @@ Only consider Dired buffers and file buffers."
 
 (defun wlvc--get-info ()
   "Get version control info."
-  (when (and vc-mode buffer-file-name)
-    (let* ((backend (vc-backend buffer-file-name))
-           (status (if vc-display-status
-                       (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
-                     ""))
-           (str (replace-regexp-in-string wlvc--scope-regexp "" status)))
-      (propertize str
-                  'mouse-face 'whale-line-highlight
-                  'face (wlvc--face-for-state)))))
+  (and-let* (((and vc-mode buffer-file-name))
+             (backend (vc-backend buffer-file-name))
+             (status (if vc-display-status
+                         (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
+                       "")))
+
+    `((:propertize ,(replace-regexp-in-string wlvc--scope-regexp "" status)
+                   mouse-face whale-line-highlight
+                   face ,(wlvc--face-for-state)))))
 
 (whale-line-create-static-segment vc
   :getter

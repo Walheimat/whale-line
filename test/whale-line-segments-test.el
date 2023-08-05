@@ -28,7 +28,7 @@
 
   (ert-with-temp-file buffer-status :buffer current
     (with-current-buffer current
-      (should (propertized-string= "" (whale-line-segments--buffer-status)))
+      (should-not (whale-line-segments--buffer-status))
 
       (insert "test")
 
@@ -259,9 +259,9 @@
 
       (should-not (whale-line-icons--prepend-icon-to-vc-segment nil))
       (should (equal '((:eval (whale-line-icons--icon whale-line-icons-vc-icon :face (whale-line-vc--face-for-state) :height 0.85 :v-adjust 0.0))
-                       " "
+                       (:eval (whale-line--spacer))
                        "vc")
-                     (whale-line-icons--prepend-icon-to-vc-segment "vc")))
+                     (whale-line-icons--prepend-icon-to-vc-segment '("vc"))))
 
       (bydi-toggle-sometimes)
       (setq name nil)
@@ -300,7 +300,7 @@
 
         (setq modified nil)
 
-        (should (string= "" (whale-line-icons--advise-buffer-status-segment)))))))
+        (should-not (whale-line-icons--advise-buffer-status-segment))))))
 
 (ert-deftest wli--advise-window-status-segment ()
   (with-temp-buffer
@@ -309,7 +309,7 @@
       (should (equal '((:eval (whale-line-icons--icon whale-line-icons-window-dedicated-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-window-status-segment)))
 
       (bydi-toggle-sometimes)
-      (should (string= "" (whale-line-icons--advise-window-status-segment))))))
+      (should-not (whale-line-icons--advise-window-status-segment)))))
 
 (ert-deftest wli--buffer-icon--fallback ()
   (bydi ((:ignore all-the-icons-icon-for-buffer)
@@ -444,7 +444,7 @@
 
       (setq first-heading nil)
       (with-temp-buffer
-        (should (string= "" (whale-line-org--build-segment))))
+        (should-not (whale-line-org--build-segment)))
 
       (setq headings (list (propertize "One" 'face 'shadow)
                            (propertize "Two" 'face 'shadow)))
@@ -474,7 +474,7 @@
 
     (bydi ((:always whale-line-project--display-for-buffer-p)
            (:mock projectile-project-root :return "/home/test/project/"))
-      (should (string= "project" (whale-line-project--get))))))
+      (should (propertized-string= "project" (whale-line-project--segment))))))
 
 (ert-deftest wlp--get--for-project ()
   (let ((whale-line-project-provider 'project))
@@ -483,11 +483,11 @@
            (:always project-current)
            (:mock project-root :return "/home/test/project/")
            (:mock project-name :return "project"))
-      (should (string= "project" (whale-line-project--get))))))
+      (should (propertized-string= "project" (whale-line-project--segment))))))
 
 (ert-deftest wltb--get-explicit-name ()
   (bydi ((:mock tab-bar--current-tab :with (lambda () '((explicit-name . t) (name . "test-tab")))))
-    (should (string= (whale-line-tab-bar--get-explicit-name) " test-tab "))))
+    (should (propertized-string= " test-tab " (whale-line-tab-bar--get-explicit-name)))))
 
 (ert-deftest wlvc--update-state ()
   (bydi ((:mock whale-line-vc--get-state :with bydi-rt))
@@ -542,7 +542,7 @@
       (ert-with-temp-file testing
         (with-current-buffer (find-file-noselect testing)
           (setq-local vc-mode " Git:feature/tests")
-          (should (string= "tests" (whale-line-vc--get-info))))))))
+          (should (propertized-string= "tests" (whale-line-vc--get-info))))))))
 
 ;;; whale-line-segments-test.el ends here
 
