@@ -220,8 +220,7 @@ ellipsis."
          (padded
           (delq
            nil
-           `(
-             ,(when (and (assoc segment (plist-get whale-line--segments :left)))
+           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
                 (whale-line--spacer))
              ,@render
              ,(when (assoc segment (plist-get whale-line--segments :right))

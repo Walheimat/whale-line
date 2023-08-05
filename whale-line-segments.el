@@ -385,7 +385,7 @@ Returns nil if not checking or if no errors were found."
 
   :action wli--prepend-icon-to-project-segment
 
-  :advice (:filter-return . (wlp--get-segment)))
+  :advice (:filter-return . (wlp--segment)))
 
 ;;;; -- Icon for VC
 
