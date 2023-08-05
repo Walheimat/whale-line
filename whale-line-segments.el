@@ -478,12 +478,12 @@ Returns nil if not checking or if no errors were found."
 
 (defun wll--segment (&rest _args)
   "Indicate an active LSP session."
-  (if (memq 'icons whale-line-segments)
-      (when (wll--active-p)
-        '((:propertize (:eval (wli--icon wli-lsp-icon :height 0.85 :v-adjust 0.0))
-                       help-echo "Connected to LSP server")))
-    (when (wll--active-p)
-      '((:propertize "LSP" face whale-line-indicate)))))
+  (and-let* (((wll--active-p))
+             (help "Connected to LSP server"))
+    (if (wli--can-use-icons-p)
+        `((:propertize (:eval (wli--icon wli-lsp-icon :height 0.85 :v-adjust 0.0))
+                       help-echo ,help))
+      `((:propertize "LSP" face whale-line-indicate help-echo ,help)))))
 
 (whale-line-create-static-segment lsp
   :getter wll--segment

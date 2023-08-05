@@ -348,25 +348,26 @@
         (should (whale-line-lsp--active-p))))))
 
 (ert-deftest wll--segment--icons ()
-  (let ((whale-line-segments '(icons)))
-    (bydi ((:sometimes whale-line-lsp--active-p))
+  (bydi ((:sometimes whale-line-lsp--active-p)
+         (:always whale-line-icons--can-use-icons-p))
 
-      (with-temp-buffer
-        (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-lsp-icon :height 0.85 :v-adjust 0.0))
-                                      help-echo "Connected to LSP server"))
-                       (whale-line-lsp--segment)))
+    (with-temp-buffer
+      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-lsp-icon :height 0.85 :v-adjust 0.0))
+                                    help-echo "Connected to LSP server"))
+                     (whale-line-lsp--segment)))
 
-        (bydi-toggle-sometimes)
+      (bydi-toggle-sometimes)
 
-        (should-not (whale-line-lsp--segment))))))
+      (should-not (whale-line-lsp--segment)))))
 
 (ert-deftest wll--segment--text ()
   (let ((whale-line-segments '()))
 
-    (bydi ((:sometimes whale-line-lsp--active-p))
+    (bydi ((:sometimes whale-line-lsp--active-p)
+           (:ignore whale-line-icons--can-use-icons-p))
 
       (with-temp-buffer
-        (should (equal '((:propertize "LSP" face whale-line-indicate))
+        (should (equal '((:propertize "LSP" face whale-line-indicate help-echo "Connected to LSP server"))
                        (whale-line-lsp--segment)))
 
         (bydi-toggle-sometimes)
