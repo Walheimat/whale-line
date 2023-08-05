@@ -43,8 +43,8 @@
                                  process
                                  window-status
                                  |
-                                 minor-modes
                                  misc-info
+                                 minor-modes
                                  project
                                  vc
                                  tab-bar

@@ -51,8 +51,8 @@ will need to call =whale-line-rebuild=.
                          process
                          window-status
                          | ;; Divides into left and right.
-                         minor-modes
                          misc-info
+                         minor-modes
                          project
                          vc
                          tab-bar
