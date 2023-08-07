@@ -50,6 +50,7 @@ will need to call =whale-line-rebuild=.
                          cursors
                          process
                          window-status
+                         partial-recall
                          | ;; Divides into left and right.
                          misc-info
                          minor-modes

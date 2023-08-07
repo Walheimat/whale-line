@@ -110,6 +110,11 @@ icon name and the face.")
   :group 'whale-line
   :type whale-line-icon-type)
 
+(defcustom whale-line-icons-partial-recall-icon '(faicon . ("tree" whale-line-contrast))
+  "Icon used to indicate implanted buffer."
+  :group 'whale-line
+  :type whale-line-icon-type)
+
 ;;; -- Basic segments
 
 (declare-function image-mode-window-get "ext:image-mode.el")
@@ -705,6 +710,25 @@ Only consider Dired buffers and file buffers."
 
   :advice
   (:after . (vc-refresh-state)))
+
+;;; -- Partial recall
+
+(declare-function partial-recall-implanted-p "ext:partial-recall.el")
+
+(defun wls--can-use-partial-recall-p ()
+  "Check whether `partial-recall' can be used."
+  (and (require 'partial-recall nil t)
+       (fboundp 'partial-recall-implanted-p)))
+
+(defun wls--partial-recall ()
+  "Get the `partial-recall' segment."
+  (when (partial-recall-implanted-p)
+    `((:eval (wli--icon wli-partial-recall-icon :height 0.85 :v-adjust 0.0)))))
+
+(whale-line-create-dynamic-segment partial-recall
+  :verify wls--can-use-partial-recall-p
+
+  :getter wls--partial-recall)
 
 (provide 'whale-line-segments)
 

@@ -545,6 +545,30 @@
           (setq-local vc-mode " Git:feature/tests")
           (should (propertized-string= "tests" (whale-line-vc--get-info))))))))
 
+(ert-deftest wls--can-use-partial-recall ()
+  (should-not (whale-line-segments--can-use-partial-recall-p))
+
+  (bydi-with-mock ((:always require))
+
+    (should-not (whale-line-segments--can-use-partial-recall-p))
+
+    (defun partial-recall-implanted-p ()
+      ""
+      nil)
+
+    (should (whale-line-segments--can-use-partial-recall-p))))
+
+(ert-deftest wls--partial-recall ()
+  (bydi ((:sometimes partial-recall-implanted-p))
+
+    (should (equal '((:eval (whale-line-icons--icon whale-line-icons-partial-recall-icon
+                              :height 0.85
+                              :v-adjust 0.0)))
+                   (whale-line-segments--partial-recall)))
+
+    (bydi-toggle-sometimes)
+    (should-not (whale-line-segments--partial-recall))))
+
 ;;; whale-line-segments-test.el ends here
 
 ;; Local Variables:

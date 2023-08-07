@@ -42,6 +42,7 @@
                                  cursors
                                  process
                                  window-status
+                                 partial-recall
                                  |
                                  misc-info
                                  minor-modes
