@@ -559,15 +559,39 @@
     (should (whale-line-segments--can-use-partial-recall-p))))
 
 (ert-deftest wls--partial-recall ()
-  (bydi ((:sometimes partial-recall-implanted-p))
+  (let ((whale-line-segments--partial-recall-mode-line-map nil))
+    (bydi ((:sometimes partial-recall-implanted-p)
+           (:sometimes whale-line-icons--can-use-icons-p))
 
-    (should (equal '((:eval (whale-line-icons--icon whale-line-icons-partial-recall-icon
-                              :height 0.85
-                              :v-adjust 0.0)))
-                   (whale-line-segments--partial-recall)))
+      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-partial-recall-icon
+                                             :height 0.85
+                                             :v-adjust 0.0))
+                                    face whale-line-contrast
+                                    help-echo "Partial Recall\nmouse-1: Implant/Excise"
+                                    local-map nil))
+                     (whale-line-segments--partial-recall)))
+
+      (bydi-toggle-sometimes)
+
+      (should (equal '((:propertize "PR"
+                                    face whale-line-shadow
+                                    help-echo "Partial Recall\nmouse-1: Implant/Excise"
+                                    local-map nil))
+                     (whale-line-segments--partial-recall))))))
+(ert-deftest wls--partial-recall--toggle ()
+
+  (bydi (partial-recall-implant
+         (:sometimes partial-recall-implanted-p))
+
+    (whale-line-segments--partial-recall--toggle)
+
+    (bydi-was-called-with partial-recall-implant '(... t))
 
     (bydi-toggle-sometimes)
-    (should-not (whale-line-segments--partial-recall))))
+
+    (whale-line-segments--partial-recall--toggle)
+
+    (bydi-was-called-with partial-recall-implant '(... nil))))
 
 ;;; whale-line-segments-test.el ends here
 

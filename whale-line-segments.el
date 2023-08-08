@@ -714,16 +714,37 @@ Only consider Dired buffers and file buffers."
 ;;; -- Partial recall
 
 (declare-function partial-recall-implanted-p "ext:partial-recall.el")
+(declare-function partial-recall-implant "ext:partial-recall.el")
 
 (defun wls--can-use-partial-recall-p ()
   "Check whether `partial-recall' can be used."
   (and (require 'partial-recall nil t)
        (fboundp 'partial-recall-implanted-p)))
 
+(defun wls--partial-recall--toggle ()
+  "Implant or excise the current buffer."
+  (interactive)
+
+  (partial-recall-implant (current-buffer) (partial-recall-implanted-p)))
+
+(defvar wls--partial-recall-mode-line-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1] 'wls--partial-recall--toggle)
+
+    map))
+
 (defun wls--partial-recall ()
   "Get the `partial-recall' segment."
-  (when (partial-recall-implanted-p)
-    `((:eval (wli--icon wli-partial-recall-icon :height 0.85 :v-adjust 0.0)))))
+  (let ((implanted (partial-recall-implanted-p))
+        (text (if (wli--can-use-icons-p)
+                  '(:eval (wli--icon wli-partial-recall-icon :height 0.85 :v-adjust 0.0))
+                "PR")))
+
+    `((:propertize ,text
+                   face ,(if implanted 'whale-line-contrast 'whale-line-shadow)
+                   help-echo "Partial Recall\nmouse-1: Implant/Excise"
+                   local-map ,wls--partial-recall-mode-line-map))))
 
 (whale-line-create-dynamic-segment partial-recall
   :verify wls--can-use-partial-recall-p
