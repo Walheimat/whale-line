@@ -408,13 +408,13 @@ This will also add the segment with PRIORITY or t."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
-           (defvar ,segment 'initial)
+           (defvar-local ,segment 'initial)
 
            (defun ,setter (&rest _)
              ,(format "Set %s segment." name)
              (if-let ((str (,getter-sym)))
-                 (setq-local ,segment str)
-               (setq-local ,segment nil)))
+                 (setq ,segment str)
+               (setq ,segment nil)))
 
            (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
            (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))

@@ -27,15 +27,15 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
-       (defvar whale-line-test--segment 'initial)
+       (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
          "Set test segment."
          (if-let
              ((str
                (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment str)
-           (setq-local whale-line-test--segment nil)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
          "Get the test segment.")
@@ -55,15 +55,15 @@
      (whale-line-create-static-segment test
        :getter (lambda () t))
      '(progn
-       (defvar whale-line-test--segment 'initial)
+       (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
          "Set test segment."
          (if-let
              ((str
                (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment str)
-           (setq-local whale-line-test--segment nil)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
          "Get the test segment.")
@@ -82,12 +82,12 @@
        :setup ignore
        :priority low)
      '(progn
-       (defvar whale-line-test--segment 'initial)
+       (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action (&rest _)
          "Set test segment."
          (if-let ((str (whale-line-test--get-segment)))
-             (setq-local whale-line-test--segment str)
-           (setq-local whale-line-test--segment nil)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
 
        (whale-line--function whale-line-test--get-segment ignore "Get the test segment.")
 
