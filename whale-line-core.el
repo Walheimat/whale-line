@@ -26,6 +26,7 @@
 (defvar whale-line--default-mode-line nil)
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
+(defvar whale-line--static-timer nil)
 
 ;;; -- Customization
 
@@ -289,6 +290,27 @@ Optionally with a PRIORITY."
   (if-let ((existing (assoc segment whale-line--types)))
       (setcdr existing type)
     (push (cons segment type) whale-line--types)))
+
+(defun whale-line--queue-refresh ()
+  "Queue a refresh.
+
+This will refresh static segments."
+  (when whale-line--static-timer
+    (unless (timer--triggered whale-line--static-timer)
+      (cancel-timer whale-line--static-timer)))
+
+  (setq whale-line--static-timer (run-with-idle-timer 0.5 nil #'whale-line--refresh-static-segments)))
+
+(defun whale-line--refresh-static-segments ()
+  "Refresh all static segments.
+
+This will call the respective segment's action."
+  (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
+         (actions (cl-loop for (a . b) in whale-line--types
+                           if (eq b 'static)
+                           collect (funcall interner a))))
+
+    (mapc #'funcall actions)))
 
 ;;; -- Macros
 

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Segment for my own library `partial-recall`. Will toggle implanted
   state on left-click, show a menu on right-click.
+- Static segments are now refreshed after the buffer list is updated
+  using an idle timer.
 
 ### Changed
 

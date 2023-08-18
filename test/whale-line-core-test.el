@@ -351,7 +351,8 @@
 
     (bydi ((:mock whale-line--get-current-window :with bydi-rt)
            (:mock minibuffer-window-active-p :return active)
-           (:mock minibuffer-selected-window :with (lambda () (if active 'selected nil))))
+           (:mock minibuffer-selected-window :with (lambda () (if active 'selected nil)))
+           whale-line--queue-refresh)
 
       (whale-line--set-selected-window)
 
@@ -362,6 +363,44 @@
       (whale-line--set-selected-window)
 
       (should (eq 'selected whale-line--current-window)))))
+
+(ert-deftest whale-line--queue-refresh ()
+  (let ((whale-line--static-timer nil)
+        (timer (timer--create)))
+
+    (setf (timer--triggered timer) nil)
+
+    (bydi ((:mock run-with-idle-timer :return timer)
+           cancel-timer)
+
+      (whale-line--queue-refresh)
+      (should whale-line--static-timer)
+
+      (bydi-was-called-with run-with-idle-timer '(0.5 nil whale-line--refresh-static-segments))
+      (bydi-was-not-called cancel-timer)
+
+      (whale-line--queue-refresh)
+
+      (bydi-was-called cancel-timer))
+
+    (cancel-timer timer)))
+
+(ert-deftest whale-line--refresh-static-segments ()
+  (let ((whale-line--types '((a . static) (b . dynamic) (c . static))))
+
+    (defun whale-line-a--action () nil)
+    (defun whale-line-b--action () nil)
+    (defun whale-line-c--action () nil)
+
+    (bydi ((:spy whale-line-a--action)
+           (:spy whale-line-b--action)
+           (:spy whale-line-c--action))
+
+      (whale-line--refresh-static-segments)
+
+      (bydi-was-called whale-line-a--action)
+      (bydi-was-not-called whale-line-b--action)
+      (bydi-was-called whale-line-c--action))))
 
 (ert-deftest whale-line--is-current-window-p ()
 
@@ -379,15 +418,18 @@
       (should (whale-line--is-current-window-p)))))
 
 (ert-deftest whale-line--add-segment ()
-  (let ((whale-line--priorities '((one . nil) (two . t))))
+  (let ((whale-line--priorities '((one . nil) (two . t)))
+        (whale-line--types '((one . static) (two . dynamic))))
 
     (whale-line--add-segment 'one 'static)
 
     (should (equal whale-line--priorities '((one . t) (two . t))))
+    (should (equal whale-line--types '((one . static) (two . dynamic))))
 
     (whale-line--add-segment 'two 'static 'low)
 
     (should (equal whale-line--priorities '((one . t) (two . low))))
+    (should (equal whale-line--types '((one . static) (two . static))))
 
     (whale-line--add-segment 'three 'static 'current-low)
 
