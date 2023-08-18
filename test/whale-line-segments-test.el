@@ -440,7 +440,8 @@
 
   (let ((first-heading t)
         (headings nil)
-        (whale-line-segments-org-include 'current-and-root))
+        (whale-line-segments-org-max-count 2)
+        (whale-line-segmenets-org-elision "*"))
 
     (bydi ((:mock org-before-first-heading-p :return first-heading)
            (:mock whale-line-segments--org--collect-headings :return headings)
@@ -453,17 +454,18 @@
         (should-not (whale-line-segments--org--build-segment)))
 
       (setq headings (list (propertize "One" 'face 'shadow)
-                           (propertize "Two" 'face 'shadow)))
+                           (propertize "Two" 'face 'shadow)
+                           (propertize "Three" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "Two One" (whale-line-segments--org--build-segment))))
+        (should (string= "Three Two One" (whale-line-segments--org--build-segment))))
 
-      (setq whale-line-segments-org-include 'current)
+      (setq whale-line-segments-org-max-count 1)
 
       (with-temp-buffer
-        (should (string= "One" (whale-line-segments--org--build-segment))))
+        (should (string= "Three * One" (whale-line-segments--org--build-segment))))
 
-      (setq whale-line-segments-org-include 'current-and-root
+      (setq whale-line-segments-org-max-count 2
             headings (list (propertize "One" 'face 'shadow)))
 
       (with-temp-buffer

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The logic for the `org` segment has been changed. Custom variable
+  `whale-line-segments-org-include` was replaced in favor of
+  `whale-line-segments-org-max-count`. If a heading has more parents
+  than set in this variable, they are elided. The elision is indicated
+  by `whale-line-segments-org-elision`, defaulting to an asterisk.
+
 ### Fixed
 
 - The animation segment is now a dynamic segment, allowing the

@@ -44,11 +44,19 @@
   :group 'whale-line-segments
   :type 'string)
 
-(defcustom whale-line-segments-org-include 'current-and-root
-  "The heading depth to show."
+(defcustom whale-line-segments-org-elision "*"
+  "The string indicating elision."
   :group 'whale-line-segments
-  :type '(choice (const current-and-root)
-                 (const current)))
+  :type :string)
+
+(defcustom whale-line-segments-org-max-count 2
+  "The amount of headings to show.
+
+If there are more headings, only the leading n will be shown,
+others elided. This means the heading has depth 4 and this is set
+to 2, only the 3rd level is elided."
+  :group 'whale-line-segments
+  :type 'integer)
 
 (defcustom whale-line-segments-org-max-heading-length 12
   "The max length of a heading before truncation."
@@ -579,18 +587,27 @@ Returns nil if not checking or if no errors were found."
 (defun wls--org--build-segment ()
   "Build the segment from included segments."
   (org-with-wide-buffer
+
    (goto-char (window-start))
-   (unless (org-before-first-heading-p)
-     (when-let ((headings (wls--org--collect-headings)))
-       (pcase wls-org-include
-         ('current (nth 0 headings))
-         ('current-and-root
-          (if (> (length headings) 1)
-              (concat
-               (wls--org--maybe-truncate (car (last headings)))
-               (whale-line--spacer)
-               (nth 0 headings))
-            (nth 0 headings))))))))
+
+   (and-let* (((not (org-before-first-heading-p)))
+              (headings (wls--org--collect-headings))
+              (count 0))
+
+     (mapconcat
+      #'identity
+      (seq-map-indexed
+       (lambda (it i)
+         (if (eq (1- (length headings)) i)
+             (progn
+               (setq count (1+ count))
+               it)
+           (if (>= count wls-org-max-count)
+               (propertize wls-org-elision 'face (nth i org-level-faces))
+             (setq count (1+ count))
+             (wls--org--maybe-truncate it))))
+       (reverse headings))
+      (whale-line--spacer)))))
 
 (whale-line-create-dynamic-segment org
   :getter
