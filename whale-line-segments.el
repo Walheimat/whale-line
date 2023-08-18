@@ -243,20 +243,27 @@ icon name and the face.")
 
 (defvar wls--animation-frame-index 0)
 (defvar wls--animation-timer nil)
-(defvar whale-line-animation--segment)
+(defvar wls--animation-frame nil)
 
 (defun wls--animation-animate ()
   "Animate.
 
-Forces a mode-line update and returns the current frame."
+This will increase the frame index and set the current frame.
+Afterwards a mode-line update is forced to display the new frame."
   (let* ((frame (aref wls-animation-key-frames wls--animation-frame-index)))
+
     (setq wls--animation-frame-index
           (mod
            (1+ wls--animation-frame-index)
            (length wls-animation-key-frames))
-          whale-line-animation--segment `((:propertize ,frame face whale-line-emphasis)))
-    (force-mode-line-update)
-    whale-line-animation--segment))
+          wls--animation-frame frame)
+
+    (force-mode-line-update)))
+
+(defun wls--animation-segment ()
+  "Get the animation segment."
+  (when-let ((frame wls--animation-frame))
+    `((:propertize ,frame face whale-line-emphasis))))
 
 (defun wls--animation-start-timer ()
   "Set up the animation timer."
@@ -269,8 +276,8 @@ Forces a mode-line update and returns the current frame."
     (cancel-timer wls--animation-timer)
     (setq wls--animation-timer nil)))
 
-(whale-line-create-static-segment animation
-  :getter wls--animation-animate
+(whale-line-create-dynamic-segment animation
+  :getter wls--animation-segment
 
   :setup wls--animation-start-timer
 

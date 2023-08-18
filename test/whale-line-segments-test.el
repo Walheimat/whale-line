@@ -100,10 +100,18 @@
     (let ((whale-line-segments-animation-key-frames [" .." ".. "])
           (whale-line--frame-index 0))
 
-      (should (equal '((:propertize " .." face whale-line-emphasis)) (whale-line-segments--animation-animate)))
+      (whale-line-segments--animation-animate)
+      (should (string=" .." whale-line-segments--animation-frame))
       (bydi-was-called force-mode-line-update)
 
-      (should (equal '((:propertize ".. " face whale-line-emphasis)) (whale-line-segments--animation-animate))))))
+      (whale-line-segments--animation-animate)
+      (should (string= ".. " whale-line-segments--animation-frame)))))
+
+(ert-deftest animation-segment ()
+  "Get the animation segment."
+  (let ((whale-line-segments--animation-frame "..."))
+
+    (should (equal `((:propertize "..." face whale-line-emphasis)) (whale-line-segments--animation-segment)))))
 
 (ert-deftest animation-start-timer ()
   (bydi (run-with-timer)
