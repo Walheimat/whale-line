@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All segments use prefix `whale-line-segments-` now, including custom
   variables. They also belong to new customization group
   `whale-line-segments`.
+- The widths of the sides are now calculated using
+  `string-pixel-width` if possible.
 
 ## [v0.6.2]
 

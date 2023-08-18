@@ -136,11 +136,22 @@ optional DEFAULT-VALUE is returned."
 Optionally FILTER out low priority segments."
   (format-mode-line (whale-line--render side filter)))
 
+(defun whale-line--calculate-width (side)
+  "Calculate the width for SIDE.
+
+This uses `string-pixel-width' for Emacs 29+, otherwise
+`window-font-width.'"
+  (let ((formatted (whale-line--format-side side)))
+
+    (if (fboundp 'string-pixel-width)
+        (string-pixel-width formatted)
+      (* (window-font-width) (length formatted)))))
+
 (defun whale-line--enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
-  (let* ((f-pixel (window-font-width))
-         (left (* f-pixel (length (whale-line--format-side :left))))
-         (right (* f-pixel (length (whale-line--format-side :right)))))
+  (let* ((left (whale-line--calculate-width :left))
+         (right (whale-line--calculate-width :right)))
+
     (> (- (window-pixel-width) (+ left right)) 0)))
 
 (defun whale-line--format-ignore ()

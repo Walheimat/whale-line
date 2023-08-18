@@ -246,6 +246,22 @@
       (setq width 8)
       (should-not (whale-line--enough-space-p)))))
 
+(ert-deftest whale-line--enough-space--old-calculation ()
+  (let ((left "left")
+        (right "right")
+        (width 10))
+
+    (bydi ((:ignore fboundp)
+           (:mock window-font-width :return 1)
+           (:mock window-pixel-width :return  width)
+           (:mock whale-line--format-side :with (lambda (side)
+                                                  (pcase side
+                                                    (:left left)
+                                                    (:right right)))))
+      (should (whale-line--enough-space-p))
+      (setq width 8)
+      (should-not (whale-line--enough-space-p)))))
+
 (defmacro with-whale-line (&rest body)
   "Render BODY with main functions mocked."
   `(let ((space t))
