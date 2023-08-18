@@ -47,7 +47,7 @@
          (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-segment 'test 't)))))
+       (whale-line--add-segment 'test 'static 't)))))
 
 (ert-deftest whale-line-create-static-segment--simple ()
   (whale-line-do-expand
@@ -69,7 +69,7 @@
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 't)))))
+       (whale-line--add-segment 'test 'static 't)))))
 
 (ert-deftest whale-line-create-static-segment--using-symbols ()
   (whale-line-do-expand
@@ -100,7 +100,7 @@
 
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
 
-       (whale-line--add-segment 'test 'low)))))
+       (whale-line--add-segment 'test 'static 'low)))))
 
 (ert-deftest whale-line-create-dynamic-segment ()
   (whale-line-do-expand
@@ -122,7 +122,7 @@
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-       (whale-line--add-segment 'test 't)))))
+       (whale-line--add-segment 'test 'dynamic 't)))))
 
 (ert-deftest whale-line-create-dynamic-segment--using-symbol ()
   (whale-line-do-expand
@@ -140,7 +140,7 @@
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 't)))))
+       (whale-line--add-segment 'test 'dynamic 't)))))
 
 (ert-deftest whale-line-create-augment ()
   (whale-line-do-expand
@@ -160,7 +160,7 @@
          :teardown (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-augment 'test)))))
+       (whale-line--add-segment 'test 'augment)))))
 
 (ert-deftest whale-line-create-augment--using-symbol ()
   (whale-line-do-expand
@@ -183,7 +183,7 @@
        (whale-line--function whale-line-test--verify
          (lambda nil t)
          "Verify `test' augment." t)
-       (whale-line--add-augment 'test)))))
+       (whale-line--add-segment 'test 'augment)))))
 
 (ert-deftest whale-line--function--lambda ()
   (bydi-match-expansion
@@ -381,15 +381,15 @@
 (ert-deftest whale-line--add-segment ()
   (let ((whale-line--priorities '((one . nil) (two . t))))
 
-    (whale-line--add-segment 'one)
+    (whale-line--add-segment 'one 'static)
 
     (should (equal whale-line--priorities '((one . t) (two . t))))
 
-    (whale-line--add-segment 'two 'low)
+    (whale-line--add-segment 'two 'static 'low)
 
     (should (equal whale-line--priorities '((one . t) (two . low))))
 
-    (whale-line--add-segment 'three 'current-low)
+    (whale-line--add-segment 'three 'static 'current-low)
 
     (should (equal whale-line--priorities '((three . current-low) (one . t) (two . low))))))
 
@@ -411,13 +411,6 @@
     (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
     (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
     (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))))
-
-(ert-deftest whale-line--add-augment ()
-  (let ((whale-line--augments '(a)))
-
-    (whale-line--add-augment 'b)
-
-    (should (equal '(b a) whale-line--augments))))
 
 (ert-deftest whale-line--filter ()
   (let ((current nil)

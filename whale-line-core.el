@@ -19,6 +19,7 @@
 
 (defvar whale-line--segments nil)
 (defvar whale-line--augments nil)
+(defvar whale-line--types nil)
 (defvar whale-line--priorities nil)
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
@@ -270,25 +271,24 @@ ellipsis."
         (funcall verify-sym)
       t)))
 
+(defun whale-line--add-segment (segment type &optional priority)
+  "Add SEGMENT of TYPE to the list of segments.
+
+Optionally with a PRIORITY."
+  (whale-line--set-segment-priority segment (or priority t))
+  (whale-line--set-type segment type))
+
 (defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
   (if-let ((existing (assoc segment whale-line--priorities)))
       (setcdr existing priority)
     (push (cons segment priority) whale-line--priorities)))
 
-(defun whale-line--add-segment (segment &optional priority)
-  "Add SEGMENT to the list of segments.
-
-Optionally with a PRIORITY"
-  (let ((prio (or priority t)))
-
-    (whale-line--set-segment-priority segment prio)))
-
-(defun whale-line--add-augment (augment)
-  "Add AUGMENT to the list of augments.
-
-Optionally with a PRIORITY."
-  (push augment whale-line--augments))
+(defun whale-line--set-type (segment type)
+  "Set TYPE of SEGMENT."
+  (if-let ((existing (assoc segment whale-line--types)))
+      (setcdr existing type)
+    (push (cons segment type) whale-line--types)))
 
 ;;; -- Macros
 
@@ -431,7 +431,7 @@ This will also add the segment with PRIORITY or t."
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
 
-           (whale-line--add-segment ',name ',prio))
+           (whale-line--add-segment ',name 'static ',prio))
       `(progn
          (whale-line--omit ,name static)))))
 
@@ -470,7 +470,7 @@ The segment will be added with PRIORITY or t."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
-           (whale-line--add-segment ',name ',prio))
+           (whale-line--add-segment ',name 'dynamic ',prio))
       `(progn
          (whale-line--omit ,name dynamic)))))
 
@@ -497,7 +497,7 @@ If VERIFY is t, the setup will verify before being executed."
            (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))
-           (whale-line--add-augment ',name))
+           (whale-line--add-segment ',name 'augment))
       `(progn
          (whale-line--omit ,name augment)))))
 
