@@ -213,11 +213,10 @@ ellipsis."
 
 (defun whale-line--set-selected-window (&rest _)
   "Set selected window appropriately."
-  (let ((win (whale-line--get-current-window)))
-    (setq whale-line--current-window
-          (if (minibuffer-window-active-p win)
-              (minibuffer-selected-window)
-            win))))
+  (let ((win (or (minibuffer-selected-window)
+                 (whale-line--get-current-window))))
+
+    (setq whale-line--current-window win)))
 
 (defun whale-line--is-current-window-p ()
   "Check if the current window is the selected window."

@@ -351,7 +351,7 @@
 
     (bydi ((:mock whale-line--get-current-window :with bydi-rt)
            (:mock minibuffer-window-active-p :return active)
-           (:mock minibuffer-selected-window :return 'selected))
+           (:mock minibuffer-selected-window :with (lambda () (if active 'selected nil))))
 
       (whale-line--set-selected-window)
 
