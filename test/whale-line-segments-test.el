@@ -545,53 +545,82 @@
           (setq-local vc-mode " Git:feature/tests")
           (should (propertized-string= "tests" (whale-line-vc--get-info))))))))
 
-(ert-deftest wls--can-use-partial-recall ()
+(ert-deftest can-use-partial-recall ()
   (should-not (whale-line-segments--can-use-partial-recall-p))
 
   (bydi-with-mock ((:always require))
 
     (should-not (whale-line-segments--can-use-partial-recall-p))
 
-    (defun partial-recall-implanted-p ()
+    (defun partial-recall-buffer-specs ()
       ""
       nil)
 
     (should (whale-line-segments--can-use-partial-recall-p))))
 
-(ert-deftest wls--partial-recall ()
-  (let ((whale-line-segments--partial-recall-mode-line-map nil))
-    (bydi ((:sometimes partial-recall-implanted-p)
+(ert-deftest partial-recall ()
+  (let ((whale-line-segments--partial-recall-mode-line-map nil)
+        (implanted t)
+        (meaningful t))
+
+    (bydi ((:mock partial-recall-buffer-specs :return (list :meaningful meaningful
+                                                            :implanted implanted))
+           (:mock partial-recall-memory-specs :return (list :size 3 :capacity 5))
            (:sometimes whale-line-icons--can-use-icons-p))
 
-      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-partial-recall-icon
+      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-segments-partial-recall-icon
                                              :height 0.85
                                              :v-adjust 0.0))
                                     face whale-line-contrast
-                                    help-echo "Partial Recall\nmouse-1: Implant/Excise"
-                                    local-map nil))
+                                    help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                                    local-map nil)
+                       " "
+                       (:propertize "3/5" face whale-line-shadow))
                      (whale-line-segments--partial-recall)))
 
       (bydi-toggle-sometimes)
+      (setq implanted nil)
 
       (should (equal '((:propertize "PR"
                                     face whale-line-shadow
-                                    help-echo "Partial Recall\nmouse-1: Implant/Excise"
-                                    local-map nil))
+                                    help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                                    local-map nil)
+                       " "
+                       (:propertize "3/5" face whale-line-shadow))
                      (whale-line-segments--partial-recall))))))
-(ert-deftest wls--partial-recall--toggle ()
 
-  (bydi (partial-recall-implant
-         (:sometimes partial-recall-implanted-p))
+(ert-deftest partial-recall--menu ()
+  (defvar partial-recall-command-map)
 
-    (whale-line-segments--partial-recall--toggle)
+  (let ((partial-recall-command-map (make-sparse-keymap)))
 
-    (bydi-was-called-with partial-recall-implant '(... t))
+    (defun partial-recall-test ()
+      nil)
 
-    (bydi-toggle-sometimes)
+    (define-key partial-recall-command-map (kbd "t") 'partial-recall-test)
 
-    (whale-line-segments--partial-recall--toggle)
+    (bydi (popup-menu)
+      (whale-line-segments--partial-recall--menu)
+      (bydi-was-called popup-menu))))
 
-    (bydi-was-called-with partial-recall-implant '(... nil))))
+(ert-deftest partial-recall--toggle ()
+
+  (let ((meaningful nil)
+        (implanted t))
+
+    (bydi (partial-recall-implant
+           (:mock partial-recall-buffer-specs :return (list :meaningful meaningful
+                                                            :implanted implanted)))
+
+      (whale-line-segments--partial-recall--toggle)
+
+      (bydi-was-called-with partial-recall-implant '(... t))
+
+      (setq implanted nil)
+
+      (whale-line-segments--partial-recall--toggle)
+
+      (bydi-was-called-with partial-recall-implant '(... nil)))))
 
 ;;; whale-line-segments-test.el ends here
 

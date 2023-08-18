@@ -110,7 +110,7 @@ icon name and the face.")
   :group 'whale-line
   :type whale-line-icon-type)
 
-(defcustom whale-line-icons-partial-recall-icon '(faicon . ("tree" whale-line-contrast))
+(defcustom whale-line-segments-partial-recall-icon '(faicon . ("tag" whale-line-contrast))
   "Icon used to indicate implanted buffer."
   :group 'whale-line
   :type whale-line-icon-type)
@@ -713,43 +713,82 @@ Only consider Dired buffers and file buffers."
 
 ;;; -- Partial recall
 
-(declare-function partial-recall-implanted-p "ext:partial-recall.el")
+(declare-function partial-recall-buffer-specs "ext:partial-recall-extensions.el")
+(declare-function partial-recall-memory-specs "ext:partial-recall-extensions.el")
 (declare-function partial-recall-implant "ext:partial-recall.el")
+
+(defvar partial-recall-command-map)
 
 (defun wls--can-use-partial-recall-p ()
   "Check whether `partial-recall' can be used."
   (and (require 'partial-recall nil t)
-       (fboundp 'partial-recall-implanted-p)))
+       (fboundp 'partial-recall-buffer-specs)))
 
 (defun wls--partial-recall--toggle ()
   "Implant or excise the current buffer."
   (interactive)
 
-  (partial-recall-implant (current-buffer) (partial-recall-implanted-p)))
+  (let ((specs (partial-recall-buffer-specs)))
+
+    (partial-recall-implant (current-buffer) (plist-get specs :implanted))))
+
+(defun wls--partial-recall--menu ()
+  "Show a menu for `partial-recall'."
+  (interactive)
+
+  (let* ((map (make-sparse-keymap))
+         (rename (lambda (sym) (substring (symbol-name sym)
+                                     (1+ (length "partial-recall")))))
+         (bind (lambda (_event func)
+                 (define-key-after map
+                   (vector func)
+                   (list 'menu-item (funcall rename func) func)))))
+
+    (define-key-after map [--actions] (list 'menu-item "Partial Recall"))
+
+    (map-keymap bind partial-recall-command-map)
+
+    (condition-case nil
+        (popup-menu map)
+      (quit nil))))
 
 (defvar wls--partial-recall-mode-line-map
   (let ((map (make-sparse-keymap)))
 
     (define-key map [mode-line mouse-1] 'wls--partial-recall--toggle)
+    (define-key map [mode-line mouse-3] 'wls--partial-recall--menu)
 
     map))
 
 (defun wls--partial-recall ()
   "Get the `partial-recall' segment."
-  (let ((implanted (partial-recall-implanted-p))
-        (text (if (wli--can-use-icons-p)
-                  '(:eval (wli--icon wli-partial-recall-icon :height 0.85 :v-adjust 0.0))
-                "PR")))
+  (let ((b-specs (partial-recall-buffer-specs))
+        (m-specs (partial-recall-memory-specs)))
 
-    `((:propertize ,text
-                   face ,(if implanted 'whale-line-contrast 'whale-line-shadow)
-                   help-echo "Partial Recall\nmouse-1: Implant/Excise"
-                   local-map ,wls--partial-recall-mode-line-map))))
+    (when (plist-get b-specs :meaningful)
+      (let* ((implanted (plist-get b-specs :implanted))
+             (indicator (if (wli--can-use-icons-p)
+                            '(:eval (wli--icon wls-partial-recall-icon :height 0.85 :v-adjust 0.0))
+                          "PR"))
+             (count (format "%d/%d" (plist-get m-specs :size) (plist-get m-specs :capacity))))
 
-(whale-line-create-dynamic-segment partial-recall
+        `((:propertize ,indicator
+                       face ,(if implanted 'whale-line-contrast 'whale-line-shadow)
+                       help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                       local-map ,wls--partial-recall-mode-line-map)
+          ,(whale-line--spacer)
+          (:propertize ,count face whale-line-shadow))))))
+
+(whale-line-create-static-segment partial-recall
   :verify wls--can-use-partial-recall-p
 
-  :getter wls--partial-recall)
+  :getter wls--partial-recall
+
+  :hooks (partial-recall-after-insert-hook
+          partial-recall-probe-hook
+          partial-recall-permanence-change-hook)
+
+  :priority current-low)
 
 (provide 'whale-line-segments)
 

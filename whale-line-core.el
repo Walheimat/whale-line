@@ -42,10 +42,10 @@
                                  cursors
                                  process
                                  window-status
-                                 partial-recall
                                  |
                                  misc-info
                                  minor-modes
+                                 partial-recall
                                  project
                                  vc
                                  tab-bar
