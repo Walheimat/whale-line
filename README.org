@@ -63,18 +63,18 @@ will need to call =whale-line-rebuild=.
   (whale-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
 
   ;; Animation.
-  (whale-line-animation-key-frames [
-                                  "   "
-                                  ".  "
-                                  ".. "
-                                  "..."
-                                  " .."
-                                  "  ."
-                                  ])
-  (whale-line-animation-speed 0.4)
+  (whale-line-segments-animation-key-frames [
+                                             "   "
+                                             ".  "
+                                             ".. "
+                                             "..."
+                                             " .."
+                                             "  ."
+                                             ])
+  (whale-line-segments-animation-speed 0.4)
 
   ;; Project provider.
-  (whale-line-project-provider 'projectile) ; Default is `project'.)
+  (whale-line-segments-project-provider 'projectile) ; Default is `project'.)
 #+END_SRC
 
 ** Example Screenshot
@@ -85,7 +85,7 @@ Modeline in a split frame (theme is =kaolin-galaxy=).
 
 The left window is selected and shows:
 
-- file buffer icon using =all-the-icons=
+- buffer icon using =all-the-icons=
 - status (warnings) using =flycheck=
 - position in =org= document
 - buffer-status (edited)

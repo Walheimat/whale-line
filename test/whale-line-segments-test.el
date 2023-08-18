@@ -10,13 +10,13 @@
 
 (defvar rectangle (ert-resource-file "rectangle.txt"))
 
-(ert-deftest wls--buffer-identification ()
+(ert-deftest buffer-identification ()
   (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
                                 mouse-face whale-line-highlight
                                 face whale-line-neutral))
                  (whale-line-segments--buffer-identification))))
 
-(ert-deftest wls--buffer-status ()
+(ert-deftest buffer-status ()
   (with-temp-buffer
     (read-only-mode)
 
@@ -34,7 +34,7 @@
 
       (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
 
-(ert-deftest wls--window-status ()
+(ert-deftest window-status ()
   (should-not (whale-line-segments--window-status))
 
   (set-window-dedicated-p (selected-window) t)
@@ -43,7 +43,7 @@
 
   (set-window-dedicated-p (selected-window) nil))
 
-(ert-deftest wls--position ()
+(ert-deftest position ()
   (bydi ((:mock image-mode-window-get :return 1)
          (:mock doc-view-last-page-number :return 2))
 
@@ -61,22 +61,22 @@
 
     (should (propertized-string= "f: %l:%c %p%" (whale-line-segments--position)))))
 
-(ert-deftest wls--misc-info ()
+(ert-deftest misc-info ()
   (let ((mode-line-misc-info '("a" "b")))
 
     (should (equal '("a" "b") (whale-line-segments--misc-info)))))
 
-(ert-deftest wls--process ()
+(ert-deftest process ()
   (let ((mode-line-process '("a" "b")))
 
     (should (equal '("a" "b") (whale-line-segments--process)))))
 
-(ert-deftest whale-line-selection--get-columns ()
+(ert-deftest selection--get-columns ()
   (with-temp-buffer
     (insert-file-contents rectangle)
     (should (eq (whale-line-selection--get-columns 1 30) 9))))
 
-(ert-deftest whale-line-segments--selection--lines ()
+(ert-deftest selection--lines ()
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
@@ -85,7 +85,7 @@
 
     (should (propertized-string= " 3 " (whale-line-segments--selection)))))
 
-(ert-deftest whale-line-segments--selection--rectangle ()
+(ert-deftest selection--rectangle ()
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
@@ -94,88 +94,85 @@
 
     (should (propertized-string= " 3x9 " (whale-line-segments--selection)))))
 
-(ert-deftest wla--animate ()
+(ert-deftest animation-animate ()
   (bydi (force-mode-line-update)
 
-    (defvar whale-line--frame-index)
-    (defvar whale-line-animation-key-frames)
-
-    (let ((whale-line-animation-key-frames [" .." ".. "])
+    (let ((whale-line-segments-animation-key-frames [" .." ".. "])
           (whale-line--frame-index 0))
 
-      (should (equal '((:propertize " .." face whale-line-emphasis)) (whale-line-animation--animate)))
+      (should (equal '((:propertize " .." face whale-line-emphasis)) (whale-line-segments--animation-animate)))
       (bydi-was-called force-mode-line-update)
 
-      (should (equal '((:propertize ".. " face whale-line-emphasis)) (whale-line-animation--animate))))))
+      (should (equal '((:propertize ".. " face whale-line-emphasis)) (whale-line-segments--animation-animate))))))
 
-(ert-deftest wla--start-timer ()
+(ert-deftest animation-start-timer ()
   (bydi (run-with-timer)
-    (let ((whale-line-animation--timer nil)
-          (whale-line-animation-speed 0.4))
+    (let ((whale-line-segments--animation-timer nil)
+          (whale-line-segments-animation-speed 0.4))
 
-      (whale-line-animation--start-timer)
-      (bydi-was-called-with run-with-timer '(0 0.4 whale-line-animation--get-segment))
+      (whale-line-segments--animation-start-timer)
+      (bydi-was-called-with run-with-timer '(0 0.4 whale-line-segments--animation-animate))
 
       (bydi-clear-mocks)
 
-      (whale-line-animation--start-timer)
+      (whale-line-segments--animation-start-timer)
       (bydi-was-not-called run-with-timer))))
 
-(ert-deftest wla--stop-timer ()
+(ert-deftest animation-stop-timer ()
   (bydi cancel-timer
-    (let ((whale-line-animation--timer nil))
+    (let ((whale-line-segments--animation-timer nil))
 
-      (whale-line-animation--stop-timer)
+      (whale-line-segments--animation-stop-timer)
       (bydi-was-not-called cancel-timer)
 
       (bydi-clear-mocks)
 
-      (setq whale-line-animation--timer 'timer)
-      (whale-line-animation--stop-timer)
+      (setq whale-line-segments--animation-timer 'timer)
+      (whale-line-segments--animation-stop-timer)
       (bydi-was-called cancel-timer)
-      (should-not whale-line-animation--timer))))
+      (should-not whale-line-segments--animation-timer))))
 
-(ert-deftest whale-line-cursors--count ()
+(ert-deftest cursors--count ()
   (defvar mulitple-cursors-mode)
   (defvar iedit-mode)
 
   (let ((mulitple-cursors-mode nil)
         (iedit-mode nil))
 
-    (should-not (whale-line-cursors--count))
+    (should-not (whale-line-segments--cursors--count))
 
     (bydi ((:mock mc/num-cursors :return 2))
 
       (with-temp-buffer
         (setq-local multiple-cursors-mode t)
 
-        (should (propertized-string= " 2 " (whale-line-cursors--count)))))
+        (should (propertized-string= " 2 " (whale-line-segments--cursors--count)))))
 
     (bydi ((:mock iedit-counter :return 3))
 
       (with-temp-buffer
         (setq-local iedit-mode t)
 
-        (should (propertized-string= " 3 " (whale-line-cursors--count)))))))
+        (should (propertized-string= " 3 " (whale-line-segments--cursors--count)))))))
 
-(ert-deftest wli--can-use-flycheck-p ()
+(ert-deftest can-use-flycheck-p ()
   (bydi ((:sometimes require))
 
-    (should (whale-line-flycheck--can-use-flycheck-p))
+    (should (whale-line-segments--flycheck--can-use-flycheck-p))
 
     (bydi-toggle-sometimes)
 
-    (should-not (whale-line-flycheck--can-use-flycheck-p))))
+    (should-not (whale-line-segments--flycheck--can-use-flycheck-p))))
 
-(ert-deftest wlf--get-face-for-status ()
-  (should (equal 'whale-line-neutral (whale-line-flycheck--get-face-for-status nil)))
-  (should (equal 'whale-line-flycheck-running (whale-line-flycheck--get-face-for-status 'running)))
+(ert-deftest flycheck--get-face-for-status ()
+  (should (equal 'whale-line-neutral (whale-line-segments--flycheck--get-face-for-status nil)))
+  (should (equal 'whale-line-segments--flycheck-running (whale-line-segments--flycheck--get-face-for-status 'running)))
 
   (defvar flycheck-current-errors)
   (let ((flycheck-current-errors nil)
         (mock-errors nil))
 
-    (should (equal 'whale-line-neutral (whale-line-flycheck--get-face-for-status 'finished)))
+    (should (equal 'whale-line-neutral (whale-line-segments--flycheck--get-face-for-status 'finished)))
 
     (setq flycheck-current-errors 'errors)
 
@@ -183,101 +180,101 @@
 
       (setq mock-errors '((error . 1)))
 
-      (should (equal 'flycheck-error (whale-line-flycheck--get-face-for-status 'finished)))
+      (should (equal 'flycheck-error (whale-line-segments--flycheck--get-face-for-status 'finished)))
 
       (setq mock-errors '((warning . 1)))
 
-      (should (equal 'flycheck-warning (whale-line-flycheck--get-face-for-status 'finished)))
+      (should (equal 'flycheck-warning (whale-line-segments--flycheck--get-face-for-status 'finished)))
 
       (setq mock-errors '((info . 1)))
 
-      (should (equal 'flycheck-info (whale-line-flycheck--get-face-for-status 'finished))))))
+      (should (equal 'flycheck-info (whale-line-segments--flycheck--get-face-for-status 'finished))))))
 
-(ert-deftest wlf--get-error-help ()
-  (should (string= "Still checking" (whale-line-flycheck--get-error-help 'running)))
+(ert-deftest flycheck--get-error-help ()
+  (should (string= "Still checking" (whale-line-segments--flycheck--get-error-help 'running)))
 
-  (should-not (whale-line-flycheck--get-error-help nil))
+  (should-not (whale-line-segments--flycheck--get-error-help nil))
 
   (defvar flycheck-current-errors)
 
   (let ((flycheck-current-errors '((error . 1) (warning . 2) (info . 3))))
 
     (bydi ((:mock flycheck-count-errors :with bydi-rf))
-      (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-flycheck--get-error-help 'finished))))))
+      (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-segments--flycheck--get-error-help 'finished))))))
 
-(ert-deftest wlf--underline ()
+(ert-deftest flycheck--underline ()
   (let ((whale-line-buffer-identification--segment nil)
         (segment "test")
         (text "testing"))
 
     (bydi ((:mock whale-line-buffer-name--get-segment :return segment)
-           (:mock whale-line-flycheck--get-face-for-status :return 'success)
-           (:mock whale-line-flycheck--get-error-help :return text))
+           (:mock whale-line-segments--flycheck--get-face-for-status :return 'success)
+           (:mock whale-line-segments--flycheck--get-error-help :return text))
 
       (with-temp-buffer
-        (whale-line-flycheck--underline 'status)
+        (whale-line-segments--flycheck--underline 'status)
 
         (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success help-echo "testing")) whale-line-buffer-identification--segment))
 
         (setq text nil)
 
-        (whale-line-flycheck--underline 'status)
+        (whale-line-segments--flycheck--underline 'status)
 
         (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success)) whale-line-buffer-identification--segment))))))
 
-(ert-deftest wli--icon ()
+(ert-deftest flycheck--icon ()
   (bydi ((:mock all-the-icons-faicon :return "I"))
     (let ((test-icon-with-face '(faicon . ("test" test)))
           (test-icon '(faicon . "test")))
 
-      (should (equal (whale-line-icons--icon test-icon-with-face :height 0.42) "I"))
+      (should (equal (whale-line-segments--icon test-icon-with-face :height 0.42) "I"))
       (bydi-was-called-with all-the-icons-faicon '("test" :face test :height 0.42))
 
       (bydi-clear-mocks)
 
-      (should (equal (whale-line-icons--icon test-icon :height 0.42) "I"))
+      (should (equal (whale-line-segments--icon test-icon :height 0.42) "I"))
       (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
 
-(ert-deftest wli--can-use-icons-p ()
+(ert-deftest can-use-icons-p ()
   (bydi ((:sometimes require))
 
-    (should (whale-line-icons--can-use-icons-p))
+    (should (whale-line-segments--can-use-icons-p))
 
     (bydi-toggle-sometimes)
 
-    (should-not (whale-line-icons--can-use-icons-p))))
+    (should-not (whale-line-segments--can-use-icons-p))))
 
-(ert-deftest wli--prepend-icon-to-project-segment ()
-  (should (equal '((:eval (whale-line-icons--icon whale-line-icons-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) (:eval (whale-line--spacer)) "proj")
-                 (whale-line-icons--prepend-icon-to-project-segment '("proj")))))
+(ert-deftest prepend-icon-to-project-segment ()
+  (should (equal '((:eval (whale-line-segments--icon whale-line-segments-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) (:eval (whale-line--spacer)) "proj")
+                 (whale-line-segments--iconify--prepend-icon-to-project-segment '("proj")))))
 
-(ert-deftest wli--prepend-icon-to-vc-segment ()
+(ert-deftest prepend-icon-to-vc-segment ()
   (let ((name "/test/tmp"))
 
     (bydi ((:sometimes display-graphic-p)
            (:mock buffer-file-name :return name))
 
-      (should-not (whale-line-icons--prepend-icon-to-vc-segment nil))
-      (should (equal '((:eval (whale-line-icons--icon whale-line-icons-vc-icon :face (whale-line-vc--face-for-state) :height 0.85 :v-adjust 0.0))
+      (should-not (whale-line-segments--iconify--prepend-icon-to-vc-segment nil))
+      (should (equal '((:eval (whale-line-segments--icon whale-line-segments-vc-icon :face (whale-line-segments--vc--face-for-state) :height 0.85 :v-adjust 0.0))
                        (:eval (whale-line--spacer))
                        "vc")
-                     (whale-line-icons--prepend-icon-to-vc-segment '("vc"))))
+                     (whale-line-segments--iconify--prepend-icon-to-vc-segment '("vc"))))
 
       (bydi-toggle-sometimes)
       (setq name nil)
 
-      (should (string= (whale-line-icons--prepend-icon-to-vc-segment "vc") "vc")))))
+      (should (string= (whale-line-segments--iconify--prepend-icon-to-vc-segment "vc") "vc")))))
 
-(ert-deftest wli--prepend-icon-to-project-segment--returns-non-strings ()
-  (should (string= "hi" (whale-line-icons--prepend-icon-to-project-segment "hi"))))
+(ert-deftest prepend-icon-to-project-segment--returns-non-strings ()
+  (should (string= "hi" (whale-line-segments--iconify--prepend-icon-to-project-segment "hi"))))
 
-(ert-deftest wli--advise-buffer-status-segment ()
+(ert-deftest iconfiy-advise-buffer-status-segment ()
   (let ((buffer-read-only nil)
         (name nil)
         (modified nil)
-        (whale-line-icons-buffer-read-only-icon "read-only")
-        (whale-line-icons-no-buffer-file-name-icon "no-file")
-        (whale-line-icons-buffer-modified-icon "modified"))
+        (whale-line-segments-buffer-read-only-icon "read-only")
+        (whale-line-segments-no-buffer-file-name-icon "no-file")
+        (whale-line-segments-buffer-modified-icon "modified"))
 
     (with-temp-buffer
       (bydi ((:mock buffer-file-name :return name)
@@ -285,57 +282,57 @@
 
         (setq buffer-read-only t)
 
-        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-buffer-read-only-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
+        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-buffer-read-only-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
 
         (bydi-clear-mocks)
         (setq buffer-read-only nil)
 
-        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-no-buffer-file-name-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
+        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-no-buffer-file-name-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
 
         (bydi-clear-mocks)
         (setq name "/tmp/test.el"
               modified t)
 
-        (should (equal '((:eval (whale-line-icons--icon whale-line-icons-buffer-modified-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-buffer-status-segment)))
+        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-buffer-modified-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
 
         (setq modified nil)
 
-        (should-not (whale-line-icons--advise-buffer-status-segment))))))
+        (should-not (whale-line-segments--iconify--advise-buffer-status-segment))))))
 
-(ert-deftest wli--advise-window-status-segment ()
+(ert-deftest iconify--advise-window-status-segment ()
   (with-temp-buffer
     (bydi ((:sometimes window-dedicated-p)
-           (:mock whale-line-icons--icon :return "I"))
-      (should (equal '((:eval (whale-line-icons--icon whale-line-icons-window-dedicated-icon :height 0.85 :v-adjust 0.0))) (whale-line-icons--advise-window-status-segment)))
+           (:mock whale-line-segments--icon :return "I"))
+      (should (equal '((:eval (whale-line-segments--icon whale-line-segments-window-dedicated-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-window-status-segment)))
 
       (bydi-toggle-sometimes)
-      (should-not (whale-line-icons--advise-window-status-segment)))))
+      (should-not (whale-line-segments--iconify--advise-window-status-segment)))))
 
-(ert-deftest wli--buffer-icon--fallback ()
+(ert-deftest iconify--buffer-icon--fallback ()
   (bydi ((:ignore all-the-icons-icon-for-buffer)
          (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--buffer-icon)
-                   '((:propertize (:eval (whale-line-icons--icon whale-line-icons-buffer-fallback-icon))
+    (should (equal (whale-line-segments--buffer-icon)
+                   '((:propertize (:eval (whale-line-segments--icon whale-line-segments-buffer-fallback-icon))
                                   help-echo "echo" display (raise -0.135)))))))
 
-(ert-deftest wli--buffer-icon ()
+(ert-deftest buffer-icon ()
   (bydi ((:mock all-the-icons-icon-for-buffer :return "?")
          (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-icons--buffer-icon)
+    (should (equal (whale-line-segments--buffer-icon)
                    '((:propertize "?" help-echo "echo" display (raise -0.135)))))))
 
-(ert-deftest wll--active-p ()
+(ert-deftest lsp-active-p ()
   (let ((feature nil))
     (bydi ((:mock featurep :with (lambda (f) (eq f feature)))
            lsp-workspaces)
 
-      (should-not (whale-line-lsp--active-p))
+      (should-not (whale-line-segments--lsp--active-p))
 
       (bydi-clear-mocks)
       (setq feature 'lsp-mode)
-      (whale-line-lsp--active-p)
+      (whale-line-segments--lsp--active-p)
 
       (bydi-was-called lsp-workspaces)
 
@@ -345,36 +342,36 @@
       (with-temp-buffer
         (defvar eglot--managed-mode nil)
         (setq-local eglot--managed-mode t)
-        (should (whale-line-lsp--active-p))))))
+        (should (whale-line-segments--lsp--active-p))))))
 
-(ert-deftest wll--segment--icons ()
-  (bydi ((:sometimes whale-line-lsp--active-p)
-         (:always whale-line-icons--can-use-icons-p))
+(ert-deftest lsp-segment--icons ()
+  (bydi ((:sometimes whale-line-segments--lsp--active-p)
+         (:always whale-line-segments--can-use-icons-p))
 
     (with-temp-buffer
-      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-icons-lsp-icon :height 0.85 :v-adjust 0.0))
+      (should (equal '((:propertize (:eval (whale-line-segments--icon whale-line-segments-lsp-icon :height 0.85 :v-adjust 0.0))
                                     help-echo "Connected to LSP server"))
-                     (whale-line-lsp--segment)))
+                     (whale-line-segments--lsp--segment)))
 
       (bydi-toggle-sometimes)
 
-      (should-not (whale-line-lsp--segment)))))
+      (should-not (whale-line-segments--lsp--segment)))))
 
-(ert-deftest wll--segment--text ()
+(ert-deftest lsp-segment--text ()
   (let ((whale-line-segments '()))
 
-    (bydi ((:sometimes whale-line-lsp--active-p)
-           (:ignore whale-line-icons--can-use-icons-p))
+    (bydi ((:sometimes whale-line-segments--lsp--active-p)
+           (:ignore whale-line-segments--can-use-icons-p))
 
       (with-temp-buffer
         (should (equal '((:propertize "LSP" face whale-line-indicate help-echo "Connected to LSP server"))
-                       (whale-line-lsp--segment)))
+                       (whale-line-segments--lsp--segment)))
 
         (bydi-toggle-sometimes)
 
-        (should-not (whale-line-lsp--segment))))))
+        (should-not (whale-line-segments--lsp--segment))))))
 
-(ert-deftest whale-line-minions--list ()
+(ert-deftest minions--list ()
   (defvar minions-mode)
   (defvar minions-mode-line-lighter)
   (defvar minions-mode-line-minor-modes-map)
@@ -399,35 +396,35 @@
                                       mouse-face whale-line-highlight))
                        (whale-line-minions--list)))))))
 
-(ert-deftest wlo--maybe-truncate--truncates ()
-  (let ((whale-line-org-max-heading-length 5))
+(ert-deftest org--maybe-truncate--truncates ()
+  (let ((whale-line-segments-org-max-heading-length 5))
 
-    (should (string= "test…" (whale-line-org--maybe-truncate "testing")))))
+    (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing")))))
 
-(ert-deftest wlo--maybe-truncate--skips ()
-  (let ((whale-line-org-max-heading-length 7))
+(ert-deftest org--maybe-truncate--skips ()
+  (let ((whale-line-segments-org-max-heading-length 7))
 
-    (should (string= "testing" (whale-line-org--maybe-truncate "testing")))))
+    (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing")))))
 
-(ert-deftest wlo--get-next-heading ()
+(ert-deftest org--get-next-heading ()
   (let ((org-level-faces '(red green blue orange)))
 
     (bydi (org-back-to-heading
            (:mock org-heading-components :with (lambda () '(2 2 nil nil "Test Suite" nil)))
            (:mock org-display-format :with bydi-rf))
 
-      (should (string= (whale-line-org--get-next-heading) "Test Suite"))
+      (should (string= (whale-line-segments--org--get-next-heading) "Test Suite"))
       (bydi-was-called org-back-to-heading))))
 
-(ert-deftest wlo--collect-headings ()
+(ert-deftest org--collect-headings ()
   (let ((headings '(a b c)))
 
     (bydi ((:mock org-up-heading-safe :with (lambda () (pop headings)))
-           (:mock whale-line-org--get-next-heading :return "Heading"))
+           (:mock whale-line-segments--org--get-next-heading :return "Heading"))
 
-      (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-org--collect-headings))))))
+      (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-segments--org--collect-headings))))))
 
-(ert-deftest wlo--build-segment ()
+(ert-deftest org--build-segment ()
   (defmacro org-with-wide-buffer (&rest body)
     "Mock implementation that just expands BODY."
     `(progn
@@ -435,106 +432,116 @@
 
   (let ((first-heading t)
         (headings nil)
-        (whale-line-org-include 'current-and-root))
+        (whale-line-segments-org-include 'current-and-root))
 
     (bydi ((:mock org-before-first-heading-p :return first-heading)
-           (:mock whale-line-org--collect-headings :return headings)
-           (:mock whale-line-org--maybe-truncate :with bydi-rf))
+           (:mock whale-line-segments--org--collect-headings :return headings)
+           (:mock whale-line-segments--org--maybe-truncate :with bydi-rf))
       (with-temp-buffer
-        (should-not (whale-line-org--build-segment)))
+        (should-not (whale-line-segments--org--build-segment)))
 
       (setq first-heading nil)
       (with-temp-buffer
-        (should-not (whale-line-org--build-segment)))
+        (should-not (whale-line-segments--org--build-segment)))
 
       (setq headings (list (propertize "One" 'face 'shadow)
                            (propertize "Two" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "Two One" (whale-line-org--build-segment))))
+        (should (string= "Two One" (whale-line-segments--org--build-segment))))
 
-      (setq whale-line-org-include 'current)
+      (setq whale-line-segments-org-include 'current)
 
       (with-temp-buffer
-        (should (string= "One" (whale-line-org--build-segment))))
+        (should (string= "One" (whale-line-segments--org--build-segment))))
 
-      (setq whale-line-org-include 'current-and-root
+      (setq whale-line-segments-org-include 'current-and-root
             headings (list (propertize "One" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "One" (whale-line-org--build-segment)))))))
+        (should (string= "One" (whale-line-segments--org--build-segment)))))))
 
-(ert-deftest wlp--display-for-buffer-p--no-show-for-non-file-non-dired ()
+(ert-deftest project--display-for-buffer-p--no-show-for-non-file-non-dired ()
   (with-temp-buffer
     (bydi ((:ignore derived-mode-p)
            (:ignore buffer-file-name))
-      (should-not (whale-line-project--display-for-buffer-p)))))
+      (should-not (whale-line-segments--project--display-for-buffer-p)))))
 
-(ert-deftest wlp--get--for-projectile ()
-  (let ((whale-line-project-provider 'projectile))
+(ert-deftest project--get--for-projectile ()
+  (let ((whale-line-segments-project-provider 'projectile))
 
-    (bydi ((:always whale-line-project--display-for-buffer-p)
+    (bydi ((:always whale-line-segments--project--display-for-buffer-p)
            (:mock projectile-project-root :return "/home/test/project/"))
-      (should (propertized-string= "project" (whale-line-project--segment))))))
+      (should (propertized-string= "project" (whale-line-segments--project--segment))))))
 
-(ert-deftest wlp--get--for-project ()
-  (let ((whale-line-project-provider 'project))
+(ert-deftest project--get--for-project ()
+  (let ((whale-line-segments-project-provider 'project))
 
-    (bydi ((:always whale-line-project--display-for-buffer-p)
+    (bydi ((:always whale-line-segments--project--display-for-buffer-p)
            (:always project-current)
            (:mock project-root :return "/home/test/project/")
            (:mock project-name :return "project"))
-      (should (propertized-string= "project" (whale-line-project--segment))))))
+      (should (propertized-string= "project" (whale-line-segments--project--segment))))))
 
-(ert-deftest wltb--get-explicit-name ()
+(ert-deftest tab-bar--get-explicit-name ()
   (bydi ((:mock tab-bar--current-tab :with (lambda () '((explicit-name . t) (name . "test-tab")))))
-    (should (propertized-string= " test-tab " (whale-line-tab-bar--get-explicit-name)))))
+    (should (propertized-string= " test-tab " (whale-line-segments--tab-bar--get-explicit-name)))))
 
-(ert-deftest wlvc--update-state ()
-  (bydi ((:mock whale-line-vc--get-state :with bydi-rt))
+(ert-deftest vc--segment ()
+  (let ((whale-line-segments--vc--info "test"))
+
+    (bydi (whale-line-segments--vc--update-state
+           whale-line-segments--vc--update-info)
+
+      (should (string= "test" (whale-line-segments--vc--segment)))
+      (bydi-was-called whale-line-segments--vc--update-state)
+      (bydi-was-called whale-line-segments--vc--update-info))))
+
+(ert-deftest vc--update-state ()
+  (bydi ((:mock whale-line-segments--vc--get-state :with bydi-rt))
     (with-temp-buffer
-      (should-not whale-line-vc--state)
+      (should-not whale-line-segments--vc--state)
 
-      (whale-line-vc--update-state)
+      (whale-line-segments--vc--update-state)
 
-      (should (equal 'testing whale-line-vc--state)))))
+      (should (equal 'testing whale-line-segments--vc--state)))))
 
-(ert-deftest wlvc--get-state ()
+(ert-deftest vc--get-state ()
   (bydi ((:mock vc-backend :with bydi-rt)
          vc-state
          (:mock file-local-name :return "/tmp/testing"))
 
-    (whale-line-vc--get-state)
+    (whale-line-segments--vc--get-state)
 
     (bydi-was-called-with vc-state (list "/tmp/testing" 'testing))))
 
-(ert-deftest wlvc--face-for-state ()
+(ert-deftest vc--face-for-state ()
   (with-temp-buffer
-    (setq whale-line-vc--state 'needs-update)
-    (should (eq (whale-line-vc--face-for-state) 'whale-line-contrast))
+    (setq whale-line-segments--vc--state 'needs-update)
+    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-contrast))
 
-    (setq whale-line-vc--state 'edited)
-    (should (eq (whale-line-vc--face-for-state) 'whale-line-indicate))
+    (setq whale-line-segments--vc--state 'edited)
+    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-indicate))
 
-    (setq whale-line-vc--state 'conflict)
-    (should (eq (whale-line-vc--face-for-state) 'whale-line-contrast))
+    (setq whale-line-segments--vc--state 'conflict)
+    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-contrast))
 
-    (setq whale-line-vc--state 'unknown)
-    (should (eq (whale-line-vc--face-for-state) 'whale-line-neutral))))
+    (setq whale-line-segments--vc--state 'unknown)
+    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-neutral))))
 
-(ert-deftest wlvc--update-info ()
+(ert-deftest vc--update-info ()
   (with-temp-buffer
-    (should-not whale-line-vc--info)
+    (should-not whale-line-segments--vc--info)
 
-    (bydi ((:mock whale-line-vc--get-info :return "testing"))
-      (whale-line-vc--update-info)
-      (should (string= whale-line-vc--info "testing")))))
+    (bydi ((:mock whale-line-segments--vc--get-info :return "testing"))
+      (whale-line-segments--vc--update-info)
+      (should (string= whale-line-segments--vc--info "testing")))))
 
-(ert-deftest wlvc--get-info--no-op-for-non-vc-files ()
+(ert-deftest vc--get-info--no-op-for-non-vc-files ()
   (with-temp-buffer
-    (should-not (whale-line-vc--get-info))))
+    (should-not (whale-line-segments--vc--get-info))))
 
-(ert-deftest wlvc--get-info ()
+(ert-deftest vc--get-info ()
   (let ((vc-display-status t)
         (find-file-hook . nil))
 
@@ -543,7 +550,7 @@
       (ert-with-temp-file testing
         (with-current-buffer (find-file-noselect testing)
           (setq-local vc-mode " Git:feature/tests")
-          (should (propertized-string= "tests" (whale-line-vc--get-info))))))))
+          (should (propertized-string= "tests" (whale-line-segments--vc--get-info))))))))
 
 (ert-deftest can-use-partial-recall ()
   (should-not (whale-line-segments--can-use-partial-recall-p))
@@ -566,9 +573,9 @@
     (bydi ((:mock partial-recall-buffer-specs :return (list :meaningful meaningful
                                                             :implanted implanted))
            (:mock partial-recall-memory-specs :return (list :size 3 :capacity 5))
-           (:sometimes whale-line-icons--can-use-icons-p))
+           (:sometimes whale-line-segments--can-use-icons-p))
 
-      (should (equal '((:propertize (:eval (whale-line-icons--icon whale-line-segments-partial-recall-icon
+      (should (equal '((:propertize (:eval (whale-line-segments--icon whale-line-segments-partial-recall-icon
                                              :height 0.85
                                              :v-adjust 0.0))
                                     face whale-line-contrast
