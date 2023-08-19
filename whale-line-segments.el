@@ -795,23 +795,38 @@ Only consider Dired buffers and file buffers."
     map))
 
 (defun wls--partial-recall ()
-  "Get the `partial-recall' segment."
-  (let ((b-specs (partial-recall-buffer-specs))
-        (m-specs (partial-recall-memory-specs)))
+  "Get the `partial-recall' segment.
 
-    (when (plist-get b-specs :meaningful)
-      (let* ((implanted (plist-get b-specs :implanted))
-             (indicator (if (wls--can-use-icons-p)
-                            '(:eval (wls--icon wls-partial-recall-icon :height 0.85 :v-adjust 0.0))
-                          "PR"))
-             (count (format "%d/%d" (plist-get m-specs :size) (plist-get m-specs :capacity))))
+The segment comprises two sub-segments. One to display the
+current moment state (whether it is implanted or not) and another
+to display the memory state.
 
-        `((:propertize ,indicator
-                       face ,(if implanted 'whale-line-contrast 'whale-line-shadow)
-                       help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
-                       local-map ,wls--partial-recall-mode-line-map)
-          ,(whale-line--spacer)
-          (:propertize ,count face whale-line-shadow))))))
+The moment sub-segment binds implanting/excising as well as popup
+menu for the library's command map."
+  (when-let* ((b-specs (partial-recall-buffer-specs))
+              (m-specs (partial-recall-memory-specs))
+              ((plist-get b-specs :meaningful))
+
+              (indicator (if (wls--can-use-icons-p)
+                             '(:eval (wls--icon wls-partial-recall-icon :height 0.85 :v-adjust 0.0))
+                           "PR"))
+
+              (size (plist-get m-specs :size))
+              (cap (plist-get m-specs :capacity))
+              (orig-cap (plist-get m-specs :original-capacity))
+              (count (if (> size orig-cap)
+                         (concat "+" (number-to-string (- size orig-cap)))
+                       (number-to-string size)))
+              (count-face (if (> cap orig-cap) 'whale-line-contrast 'whale-line-shadow)))
+
+    `((:propertize ,indicator
+                   face ,(if (plist-get b-specs :implanted) 'whale-line-contrast 'whale-line-shadow)
+                   help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                   local-map ,wls--partial-recall-mode-line-map)
+      ,(whale-line--spacer)
+      (:propertize ,count
+                   face ,count-face
+                   help-echo ,(format "Partial Recall Reality: %d/%d moments" size cap)))))
 
 (whale-line-create-static-segment partial-recall
   :verify wls--can-use-partial-recall-p

@@ -578,33 +578,39 @@
 (ert-deftest partial-recall ()
   (let ((whale-line-segments--partial-recall-mode-line-map nil)
         (implanted t)
-        (meaningful t))
+        (meaningful t)
+        (size 4)
+        (cap 5)
+        (orig 3)
+        (result nil))
 
     (bydi ((:mock partial-recall-buffer-specs :return (list :meaningful meaningful
                                                             :implanted implanted))
-           (:mock partial-recall-memory-specs :return (list :size 3 :capacity 5))
+           (:mock partial-recall-memory-specs :return (list :size size :capacity cap :original-capacity orig))
            (:sometimes whale-line-segments--can-use-icons-p))
 
-      (should (equal '((:propertize (:eval (whale-line-segments--icon whale-line-segments-partial-recall-icon
-                                             :height 0.85
-                                             :v-adjust 0.0))
-                                    face whale-line-contrast
-                                    help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
-                                    local-map nil)
-                       " "
-                       (:propertize "3/5" face whale-line-shadow))
-                     (whale-line-segments--partial-recall)))
+      (setq result (whale-line-segments--partial-recall))
 
-      (bydi-toggle-sometimes)
-      (setq implanted nil)
+      (should (equal
+               '(:propertize (:eval (whale-line-segments--icon whale-line-segments-partial-recall-icon :height 0.85 :v-adjust 0.0))
+                             face whale-line-contrast
+                             help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
+                             local-map nil)
+               (nth 0 result)))
 
-      (should (equal '((:propertize "PR"
-                                    face whale-line-shadow
-                                    help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
-                                    local-map nil)
-                       " "
-                       (:propertize "3/5" face whale-line-shadow))
-                     (whale-line-segments--partial-recall))))))
+      (should (equal '(:propertize "+1"
+                                   face whale-line-contrast
+                                   help-echo "Partial Recall Reality: 4/5 moments")
+                  (nth 2 result)))
+
+      (setq size 2
+            cap 3
+            result (whale-line-segments--partial-recall))
+
+      (should (equal '(:propertize "2"
+                                   face whale-line-shadow
+                                   help-echo "Partial Recall Reality: 2/3 moments")
+                  (nth 2 result))))))
 
 (ert-deftest partial-recall--menu ()
   (defvar partial-recall-command-map)
