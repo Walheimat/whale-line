@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `whale-line-iconify-specs` that declare a default if an icon can't
   or shouldn't be used. The latter is controlled by
   `whale-line-iconify-disabled`.
+- Segments can use `:dense` again. Such segments will receive
+  no padding irrespective of the side they're on.
 
 ### Changed
 

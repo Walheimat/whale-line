@@ -116,7 +116,8 @@ icon name and the face.")
     render))
 
 (whale-line-create-dynamic-segment buffer-status
-  :getter wls--buffer-status)
+  :getter wls--buffer-status
+  :dense t)
 
 ;;;; -- Window status
 

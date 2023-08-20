@@ -18,14 +18,16 @@
 ;;; -- Variables
 
 (defvar whale-line--segments nil)
-(defvar whale-line--augments nil)
-(defvar whale-line--types nil)
-(defvar whale-line--priorities nil)
+
+(defvar whale-line--type nil)
+(defvar whale-line--priority nil)
+(defvar whale-line--dense nil)
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
-(defvar whale-line--default-mode-line nil)
+
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
+
 (defvar whale-line--static-timer nil)
 
 ;;; -- Customization
@@ -229,19 +231,21 @@ ellipsis."
 
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
-  (let* ((render (if (listp render) render (list render)))
-         (padded
-          (delq
-           nil
-           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
-                (whale-line--spacer))
-             ,@render
-             ,(when (assoc segment (plist-get whale-line--segments :right))
-                (whale-line--spacer))))))
+  (if (alist-get segment whale-line--dense)
+      (list render)
+    (let* ((render (if (listp render) render (list render)))
+           (padded
+            (delq
+             nil
+             `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
+                  (whale-line--spacer))
+               ,@render
+               ,(when (assoc segment (plist-get whale-line--segments :right))
+                  (whale-line--spacer))))))
 
-    (if (whale-line--empty-render-p padded)
-        nil
-      padded)))
+      (if (whale-line--empty-render-p padded)
+          nil
+        padded))))
 
 (defun whale-line--empty-render-p (render)
   "Check if RENDER is empty."
@@ -262,7 +266,7 @@ ellipsis."
 (defun whale-line--map-segment (segment)
   "Map SEGMENT to its priority declaration."
   (when (whale-line--valid-segment-p segment)
-    (assoc segment whale-line--priorities)))
+    (assoc segment whale-line--priority)))
 
 (defun whale-line--valid-segment-p (segment)
   "Check that SEGMENT can be included."
@@ -272,24 +276,31 @@ ellipsis."
         (funcall verify-sym)
       t)))
 
-(defun whale-line--add-segment (segment type &optional priority)
+(defun whale-line--add-segment (segment type &optional priority dense)
   "Add SEGMENT of TYPE to the list of segments.
 
-Optionally with a PRIORITY."
+Optionally with a PRIORITY and DENSE."
   (whale-line--set-segment-priority segment (or priority t))
-  (whale-line--set-type segment type))
+  (whale-line--set-type segment type)
+  (whale-line--set-dense segment dense))
 
 (defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
-  (if-let ((existing (assoc segment whale-line--priorities)))
+  (if-let ((existing (assoc segment whale-line--priority)))
       (setcdr existing priority)
-    (push (cons segment priority) whale-line--priorities)))
+    (push (cons segment priority) whale-line--priority)))
 
 (defun whale-line--set-type (segment type)
   "Set TYPE of SEGMENT."
-  (if-let ((existing (assoc segment whale-line--types)))
+  (if-let ((existing (assoc segment whale-line--type)))
       (setcdr existing type)
-    (push (cons segment type) whale-line--types)))
+    (push (cons segment type) whale-line--type)))
+
+(defun whale-line--set-dense (segment dense)
+  "Set SEGMENT as DENSE."
+  (if-let ((existing (assoc segment whale-line--dense)))
+      (setcdr existing dense)
+    (push (cons segment dense) whale-line--dense)))
 
 (defun whale-line--queue-refresh ()
   "Queue a refresh.
@@ -306,7 +317,7 @@ This will refresh static segments."
 
 This will call the respective segment's action."
   (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
-         (actions (cl-loop for (a . b) in whale-line--types
+         (actions (cl-loop for (a . b) in whale-line--type
                            if (eq b 'static)
                            collect (funcall interner a))))
 
@@ -411,7 +422,7 @@ nothing for augments."
        (unless (bound-and-true-p whale-line--testing)
          (message "Couldn't add %s `%s' segment" ',type ',name)))))
 
-(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown priority)
+(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown priority dense)
   "Create a static segment named NAME.
 
 GETTER is the form to evaluate to get the string (the setter is
@@ -427,7 +438,9 @@ returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
-This will also add the segment with PRIORITY or t."
+This will also add the segment with PRIORITY or t.
+
+If DENSE is t, the segment will not be padded."
   (declare (indent defun))
 
   (let* ((sym-name (symbol-name name))
@@ -453,11 +466,11 @@ This will also add the segment with PRIORITY or t."
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
 
-           (whale-line--add-segment ',name 'static ',prio))
+           (whale-line--add-segment ',name 'static ',prio ',dense))
       `(progn
          (whale-line--omit ,name static)))))
 
-(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown priority)
+(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown priority dense)
   "Create a dynamic segment name NAME.
 
 GETTER is the function to call on re-render.
@@ -471,7 +484,9 @@ returns nil, the segment will not be included.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
-The segment will be added with PRIORITY or t."
+The segment will be added with PRIORITY or t.
+
+If DENSE is t, the segment will not be padded."
   (declare (indent defun))
 
   (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
@@ -492,7 +507,7 @@ The segment will be added with PRIORITY or t."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
-           (whale-line--add-segment ',name 'dynamic ',prio))
+           (whale-line--add-segment ',name 'dynamic ',prio ',dense))
       `(progn
          (whale-line--omit ,name dynamic)))))
 
