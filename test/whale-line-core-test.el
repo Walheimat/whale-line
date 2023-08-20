@@ -251,7 +251,7 @@
         (right "right")
         (width 10))
 
-    (bydi ((:ignore fboundp)
+    (bydi ((:risky-mock fboundp :return nil)
            (:mock window-font-width :return 1)
            (:mock window-pixel-width :return  width)
            (:mock whale-line--format-side :with (lambda (side)
