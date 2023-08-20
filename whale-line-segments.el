@@ -1,8 +1,8 @@
-;;; whale-line-segments.el --- Default segments. -*- lexical-binding: t; -*-
+;;; whale-line-segments.el -- Default segments. -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
-;; Version: 0.6.2
+;; Version: 0.7.0
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
 
