@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Package `whale-line-iconify` to house all the icon-related logic.
+  Icon usage has been changed to derive the icon from
+  `whale-line-iconify-specs` that declare a default if an icon can't
+  or shouldn't be used. The latter is controlled by
+  `whale-line-iconify-disabled`.
+
 ### Changed
 
 - The logic for the `org` segment has been changed. Custom variable

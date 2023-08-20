@@ -230,100 +230,6 @@
 
         (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success)) whale-line-buffer-identification--segment))))))
 
-(ert-deftest flycheck--icon ()
-  (bydi ((:mock all-the-icons-faicon :return "I"))
-    (let ((test-icon-with-face '(faicon . ("test" test)))
-          (test-icon '(faicon . "test")))
-
-      (should (equal (whale-line-segments--icon test-icon-with-face :height 0.42) "I"))
-      (bydi-was-called-with all-the-icons-faicon '("test" :face test :height 0.42))
-
-      (bydi-clear-mocks)
-
-      (should (equal (whale-line-segments--icon test-icon :height 0.42) "I"))
-      (bydi-was-called-with all-the-icons-faicon '("test" :height 0.42)))))
-
-(ert-deftest can-use-icons-p ()
-  (bydi ((:sometimes require))
-
-    (should (whale-line-segments--can-use-icons-p))
-
-    (bydi-toggle-sometimes)
-
-    (should-not (whale-line-segments--can-use-icons-p))))
-
-(ert-deftest prepend-icon-to-project-segment ()
-  (should (equal '((:eval (whale-line-segments--icon whale-line-segments-project-icon :face 'whale-line-emphasis :height 0.85 :v-adjust 0.0)) (:eval (whale-line--spacer)) "proj")
-                 (whale-line-segments--iconify--prepend-icon-to-project-segment '("proj")))))
-
-(ert-deftest prepend-icon-to-vc-segment ()
-  (let ((name "/test/tmp"))
-
-    (bydi ((:sometimes display-graphic-p)
-           (:mock buffer-file-name :return name))
-
-      (should-not (whale-line-segments--iconify--prepend-icon-to-vc-segment nil))
-      (should (equal '((:eval (whale-line-segments--icon whale-line-segments-vc-icon :face (whale-line-segments--vc--face-for-state) :height 0.85 :v-adjust 0.0))
-                       (:eval (whale-line--spacer))
-                       "vc")
-                     (whale-line-segments--iconify--prepend-icon-to-vc-segment '("vc"))))
-
-      (bydi-toggle-sometimes)
-      (setq name nil)
-
-      (should (string= (whale-line-segments--iconify--prepend-icon-to-vc-segment "vc") "vc")))))
-
-(ert-deftest prepend-icon-to-project-segment--returns-non-strings ()
-  (should (string= "hi" (whale-line-segments--iconify--prepend-icon-to-project-segment "hi"))))
-
-(ert-deftest iconfiy-advise-buffer-status-segment ()
-  (let ((buffer-read-only nil)
-        (name nil)
-        (modified nil)
-        (whale-line-segments-buffer-read-only-icon "read-only")
-        (whale-line-segments-no-buffer-file-name-icon "no-file")
-        (whale-line-segments-buffer-modified-icon "modified"))
-
-    (with-temp-buffer
-      (bydi ((:mock buffer-file-name :return name)
-             (:mock buffer-modified-p :return modified))
-
-        (setq buffer-read-only t)
-
-        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-buffer-read-only-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
-
-        (bydi-clear-mocks)
-        (setq buffer-read-only nil)
-
-        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-no-buffer-file-name-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
-
-        (bydi-clear-mocks)
-        (setq name "/tmp/test.el"
-              modified t)
-
-        (should (equal '((:eval (whale-line-segments--icon whale-line-segments-buffer-modified-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-buffer-status-segment)))
-
-        (setq modified nil)
-
-        (should-not (whale-line-segments--iconify--advise-buffer-status-segment))))))
-
-(ert-deftest iconify--advise-window-status-segment ()
-  (with-temp-buffer
-    (bydi ((:sometimes window-dedicated-p)
-           (:mock whale-line-segments--icon :return "I"))
-      (should (equal '((:eval (whale-line-segments--icon whale-line-segments-window-dedicated-icon :height 0.85 :v-adjust 0.0))) (whale-line-segments--iconify--advise-window-status-segment)))
-
-      (bydi-toggle-sometimes)
-      (should-not (whale-line-segments--iconify--advise-window-status-segment)))))
-
-(ert-deftest iconify--buffer-icon--fallback ()
-  (bydi ((:ignore all-the-icons-icon-for-buffer)
-         (:mock format-mode-line :return "echo"))
-
-    (should (equal (whale-line-segments--buffer-icon)
-                   '((:propertize (:eval (whale-line-segments--icon whale-line-segments-buffer-fallback-icon))
-                                  help-echo "echo" display (raise -0.135)))))))
-
 (ert-deftest buffer-icon ()
   (bydi ((:mock all-the-icons-icon-for-buffer :return "?")
          (:mock format-mode-line :return "echo"))
@@ -352,32 +258,18 @@
         (setq-local eglot--managed-mode t)
         (should (whale-line-segments--lsp--active-p))))))
 
-(ert-deftest lsp-segment--icons ()
+(ert-deftest lsp-segment ()
   (bydi ((:sometimes whale-line-segments--lsp--active-p)
-         (:always whale-line-segments--can-use-icons-p))
+         (:mock whale-line-iconify :return "LSP"))
 
     (with-temp-buffer
-      (should (equal '((:propertize (:eval (whale-line-segments--icon whale-line-segments-lsp-icon :height 0.85 :v-adjust 0.0))
+      (should (equal '((:propertize "LSP"
                                     help-echo "Connected to LSP server"))
                      (whale-line-segments--lsp--segment)))
 
       (bydi-toggle-sometimes)
 
       (should-not (whale-line-segments--lsp--segment)))))
-
-(ert-deftest lsp-segment--text ()
-  (let ((whale-line-segments '()))
-
-    (bydi ((:sometimes whale-line-segments--lsp--active-p)
-           (:ignore whale-line-segments--can-use-icons-p))
-
-      (with-temp-buffer
-        (should (equal '((:propertize "LSP" face whale-line-indicate help-echo "Connected to LSP server"))
-                       (whale-line-segments--lsp--segment)))
-
-        (bydi-toggle-sometimes)
-
-        (should-not (whale-line-segments--lsp--segment))))))
 
 (ert-deftest minions--list ()
   (defvar minions-mode)
@@ -481,8 +373,11 @@
   (let ((whale-line-segments-project-provider 'projectile))
 
     (bydi ((:always whale-line-segments--project--display-for-buffer-p)
-           (:mock projectile-project-root :return "/home/test/project/"))
-      (should (propertized-string= "project" (whale-line-segments--project--segment))))))
+           (:mock projectile-project-root :return "/home/test/project/")
+           (:mock whale-line-iconify :return "*"))
+
+      (should (equal '("*" " " (:propertize "project" face whale-line-emphasis help-echo "/home/test/project/"))
+                     (whale-line-segments--project--segment))))))
 
 (ert-deftest project--get--for-project ()
   (let ((whale-line-segments-project-provider 'project))
@@ -555,12 +450,14 @@
   (let ((vc-display-status t)
         (find-file-hook . nil))
 
-    (bydi ((:mock vc-backend :return "none"))
+    (bydi ((:mock vc-backend :return "none")
+           (:mock whale-line-iconify :return "*"))
 
       (ert-with-temp-file testing
         (with-current-buffer (find-file-noselect testing)
           (setq-local vc-mode " Git:feature/tests")
-          (should (propertized-string= "tests" (whale-line-segments--vc--get-info))))))))
+          (should (string= "*" (nth 0 (whale-line-segments--vc--get-info))))
+          (should (string= "tests" (nth 1 (nth 2 (whale-line-segments--vc--get-info))))))))))
 
 (ert-deftest can-use-partial-recall ()
   (should-not (whale-line-segments--can-use-partial-recall-p))
@@ -587,12 +484,12 @@
     (bydi ((:mock partial-recall-buffer-specs :return (list :meaningful meaningful
                                                             :implanted implanted))
            (:mock partial-recall-memory-specs :return (list :size size :capacity cap :original-capacity orig))
-           (:sometimes whale-line-segments--can-use-icons-p))
+           (:mock whale-line-iconify :return "PR"))
 
       (setq result (whale-line-segments--partial-recall))
 
       (should (equal
-               '(:propertize (:eval (whale-line-segments--icon whale-line-segments-partial-recall-icon :height 0.85 :v-adjust 0.0))
+               '(:propertize "PR"
                              face whale-line-contrast
                              help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
                              local-map nil)

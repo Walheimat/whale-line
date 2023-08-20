@@ -74,7 +74,22 @@ will need to call =whale-line-rebuild=.
   (whale-line-segments-animation-speed 0.4)
 
   ;; Project provider.
-  (whale-line-segments-project-provider 'projectile) ; Default is `project'.)
+  (whale-line-segments-project-provider 'projectile) ; Default is `project'.
+
+  ;; Specs for used icons.
+  (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))
+                              (vc . (:name "code-fork"))
+                              (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@"))
+                              (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&"))
+                              (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*"))
+                              (window-dedicated . (:name "link" :face whale-line-shadow :fallback "^"))
+                              (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
+                              (lsp . (:name "server" :face whale-line-contrast))
+                              (partial-recall . (:name "tag" :face whale-line-contrast))))
+
+
+  ;; List of icons to disable.
+  (whale-line-iconify-disabled nil))
 #+END_SRC
 
 ** Example Screenshot
