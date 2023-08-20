@@ -80,7 +80,8 @@
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
-    (push-mark)
+    (shut-up
+      (push-mark))
     (goto-char (point-max))
 
     (should (propertized-string= " 3 " (whale-line-segments--selection)))))
@@ -89,7 +90,8 @@
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
-    (rectangle-mark-mode)
+    (shut-up
+      (rectangle-mark-mode))
     (goto-char (1- (point-max)))
 
     (should (propertized-string= " 3x9 " (whale-line-segments--selection)))))
@@ -520,7 +522,8 @@
     (define-key partial-recall-command-map (kbd "t") 'partial-recall-test)
 
     (bydi (popup-menu)
-      (whale-line-segments--partial-recall--menu)
+      (shut-up
+        (whale-line-segments--partial-recall--menu))
       (bydi-was-called popup-menu))))
 
 (ert-deftest partial-recall--toggle ()
