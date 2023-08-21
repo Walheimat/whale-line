@@ -38,9 +38,9 @@ This has no effect if icons cannot be enabled. See
 (defcustom whale-line-iconify-specs
   '((project . (:name "package" :font octicon :face whale-line-emphasis))
     (vc . (:name "code-fork"))
-    (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@"))
-    (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&"))
-    (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*"))
+    (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@" :parent buffer-status))
+    (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&" :parent buffer-status))
+    (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*" :parent buffer-status))
     (window-dedicated . (:name "link" :face whale-line-shadow :fallback "^"))
     (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
     (lsp . (:name "server" :face whale-line-contrast :fallback "LSP"))
@@ -48,10 +48,10 @@ This has no effect if icons cannot be enabled. See
   "Named icon specifications.
 
 Each specifications defines icon NAME and, optionally, FALLBACK
-text and NO-DEFAULTS. Icons using fonts other than FontAwesome
-need to set FONT. Any remaining spec will be passed as icon
-specs. See `whale-line-iconify-default-specs' for automatically
-applied specs."
+text, NO-DEFAULTS and PARENT. Icons using fonts other than
+FontAwesome need to set FONT. Any remaining spec will be passed
+as icon specs. See `whale-line-iconify-default-specs' for
+automatically applied specs."
   :group 'whale-line-iconify
   :type '(alist :key-type symbol :value-type plist))
 
@@ -74,7 +74,7 @@ applied specs."
 (defun wli--pure-specs (specs)
   "Return icon only specs from SPECS."
   (cl-loop for (key . val) in (cl--plist-to-alist specs)
-           unless (memq key '(:name :fallback :font :no-defaults))
+           unless (memq key '(:name :fallback :font :no-defaults :parent))
            nconc (list key val)))
 
 (defun wli--default-specs (specs existing)
@@ -111,7 +111,8 @@ If icon can't or shouldn't be displayed return any existing
 fallback."
   (if-let* ((specs (cdr-safe (assoc name wli-specs)))
             (specs (if face (plist-put specs :face face) specs))
-            ((wli--use-for-p name)))
+            (parent (or (plist-get specs :parent) name))
+            ((wli--use-for-p parent)))
 
       (wli--from-specs specs)
 
