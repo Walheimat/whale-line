@@ -232,6 +232,7 @@ ellipsis."
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
   (let* ((dense (alist-get segment whale-line--dense))
+         (dense (if (functionp dense) (funcall dense) dense))
          (render (if (listp render) render (list render)))
          (padded
           (delq

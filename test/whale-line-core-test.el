@@ -454,13 +454,14 @@
     (should (whale-line--valid-segment-p 'test))))
 
 (ert-deftest whale-line--pad-segment ()
-  (let ((whale-line--segments '(:left ((one . t) (three . t)) :right ((two . t) (four . t))))
-        (whale-line--dense '((four . t))))
+  (let ((whale-line--segments '(:left ((one . t) (three . t) (five . t)) :right ((two . t) (four . t))))
+        (whale-line--dense '((four . t) (five . always))))
 
     (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
     (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
     (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))
-    (should (equal '("test" "") (whale-line--pad-segment 'four "test")))))
+    (should (equal '("test" "") (whale-line--pad-segment 'four "test")))
+    (should (equal '("" "test") (whale-line--pad-segment 'five "test")))))
 
 (ert-deftest whale-line--filter ()
   (let ((current nil)

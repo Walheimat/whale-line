@@ -115,9 +115,13 @@ icon name and the face.")
 
     render))
 
+(defun wls--buffer-status--dense-p ()
+  "Check whether the segment should be dense."
+  (not (whale-line-iconify--use-for-p 'buffer-status)))
+
 (whale-line-create-stateless-segment buffer-status
   :getter wls--buffer-status
-  :dense t)
+  :dense wls--buffer-status--dense-p)
 
 ;;;; -- Window status
 

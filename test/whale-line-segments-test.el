@@ -16,6 +16,11 @@
                                 face whale-line-neutral))
                  (whale-line-segments--buffer-identification))))
 
+(ert-deftest buffer-status--dense-p ()
+  (let ((whale-line-iconify-disabled '(buffer-status)))
+
+    (should (whale-line-segments--buffer-status--dense-p))))
+
 (ert-deftest buffer-status ()
   (with-temp-buffer
     (read-only-mode)
