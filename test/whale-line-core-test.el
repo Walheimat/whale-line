@@ -18,10 +18,10 @@
      ,@body
      (setq whale-line--testing t)))
 
-(ert-deftest whale-line-create-static-segment ()
+(ert-deftest whale-line-core--create-stateful-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-static-segment test
+     (whale-line-core--create-stateful-segment test
        :getter (lambda () t)
        :hooks (test-mode-hook)
        :teardown (lambda () t)
@@ -47,12 +47,12 @@
          (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-segment 'test 'static 't 'nil)))))
+       (whale-line--add-segment 'test 'stateful 't 'nil)))))
 
-(ert-deftest whale-line-create-static-segment--simple ()
+(ert-deftest whale-line-core--create-stateful-segment--simple ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-static-segment test
+     (whale-line-core--create-stateful-segment test
        :getter (lambda () t))
      '(progn
        (defvar-local whale-line-test--segment 'initial)
@@ -69,12 +69,12 @@
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'static 't 'nil)))))
+       (whale-line--add-segment 'test 'stateful 't 'nil)))))
 
-(ert-deftest whale-line-create-static-segment--using-symbols ()
+(ert-deftest whale-line-core--create-stateful-segment--using-symbols ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-static-segment test
+     (whale-line-core--create-stateful-segment test
        :getter ignore
        :advice (:before . (ancient old))
        :verify (lambda () t)
@@ -100,12 +100,12 @@
 
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
 
-       (whale-line--add-segment 'test 'static 'low 'nil)))))
+       (whale-line--add-segment 'test 'stateful 'low 'nil)))))
 
-(ert-deftest whale-line-create-dynamic-segment ()
+(ert-deftest whale-line-core--create-stateless-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-dynamic-segment test
+     (whale-line-core--create-stateless-segment test
        :getter (lambda () t)
        :verify (lambda () t)
        :teardown (lambda () t)
@@ -122,12 +122,12 @@
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-       (whale-line--add-segment 'test 'dynamic 't 'nil)))))
+       (whale-line--add-segment 'test 'stateless 't 'nil)))))
 
-(ert-deftest whale-line-create-dynamic-segment--using-symbol ()
+(ert-deftest whale-line-core--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-dynamic-segment test
+     (whale-line-core--create-stateless-segment test
        :getter ignore
        :condition buffer-file-name
        :dense t)
@@ -141,12 +141,12 @@
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'dynamic 't 't)))))
+       (whale-line--add-segment 'test 'stateless 't 't)))))
 
-(ert-deftest whale-line-create-augment ()
+(ert-deftest whale-line-core--create-augment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-augment test
+     (whale-line-core--create-augment test
        :action ignore
        :setup (lambda () t)
        :teardown (lambda () t))
@@ -163,10 +163,10 @@
        nil
        (whale-line--add-segment 'test 'augment)))))
 
-(ert-deftest whale-line-create-augment--using-symbol ()
+(ert-deftest whale-line-core--create-augment--using-symbol ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-create-augment test
+     (whale-line-core--create-augment test
        :action (lambda () t)
        :hooks (emacs-start-up)
        :advice (:after . (kill-line))
@@ -366,7 +366,7 @@
       (should (eq 'selected whale-line--current-window)))))
 
 (ert-deftest whale-line--queue-refresh ()
-  (let ((whale-line--static-timer nil)
+  (let ((whale-line--stateful-timer nil)
         (timer (timer--create)))
 
     (setf (timer--triggered timer) nil)
@@ -375,9 +375,9 @@
            cancel-timer)
 
       (whale-line--queue-refresh)
-      (should whale-line--static-timer)
+      (should whale-line--stateful-timer)
 
-      (bydi-was-called-with run-with-idle-timer '(0.5 nil whale-line--refresh-static-segments))
+      (bydi-was-called-with run-with-idle-timer '(0.5 nil whale-line--refresh-stateful-segments))
       (bydi-was-not-called cancel-timer)
 
       (whale-line--queue-refresh)
@@ -386,8 +386,8 @@
 
     (cancel-timer timer)))
 
-(ert-deftest whale-line--refresh-static-segments ()
-  (let ((whale-line--type '((a . static) (b . dynamic) (c . static))))
+(ert-deftest whale-line--refresh-stateful-segments ()
+  (let ((whale-line--type '((a . stateful) (b . stateless) (c . stateful))))
 
     (defun whale-line-a--action () nil)
     (defun whale-line-b--action () nil)
@@ -397,7 +397,7 @@
            (:spy whale-line-b--action)
            (:spy whale-line-c--action))
 
-      (whale-line--refresh-static-segments)
+      (whale-line--refresh-stateful-segments)
 
       (bydi-was-called whale-line-a--action)
       (bydi-was-not-called whale-line-b--action)
@@ -420,24 +420,24 @@
 
 (ert-deftest whale-line--add-segment ()
   (let ((whale-line--priority '((one . nil) (two . t)))
-        (whale-line--type '((one . static) (two . dynamic)))
+        (whale-line--type '((one . stateful) (two . stateless)))
         (whale-line--dense '((one . nil))))
 
-    (whale-line--add-segment 'one 'static)
+    (whale-line--add-segment 'one 'stateful)
 
     (should (equal whale-line--priority '((one . t) (two . t))))
-    (should (equal whale-line--type '((one . static) (two . dynamic))))
+    (should (equal whale-line--type '((one . stateful) (two . stateless))))
 
-    (whale-line--add-segment 'two 'static 'low)
+    (whale-line--add-segment 'two 'stateful 'low)
 
     (should (equal whale-line--priority '((one . t) (two . low))))
-    (should (equal whale-line--type '((one . static) (two . static))))
+    (should (equal whale-line--type '((one . stateful) (two . stateful))))
 
-    (whale-line--add-segment 'three 'static 'current-low)
+    (whale-line--add-segment 'three 'stateful 'current-low)
 
     (should (equal whale-line--priority '((three . current-low) (one . t) (two . low))))
 
-    (whale-line--add-segment 'one 'static nil t)
+    (whale-line--add-segment 'one 'stateful nil t)
 
     (should (equal whale-line--dense '((three) (two) (one . t))))))
 

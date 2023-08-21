@@ -28,7 +28,7 @@
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
 
-(defvar whale-line--static-timer nil)
+(defvar whale-line--stateful-timer nil)
 
 ;;; -- Customization
 
@@ -305,20 +305,20 @@ Optionally with a PRIORITY and DENSE."
 (defun whale-line--queue-refresh ()
   "Queue a refresh.
 
-This will refresh static segments."
-  (when whale-line--static-timer
-    (unless (timer--triggered whale-line--static-timer)
-      (cancel-timer whale-line--static-timer)))
+This will refresh stateful segments."
+  (when whale-line--stateful-timer
+    (unless (timer--triggered whale-line--stateful-timer)
+      (cancel-timer whale-line--stateful-timer)))
 
-  (setq whale-line--static-timer (run-with-idle-timer 0.5 nil #'whale-line--refresh-static-segments)))
+  (setq whale-line--stateful-timer (run-with-idle-timer 0.5 nil #'whale-line--refresh-stateful-segments)))
 
-(defun whale-line--refresh-static-segments ()
-  "Refresh all static segments.
+(defun whale-line--refresh-stateful-segments ()
+  "Refresh all stateful segments.
 
 This will call the respective segment's action."
   (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
          (actions (cl-loop for (a . b) in whale-line--type
-                           if (eq b 'static)
+                           if (eq b 'stateful)
                            collect (funcall interner a))))
 
     (mapc #'funcall actions)))
@@ -406,32 +406,35 @@ the docstring. If APPLY is t, use `apply' instead of `funcall'."
 (defmacro whale-line--omit (name type)
   "Indicate that segment NAME was omitted.
 
-TYPE controls what is emitted: a variable for static segments, a
-function returning the empty string for dynamic segments and
+TYPE controls what is emitted: a variable for stateful segments, a
+function returning the empty string for stateless segments and
 nothing for augments."
   (let ((segment-sym (intern (format "whale-line-%s--segment" (symbol-name name)))))
     `(progn
        ,(pcase type
-          ('dynamic
+          ('stateless
            `(defun ,segment-sym ()
               ,(format "Render `%s' segment as an empty string." name)
               ""))
-          ('static
+          ('stateful
            `(defvar ,segment-sym nil))
           (_ nil))
        (unless (bound-and-true-p whale-line--testing)
          (message "Couldn't add %s `%s' segment" ',type ',name)))))
 
-(cl-defmacro whale-line-create-static-segment (name &key getter hooks advice verify setup teardown priority dense)
-  "Create a static segment named NAME.
+(cl-defmacro wlc--create-stateful-segment (name &key getter hooks advice verify setup teardown priority dense)
+  "Create a stateful segment named NAME.
+
+Stateful segments are represented by a variable that is updated
+by hooks or advice.
 
 GETTER is the form to evaluate to get the string (the setter is
 constructed by the macro).
 
 HOOKS is a list of functions that will call the setter.
 
-ADVICE is a cons cell of the form combinator .
-functions-to-advise that will also call the setter.
+ADVICE is a cons cell of the form (COMBINATOR .
+FUNCTIONS-TO-ADVISE) that will also call the setter.
 
 VERIFY is a function called before the segments are built. If it
 returns nil, the segment will not be included.
@@ -466,12 +469,15 @@ If DENSE is t, the segment will not be padded."
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
 
-           (whale-line--add-segment ',name 'static ',prio ',dense))
+           (whale-line--add-segment ',name 'stateful ',prio ',dense))
       `(progn
-         (whale-line--omit ,name static)))))
+         (whale-line--omit ,name stateful)))))
 
-(cl-defmacro whale-line-create-dynamic-segment (name &key getter condition verify setup teardown priority dense)
-  "Create a dynamic segment name NAME.
+(cl-defmacro wlc--create-stateless-segment (name &key getter condition verify setup teardown priority dense)
+  "Create a stateless segment name NAME.
+
+A stateless segment is represented by a function that is called
+on every mode-line update.
 
 GETTER is the function to call on re-render.
 
@@ -507,11 +513,11 @@ If DENSE is t, the segment will not be padded."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
-           (whale-line--add-segment ',name 'dynamic ',prio ',dense))
+           (whale-line--add-segment ',name 'stateless ',prio ',dense))
       `(progn
-         (whale-line--omit ,name dynamic)))))
+         (whale-line--omit ,name stateless)))))
 
-(cl-defmacro whale-line-create-augment (name &key action hooks advice setup teardown verify)
+(cl-defmacro wlc--create-augment (name &key action hooks advice setup teardown verify)
   "Create augment(-or) named NAME.
 
 ACTION is the function to call for HOOKS.
@@ -595,6 +601,43 @@ Optionally FILTER out low priority segments."
                      `(:eval (whale-line--pad-segment ',sym ,eval))))))
              segments)))
 
+;;; -- API
+
+
+;;;###autoload
+(defmacro whale-line-create-stateful-segment (name &rest args)
+  "Create a stateful segment called NAME.
+
+See underlying macro for the usage of ARGS."
+  `(progn
+     (whale-line-core--create-stateful-segment ,name ,@args)))
+
+(defalias 'whale-line-create-static-segment 'whale-line-create-stateful-segment)
+(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.1")
+
+;;;###autoload
+(defmacro whale-line-create-stateless-segment (name &rest args)
+  "Create a stateless segment called NAME.
+
+See underlying macro for the usage of ARGS."
+  `(progn
+     (whale-line-core--create-stateless-segment ,name ,@args)))
+
+(defalias 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment)
+(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.1")
+
+;;;###autoload
+(defmacro whale-line-create-augment (name &rest args)
+  "Create an augment called NAME.
+
+See underlying macro for the usage of ARGS."
+  `(progn
+     (whale-line-core--create-augment ,name ,@args)))
+
 (provide 'whale-line-core)
 
 ;;; whale-line-core.el ends here
+
+;; Local Variables:
+;; read-symbol-shorthands: (("wlc-" . "whale-line-core-"))
+;; End:

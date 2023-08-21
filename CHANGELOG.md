@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   by `whale-line-segments-org-elision`, defaulting to an asterisk.
 - Segment `partial-recall` now just shows the amount of mapped
   buffers, the full information is displayed in the help echo.
+- Macros have been renamed
+  - `whale-line-create-{dynamic=>stateless}-segment` and
+  - `whale-line-create-{static=>stateful}-segment`
+  to better communicate their difference and usage.
 
 ### Fixed
 

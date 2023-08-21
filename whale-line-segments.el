@@ -95,7 +95,7 @@ icon name and the face.")
                  mouse-face whale-line-highlight
                  face whale-line-neutral)))
 
-(whale-line-create-static-segment buffer-identification
+(whale-line-create-stateful-segment buffer-identification
   :getter wls--buffer-identification
   :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook)
   :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
@@ -115,7 +115,7 @@ icon name and the face.")
 
     render))
 
-(whale-line-create-dynamic-segment buffer-status
+(whale-line-create-stateless-segment buffer-status
   :getter wls--buffer-status
   :dense t)
 
@@ -126,11 +126,11 @@ icon name and the face.")
   (when (window-dedicated-p)
     (whale-line-iconify 'window-dedicated)))
 
-(whale-line-create-dynamic-segment window-status
+(whale-line-create-stateless-segment window-status
   :getter wls--window-status
   :priority low)
 
-;;;; -- Window position
+;;;; -- Position
 
 (defun wls--position ()
   "Render position segment."
@@ -147,9 +147,7 @@ icon name and the face.")
               (t "%l:%c %p%"))))
     `((:propertize ,str face whale-line-shadow))))
 
-;;;; -- Position
-
-(whale-line-create-dynamic-segment position
+(whale-line-create-stateless-segment position
   :getter wls--position
   :priority current)
 
@@ -159,14 +157,14 @@ icon name and the face.")
   "Render the misc info segment."
   mode-line-misc-info)
 
-(whale-line-create-dynamic-segment misc-info
+(whale-line-create-stateless-segment misc-info
   :condition mode-line-misc-info
   :getter wls--misc-info
   :priority current-low)
 
 ;;;; -- Minor modes
 
-(whale-line-create-dynamic-segment minor-modes
+(whale-line-create-stateless-segment minor-modes
   :getter (lambda () minor-mode-alist)
   :priority low)
 
@@ -176,7 +174,7 @@ icon name and the face.")
   "Get process segment."
   mode-line-process)
 
-(whale-line-create-dynamic-segment process
+(whale-line-create-stateless-segment process
   :getter wls--process
   :condition mode-line-process
   :priority current)
@@ -202,7 +200,7 @@ icon name and the face.")
                       (format " %d " lines))
                    face region))))
 
-(whale-line-create-dynamic-segment selection
+(whale-line-create-stateless-segment selection
   :condition mark-active
   :getter wls--selection
   :priority current-low)
@@ -244,7 +242,7 @@ Afterwards a mode-line update is forced to display the new frame."
     (cancel-timer wls--animation-timer)
     (setq wls--animation-timer nil)))
 
-(whale-line-create-dynamic-segment animation
+(whale-line-create-stateless-segment animation
   :getter wls--animation-segment
 
   :setup wls--animation-start-timer
@@ -269,7 +267,7 @@ Afterwards a mode-line update is forced to display the new frame."
     (when cursors
       `((:propertize ,(format " %d " cursors) face whale-line-highlight)))))
 
-(whale-line-create-dynamic-segment cursors
+(whale-line-create-stateless-segment cursors
   :getter wls--cursors--count
 
   :condition
@@ -350,7 +348,7 @@ Returns nil if not checking or if no errors were found."
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
-(whale-line-create-static-segment buffer-icon
+(whale-line-create-stateful-segment buffer-icon
   :verify whale-line-iconify--can-use-p
 
   :hooks
@@ -377,7 +375,7 @@ Returns nil if not checking or if no errors were found."
 
     `((:propertize ,(whale-line-iconify 'lsp) help-echo ,help))))
 
-(whale-line-create-static-segment lsp
+(whale-line-create-stateful-segment lsp
   :getter wls--lsp--segment
 
   :hooks
@@ -474,7 +472,7 @@ Returns nil if not checking or if no errors were found."
        (reverse headings))
       (whale-line--spacer)))))
 
-(whale-line-create-dynamic-segment org
+(whale-line-create-stateless-segment org
   :getter
   (let ((segment (wls--org--build-segment)))
     (when segment
@@ -524,7 +522,7 @@ Only consider Dired buffers and file buffers."
           (list icon (whale-line--spacer)))
       (:propertize ,p-name face whale-line-emphasis help-echo ,p-root))))
 
-(whale-line-create-static-segment project
+(whale-line-create-stateful-segment project
   :getter wls--project--segment
   :hooks (find-file-hook))
 
@@ -538,7 +536,7 @@ Only consider Dired buffers and file buffers."
 
     `((:propertize ,(concat " " name " ") face whale-line-highlight))))
 
-(whale-line-create-static-segment tab-bar
+(whale-line-create-stateful-segment tab-bar
   :verify
   (lambda () (featurep 'tab-bar))
 
@@ -604,7 +602,7 @@ Only consider Dired buffers and file buffers."
     (wls--vc--update-info)
     wls--vc--info))
 
-(whale-line-create-static-segment vc
+(whale-line-create-stateful-segment vc
   :getter wls--vc--segment
 
   :hooks
@@ -694,7 +692,7 @@ menu for the library's command map."
                    face ,count-face
                    help-echo ,(format "Partial Recall Reality: %d/%d moments" size cap)))))
 
-(whale-line-create-static-segment partial-recall
+(whale-line-create-stateful-segment partial-recall
   :verify wls--can-use-partial-recall-p
 
   :getter wls--partial-recall

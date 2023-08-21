@@ -92,6 +92,17 @@ will need to call =whale-line-rebuild=.
   (whale-line-iconify-disabled nil))
 #+END_SRC
 
+** Custom Segments
+
+You may create your own segments using macros
+=whale-line-create-stateless-segment=,
+=whale-line-create-stateful-segment= and =whale-line-create-augment=.
+/Note/ however that their signature is not stable and may change at
+any time.
+
+Be sure to add you segment to =whale-line-segments= at the desired
+position.
+
 ** Example Screenshot
 
 Modeline in a split frame (theme is =kaolin-galaxy=).
