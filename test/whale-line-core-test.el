@@ -217,7 +217,7 @@
 
 (ert-deftest whale-line--spacer ()
   (should (string= " " (whale-line--spacer)))
-  (should (string= "  " (whale-line--spacer t))))
+  (should (string= "" (whale-line--spacer t))))
 
 (ert-deftest whale-line--car-safe-until ()
   (should (string= (whale-line--car-safe-until '((("test"))) #'stringp) "test"))
@@ -460,7 +460,7 @@
     (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
     (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
     (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))
-    (should (equal '("test") (whale-line--pad-segment 'four "test")))))
+    (should (equal '("test" "") (whale-line--pad-segment 'four "test")))))
 
 (ert-deftest whale-line--filter ()
   (let ((current nil)

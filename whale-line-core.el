@@ -112,11 +112,11 @@ constraints."
 
 ;;; -- Utility
 
-(defun whale-line--spacer (&optional big)
+(defun whale-line--spacer (&optional dense)
   "A space used for padding.
 
-Optionally, use a BIG spacer."
-  (if big "  " " "))
+If DENSE is t, add no padding."
+  (if dense "" " "))
 
 (defun whale-line--car-safe-until (seq compare-fn &optional default-value)
   "Inspect car of SEQ until non-list item is found.
@@ -231,28 +231,28 @@ ellipsis."
 
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
-  (if (alist-get segment whale-line--dense)
-      (list render)
-    (let* ((render (if (listp render) render (list render)))
-           (padded
-            (delq
-             nil
-             `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
-                  (whale-line--spacer))
-               ,@render
-               ,(when (assoc segment (plist-get whale-line--segments :right))
-                  (whale-line--spacer))))))
+  (let* ((dense (alist-get segment whale-line--dense))
+         (render (if (listp render) render (list render)))
+         (padded
+          (delq
+           nil
+           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
+                (whale-line--spacer dense))
+             ,@render
+             ,(when (assoc segment (plist-get whale-line--segments :right))
+                (whale-line--spacer dense))))))
 
-      (if (whale-line--empty-render-p padded)
-          nil
-        padded))))
+    (if (whale-line--empty-render-p padded)
+        nil
+      padded)))
 
 (defun whale-line--empty-render-p (render)
   "Check if RENDER is empty."
   (or (equal render '(" " ""))
       (equal render '("" " "))
       (equal render '(" " " "))
-      (equal render '(" "))))
+      (equal render '(" "))
+      (equal render '("" ""))))
 
 (defun whale-line--build-segments ()
   "Build the segments."
