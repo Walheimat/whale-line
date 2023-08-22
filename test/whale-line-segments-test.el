@@ -460,24 +460,28 @@
            (:ignore buffer-file-name))
       (should-not (whale-line-segments--project--display-for-buffer-p)))))
 
-(ert-deftest project--get--for-projectile ()
-  (let ((whale-line-segments-project-provider 'projectile))
+(ert-deftest project--help ()
+  (bydi ((:always project-current)
+         (:mock project-root :return "/home/test/project/"))
 
-    (bydi ((:always whale-line-segments--project--display-for-buffer-p)
-           (:mock projectile-project-root :return "/home/test/project/")
-           (:mock whale-line-iconify :return "*"))
-
-      (should (equal '("*" " " (:propertize "project" face whale-line-emphasis help-echo "/home/test/project/"))
-                     (whale-line-segments--project--segment))))))
+      (should (string= "Project (/home/test/project/)\nmouse-1: Open root" (whale-line-segments--project--help)))))
 
 (ert-deftest project--get--for-project ()
-  (let ((whale-line-segments-project-provider 'project))
+  (let ((whale-line-segments--project--map nil))
 
     (bydi ((:always whale-line-segments--project--display-for-buffer-p)
            (:always project-current)
+           (:mock whale-line-segments--project--help :return "help")
+           (:mock whale-line-iconify :return "*")
            (:mock project-root :return "/home/test/project/")
            (:mock project-name :return "project"))
-      (should (propertized-string= "project" (whale-line-segments--project--segment))))))
+
+      (should (equal '("*" " " (:propertize "project"
+                                            face whale-line-emphasis
+                                            mouse-face whale-line-highlight
+                                            help-echo "help"
+                                            local-map nil))
+                     (whale-line-segments--project--segment))))))
 
 (ert-deftest tab-bar ()
   (let ((tab '((explicit-name . t) (name . "test-tab")))

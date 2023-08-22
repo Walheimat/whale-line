@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segments can use `:dense` again. Such segments will receive
   no padding irrespective of the side they're on.
 - Segment for `dap-mode`.
+- `project` segment now has a local map, binding `project-dired` to
+  `mouse-1`.
+
+### Removed
+
+- `whale-line-segments-project-provider` was removed; `projectile` is
+  no longer supported.
 
 ### Changed
 
@@ -39,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `lsp-mode` now shows the servers/workspaces it's connected
   to.
 
-### fixed
+### Fixed
 
 - The animation segment is now a dynamic segment, allowing the
   animation frame to no longer be local to a buffer.

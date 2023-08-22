@@ -67,12 +67,6 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
-(defcustom whale-line-segments-project-provider 'project
-  "The project provider."
-  :group 'whale-line-segments
-  :type '(choice (const project)
-                 (const projectile)))
-
 (defconst whale-line-icon-type
   '(cons symbol
          (restricted-sexp
@@ -571,27 +565,34 @@ Only consider Dired buffers and file buffers."
 
 (defvar wls--project--regexp ".+\\(\\/.+\\)\\/$")
 
+(defvar wls--project--map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1] 'project-dired)
+
+    map))
+
+(defun wls--project--help ()
+  "Get the help text for the project."
+  (when-let* ((project (project-current))
+              (root (project-root project)))
+
+    (format "Project (%s)\nmouse-1: Open root" root)))
+
 (defun wls--project--segment ()
   "Get the project segment."
   (when-let* ((candidate (wls--project--display-for-buffer-p))
-              (p-root (pcase wls-project-provider
-                        ('projectile
-                         (projectile-project-root))
-                        ('project
-                         (when-let ((current (project-current)))
-                           (project-root current)))
-                        (_ nil)))
-              (p-name (pcase wls-project-provider
-                        ('projectile
-                         (string-match wls--project--regexp p-root)
-                         (substring (match-string 1 p-root) 1))
-                        ('project
-                         (project-name (project-current)))
-                        (_ nil))))
+              (project (project-current))
+              (name (project-name project))
+              (help (wls--project--help)))
 
     `(,@(when-let ((icon (whale-line-iconify 'project)))
           (list icon (whale-line--spacer)))
-      (:propertize ,p-name face whale-line-emphasis help-echo ,p-root))))
+      (:propertize ,name
+                   face whale-line-emphasis
+                   mouse-face whale-line-highlight
+                   help-echo ,help
+                   local-map ,wls--project--map))))
 
 (whale-line-create-stateful-segment project
   :getter wls--project--segment
