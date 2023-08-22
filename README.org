@@ -81,9 +81,6 @@ will need to call =whale-line-rebuild=.
   (whale-line-segments-org-max-count 2)
   (whale-line-segments-org-max-heading-length 12)
 
-  ;; Project provider.
-  (whale-line-segments-project-provider 'projectile) ; Default is `project'.
-
   ;; Specs for used icons.
   (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))
                               (vc . (:name "code-fork"))
