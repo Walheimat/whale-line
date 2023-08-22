@@ -32,12 +32,12 @@
     (should (propertized-string= "&" (whale-line-segments--buffer-status))))
 
   (ert-with-temp-file buffer-status :buffer current
-    (with-current-buffer current
-      (should-not (whale-line-segments--buffer-status))
+                      (with-current-buffer current
+                        (should-not (whale-line-segments--buffer-status))
 
-      (insert "test")
+                        (insert "test")
 
-      (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
+                        (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
 
 (ert-deftest window-status ()
   (should-not (whale-line-segments--window-status))
@@ -244,39 +244,84 @@
     (should (equal (whale-line-segments--buffer-icon)
                    '((:propertize "?" help-echo "echo" display (raise -0.135)))))))
 
-(ert-deftest lsp-active-p ()
-  (let ((feature nil))
-    (bydi ((:mock featurep :with (lambda (f) (eq f feature)))
-           lsp-workspaces)
+(ert-deftest lsp--uses-lsp-mode-p ()
+  (defvar lsp-mode)
+  (let ((lsp-mode t))
+
+    (bydi ((:always featurep)
+           (:risky-mock fboundp :with always)
+           (:always lsp-workspaces))
+
+      (should (whale-line-segments--lsp--uses-lsp-mode-p)))))
+
+(ert-deftest lsp--uses-eglot-p ()
+  (defvar eglot--managed-mode)
+  (let ((eglot--managed-mode t))
+
+    (bydi ((:always featurep)
+           (:risky-mock fboundp :with always))
+
+      (should (whale-line-segments--lsp--uses-eglot-p)))))
+
+(ert-deftest lsp--active-p ()
+  (let ((lsp nil)
+        (eglot nil))
+
+    (bydi ((:mock whale-line-segments--lsp--uses-eglot-p :return eglot)
+           (:mock whale-line-segments--lsp--uses-lsp-mode-p :return lsp))
 
       (should-not (whale-line-segments--lsp--active-p))
 
-      (bydi-clear-mocks)
-      (setq feature 'lsp-mode)
-      (whale-line-segments--lsp--active-p)
+      (setq lsp t)
 
-      (bydi-was-called lsp-workspaces)
+      (should (whale-line-segments--lsp--active-p))
 
-      (bydi-clear-mocks)
-      (setq feature 'eglot)
+      (setq lsp nil
+            eglot t)
 
-      (with-temp-buffer
-        (defvar eglot--managed-mode nil)
-        (setq-local eglot--managed-mode t)
-        (should (whale-line-segments--lsp--active-p))))))
+      (should (whale-line-segments--lsp--active-p)))))
+
+(ert-deftest lsp--help ()
+  (let ((lsp nil)
+        (eglot nil))
+
+    (bydi ((:mock whale-line-segments--lsp--uses-lsp-mode-p :return lsp)
+           (:mock whale-line-segments--lsp--uses-eglot-p :return eglot)
+           (:mock lsp--workspace-print :with (lambda (it) (concat "'" (symbol-name it))))
+           (:mock lsp-workspaces :return '(a b))
+           eglot-current-server
+           (:mock eglot-project-nickname :return "testing")
+           (:mock eglot--language-id :return "test"))
+
+      (should-not (whale-line-segments--lsp--help))
+
+      (setq lsp t)
+
+      (should (string= "Connected to 'a|'b" (whale-line-segments--lsp--help)))
+
+      (setq lsp nil
+            eglot t)
+
+      (should (string= "Connected to test::testing" (whale-line-segments--lsp--help))))))
+
+(ert-deftest lsp--with-count ()
+  (bydi ((:mock whale-line-iconify :return "LSP")
+         (:sometimes whale-line-segments--lsp--uses-lsp-mode-p)
+         (:mock lsp-workspaces :return '(a b c)))
+
+    (should (equal '("LSP" " " "3") (whale-line-segments--lsp--with-count)))
+
+    (bydi-toggle-sometimes)
+
+    (should (string= "LSP" (whale-line-segments--lsp--with-count)))))
 
 (ert-deftest lsp-segment ()
+
   (bydi ((:sometimes whale-line-segments--lsp--active-p)
-         (:mock whale-line-iconify :return "LSP"))
+         (:mock whale-line-segments--lsp--help :return "help"))
 
-    (with-temp-buffer
-      (should (equal '((:propertize "LSP"
-                                    help-echo "Connected to LSP server"))
-                     (whale-line-segments--lsp--segment)))
-
-      (bydi-toggle-sometimes)
-
-      (should-not (whale-line-segments--lsp--segment)))))
+    (should (equal '((:propertize (:eval (whale-line-segments--lsp--with-count)) help-echo "help"))
+                   (whale-line-segments--lsp--segment)))))
 
 (ert-deftest dap-active-p ()
   (let ((session nil)
@@ -546,7 +591,7 @@
       (should (equal '(:propertize "+1"
                                    face whale-line-contrast
                                    help-echo "Partial Recall Reality: 4/5 moments")
-                  (nth 2 result)))
+                     (nth 2 result)))
 
       (setq size 2
             cap 3
@@ -555,7 +600,7 @@
       (should (equal '(:propertize "2"
                                    face whale-line-shadow
                                    help-echo "Partial Recall Reality: 2/3 moments")
-                  (nth 2 result))))))
+                     (nth 2 result))))))
 
 (ert-deftest partial-recall--menu ()
   (defvar partial-recall-command-map)

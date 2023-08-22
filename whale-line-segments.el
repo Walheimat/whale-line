@@ -363,21 +363,60 @@ Returns nil if not checking or if no errors were found."
 ;;; -- LSP
 
 (declare-function lsp-workspaces "ext:lsp-mode.el")
+(declare-function lsp--workspace-print "ext:lsp-mode.el")
+(declare-function eglot-current-server "ext:eglot.el")
+(declare-function eglot-project-nickname "ext:eglot.el")
+(declare-function eglot--language-id "ext:eglot.el")
+
+(defun wls--lsp--uses-lsp-mode-p ()
+  "Check if buffer is manged by `lsp-mode'."
+  (and (featurep 'lsp-mode)
+       (bound-and-true-p lsp-mode)
+       (lsp-workspaces)))
+
+(defun wls--lsp--uses-eglot-p ()
+  "Check if buffer is manged by `eglot'."
+  (and (featurep 'eglot)
+       (bound-and-true-p eglot--managed-mode)))
 
 (defun wls--lsp--active-p ()
   "Check if an LSP mode is active."
+  (or (wls--lsp--uses-lsp-mode-p)
+      (wls--lsp--uses-eglot-p)))
+
+(defun wls--lsp--help ()
+  "Get the appropriate help text."
   (cond
-   ((featurep 'lsp-mode)
-    (lsp-workspaces))
-   ((featurep 'eglot)
-    (bound-and-true-p eglot--managed-mode))))
+   ((wls--lsp--uses-lsp-mode-p)
+    (concat
+     "Connected to "
+     (mapconcat #'lsp--workspace-print (lsp-workspaces) "|")))
+   ((wls--lsp--uses-eglot-p)
+    (let ((server (eglot-current-server)))
+      (concat
+       "Connected to "
+       (eglot--language-id server)
+       "::"
+       (eglot-project-nickname server))))))
+
+(defun wls--lsp--with-count ()
+  "Get the count of connected servers."
+  (if-let* ((icon (whale-line-iconify 'lsp))
+            ((wls--lsp--uses-lsp-mode-p))
+            (count (length (lsp-workspaces)))
+            ((> count 1)))
+
+      (list icon
+            (whale-line--spacer)
+            (propertize (number-to-string count) 'face 'whale-line-shadow))
+    icon))
 
 (defun wls--lsp--segment (&rest _args)
   "Indicate an active LSP session."
   (and-let* (((wls--lsp--active-p))
-             (help "Connected to LSP server"))
+             (help (wls--lsp--help)))
 
-    `((:propertize ,(whale-line-iconify 'lsp) help-echo ,help))))
+    `((:propertize (:eval (wls--lsp--with-count)) help-echo ,help))))
 
 (whale-line-create-stateful-segment lsp
   :getter wls--lsp--segment

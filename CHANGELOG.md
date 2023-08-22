@@ -33,8 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to better communicate their difference and usage.
 - Segment `tab-bar` now displays the tab index if no explicit name was
   set.
+- Segment `lsp-mode` now shows the servers/workspaces it's connected
+  to.
 
-### Fixed
+### fixed
 
 - The animation segment is now a dynamic segment, allowing the
   animation frame to no longer be local to a buffer.
