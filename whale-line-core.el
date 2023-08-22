@@ -610,6 +610,8 @@ Optionally FILTER out low priority segments."
   "Create a stateful segment called NAME.
 
 See underlying macro for the usage of ARGS."
+  (declare (indent defun))
+
   `(progn
      (whale-line-core--create-stateful-segment ,name ,@args)))
 
@@ -621,6 +623,8 @@ See underlying macro for the usage of ARGS."
   "Create a stateless segment called NAME.
 
 See underlying macro for the usage of ARGS."
+  (declare (indent defun))
+
   `(progn
      (whale-line-core--create-stateless-segment ,name ,@args)))
 
@@ -632,6 +636,8 @@ See underlying macro for the usage of ARGS."
   "Create an augment called NAME.
 
 See underlying macro for the usage of ARGS."
+  (declare (indent defun))
+
   `(progn
      (whale-line-core--create-augment ,name ,@args)))
 
