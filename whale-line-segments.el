@@ -761,6 +761,7 @@ menu for the library's command map."
 
     `((:propertize ,indicator
                    face ,(if (plist-get b-specs :implanted) 'whale-line-contrast 'whale-line-shadow)
+                   mouse-face whale-line-highlight
                    help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
                    local-map ,wls--partial-recall-mode-line-map)
       ,(whale-line--spacer)

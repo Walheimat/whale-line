@@ -596,6 +596,7 @@
       (should (equal
                '(:propertize "PR"
                              face whale-line-contrast
+                             mouse-face whale-line-highlight
                              help-echo "Partial Recall\nmouse-1: Implant/Excise\nmouse-3: Menu"
                              local-map nil)
                (nth 0 result)))
