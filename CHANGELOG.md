@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `whale-line-create-{dynamic=>stateless}-segment` and
   - `whale-line-create-{static=>stateful}-segment`
   to better communicate their difference and usage.
+- Segment `tab-bar` now displays the tab index if no explicit name was
+  set.
 
 ### Fixed
 

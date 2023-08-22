@@ -426,9 +426,19 @@
            (:mock project-name :return "project"))
       (should (propertized-string= "project" (whale-line-segments--project--segment))))))
 
-(ert-deftest tab-bar--get-explicit-name ()
-  (bydi ((:mock tab-bar--current-tab :with (lambda () '((explicit-name . t) (name . "test-tab")))))
-    (should (propertized-string= " test-tab " (whale-line-segments--tab-bar--get-explicit-name)))))
+(ert-deftest tab-bar ()
+  (let ((tab '((explicit-name . t) (name . "test-tab")))
+        (tab-bar-mode t))
+
+    (bydi ((:mock tab-bar--current-tab :return tab)
+           (:mock tab-bar--current-tab-index :return 42)
+           (:risky-mock fboundp :with always))
+
+      (should (propertized-string= " test-tab " (whale-line-segments--tab-bar--segment)))
+
+      (setcdr (assoc 'explicit-name tab) nil)
+
+      (should (propertized-string= " 42 " (whale-line-segments--tab-bar--segment))))))
 
 (ert-deftest vc--segment ()
   (let ((whale-line-segments--vc--info "test"))

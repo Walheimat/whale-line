@@ -560,23 +560,27 @@ Only consider Dired buffers and file buffers."
 
 ;;; --- Tab bar
 
-(defun wls--tab-bar--get-explicit-name ()
-  "Get the name of the tab if it was set explicitly."
-  (when-let* ((tab (tab-bar--current-tab))
-              ((alist-get 'explicit-name tab))
-              (name (alist-get 'name tab)))
+(defun wls--tab-bar--get-identifier ()
+  "Get the identifier of the current tab.
 
-    `((:propertize ,(concat " " name " ") face whale-line-highlight))))
+This is either an explicit name or its index."
+  (if-let* ((tab (tab-bar--current-tab))
+            ((alist-get 'explicit-name tab))
+            (name (alist-get 'name tab)))
+      name
+    (number-to-string (tab-bar--current-tab-index))))
+
+(defun wls--tab-bar--segment ()
+  "Get the name or number of the tab."
+  (and-let* (((bound-and-true-p tab-bar-mode))
+             (id (wls--tab-bar--get-identifier)))
+
+    `((:propertize ,(concat " " id " ") face whale-line-highlight))))
 
 (whale-line-create-stateful-segment tab-bar
-  :verify
-  (lambda () (featurep 'tab-bar))
-
-  :getter wls--tab-bar--get-explicit-name
-
-  :hooks
-  (window-configuration-change-hook)
-
+  :verify (lambda () (featurep 'tab-bar))
+  :getter wls--tab-bar--segment
+  :hooks (window-configuration-change-hook)
   :priority current-low)
 
 ;;; -- VC
