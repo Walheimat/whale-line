@@ -382,12 +382,12 @@
 (ert-deftest org--maybe-truncate--truncates ()
   (let ((whale-line-segments-org-max-heading-length 5))
 
-    (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing")))))
+    (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing" 'success)))))
 
 (ert-deftest org--maybe-truncate--skips ()
   (let ((whale-line-segments-org-max-heading-length 7))
 
-    (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing")))))
+    (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing" 'success)))))
 
 (ert-deftest org--get-next-heading ()
   (let ((org-level-faces '(red green blue orange)))
@@ -416,7 +416,8 @@
   (let ((first-heading t)
         (headings nil)
         (whale-line-segments-org-max-count 2)
-        (whale-line-segmenets-org-elision "*"))
+        (whale-line-segments-org-elision "*")
+        (whale-line-segments-org-separator " "))
 
     (bydi ((:mock org-before-first-heading-p :return first-heading)
            (:mock whale-line-segments--org--collect-headings :return headings)
@@ -445,6 +446,13 @@
 
       (with-temp-buffer
         (should (string= "One" (whale-line-segments--org--build-segment)))))))
+
+(ert-deftest org--segment ()
+  (bydi ((:always derived-mode-p)
+         (:always whale-line-segments--org--build-segment))
+
+    (should (whale-line-segments--org--segment))
+    (bydi-was-called whale-line-segments--org--build-segment)))
 
 (ert-deftest project--display-for-buffer-p--no-show-for-non-file-non-dired ()
   (with-temp-buffer

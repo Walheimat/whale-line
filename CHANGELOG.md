@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `whale-line-segments-org-max-count`. If a heading has more parents
   than set in this variable, they are elided. The elision is indicated
   by `whale-line-segments-org-elision`, defaulting to an asterisk.
+  Variable `whale-line-segments-org-divider` (between it and previous
+  segment) was removed and `whale-line-segment-org-separator` (between
+  subsegments) added.
 - Segment `partial-recall` now just shows the amount of mapped
   buffers, the full information is displayed in the help echo.
 - Macros have been renamed

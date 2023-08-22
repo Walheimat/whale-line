@@ -46,6 +46,7 @@ will need to call =whale-line-rebuild=.
                          buffer-status
                          position
                          lsp
+                         dap
                          selection
                          cursors
                          process
@@ -73,12 +74,20 @@ will need to call =whale-line-rebuild=.
                                              ])
   (whale-line-segments-animation-speed 0.4)
 
+  ;; Org.
+  (whale-line-segments-org-separator ">")
+  (whale-line-segments-org-ellispis "…")
+  (whale-line-segments-org-elision "*")
+  (whale-line-segments-org-max-count 2)
+  (whale-line-segments-org-max-heading-length 12)
+
   ;; Project provider.
   (whale-line-segments-project-provider 'projectile) ; Default is `project'.
 
   ;; Specs for used icons.
   (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))
                               (vc . (:name "code-fork"))
+                              (dap . (:name "bug"))
                               (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@"))
                               (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&"))
                               (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*"))

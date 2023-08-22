@@ -38,8 +38,8 @@
   :group 'whale-line-segments
   :type 'float)
 
-(defcustom whale-line-segments-org-delimiter "/"
-  "The delimiter between file name and heading name."
+(defcustom whale-line-segments-org-separator ">"
+  "The separator between headings."
   :group 'whale-line-segments
   :type 'string)
 
@@ -493,14 +493,16 @@ Returns nil if not checking or if no errors were found."
 (declare-function org-link-display-format "ext:org.el")
 (declare-function org-up-heading-safe "ext:org.el")
 
-(defun wls--org--maybe-truncate (heading)
-  "Maybe truncate HEADING."
+(defun wls--org--maybe-truncate (heading face)
+  "Maybe truncate HEADING.
+
+Use FACE for the ellipsis glyph."
   (let ((max-len wls-org-max-heading-length)
         (len (string-width heading))
         (ellipsis-len (string-width wls-org-ellipsis)))
     (if (> len max-len)
         (concat (substring heading 0 (max (- max-len ellipsis-len) 1))
-                wls-org-ellipsis)
+                (propertize wls-org-ellipsis 'face face))
       heading)))
 
 (defun wls--org--get-next-heading ()
@@ -539,19 +541,17 @@ Returns nil if not checking or if no errors were found."
            (if (>= count wls-org-max-count)
                (propertize wls-org-elision 'face (nth i org-level-faces))
              (setq count (1+ count))
-             (wls--org--maybe-truncate it))))
+             (wls--org--maybe-truncate it (nth i org-level-faces)))))
        (reverse headings))
-      (whale-line--spacer)))))
+      (propertize wls-org-separator 'face 'whale-line-shadow)))))
+
+(defun wls--org--segment ()
+  "Get the Org segment."
+  (when (derived-mode-p 'org-mode)
+    (wls--org--build-segment)))
 
 (whale-line-create-stateless-segment org
-  :getter
-  (let ((segment (wls--org--build-segment)))
-    (when segment
-      (concat
-       wls-org-delimiter
-       (whale-line--spacer)
-       (wls--org--build-segment))))
-
+  :getter wls--org--segment
   :condition
   (eq major-mode 'org-mode))
 
