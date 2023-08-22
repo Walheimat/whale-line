@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `whale-line-iconify-disabled`.
 - Segments can use `:dense` again. Such segments will receive
   no padding irrespective of the side they're on.
+- Segment for `dap-mode`.
 
 ### Changed
 

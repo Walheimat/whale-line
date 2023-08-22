@@ -43,7 +43,8 @@ This has no effect if icons cannot be enabled. See
     (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*" :parent buffer-status))
     (window-dedicated . (:name "link" :face whale-line-shadow :fallback "^"))
     (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
-    (lsp . (:name "server" :face whale-line-contrast :fallback "LSP"))
+    (lsp . (:name "plug" :face whale-line-contrast :fallback "LSP"))
+    (dap . (:name "bug" :face whale-line-urgent :fallback "DAP"))
     (partial-recall . (:name "tag" :face whale-line-contrast :fallback "PR")))
   "Named icon specifications.
 

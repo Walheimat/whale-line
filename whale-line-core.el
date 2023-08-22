@@ -42,6 +42,7 @@
                                  buffer-status
                                  position
                                  lsp
+                                 dap
                                  selection
                                  cursors
                                  process
@@ -108,6 +109,11 @@ constraints."
 (defface whale-line-notification
   '((t (:inherit (compilation-info))))
   "Face used for notification."
+  :group 'whale-line)
+
+(defface whale-line-urgent
+  '((t (:inherit (compilation-error))))
+  "Face used for urgency."
   :group 'whale-line)
 
 ;;; -- Utility

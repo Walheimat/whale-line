@@ -278,6 +278,37 @@
 
       (should-not (whale-line-segments--lsp--segment)))))
 
+(ert-deftest dap-active-p ()
+  (let ((session nil)
+        (running nil))
+
+    (bydi ((:sometimes featurep)
+           (:mock dap--cur-session :return session)
+           (:mock dap--session-running :return running))
+
+      (with-temp-buffer
+        (defvar dap-mode t)
+
+        (should-not (whale-line-segments--dap--active-p))
+        (setq session 'session)
+        (should-not (whale-line-segments--dap--active-p))
+        (setq running t)
+        (should (whale-line-segments--dap--active-p))
+        (setq-local dap-mode nil)
+        (should-not (whale-line-segments--dap--active-p))
+
+        (bydi-toggle-sometimes)
+        (should-not (whale-line-segments--dap--active-p))))))
+
+(ert-deftest dap-segment ()
+  (bydi ((:mock whale-line-iconify :return "*")
+         (:always whale-line-segments--dap--active-p)
+         dap--cur-session
+         (:mock dap--debug-session-name :return "Test"))
+
+    (should (equal '((:propertize "*" help-echo "Debugging Test"))
+                   (whale-line-segments--dap--segment)))))
+
 (ert-deftest minions--list ()
   (defvar minions-mode)
   (defvar minions-mode-line-lighter)
