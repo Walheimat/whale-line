@@ -625,61 +625,71 @@ This is either an explicit name or its index."
 
 ;;; -- VC
 
-(defvar-local wls--vc--state nil)
-
-(defun wls--vc--update-state ()
-  "Update the version control state."
-  (when-let ((state (wls--vc--get-state)))
-    (setq-local wls--vc--state state)))
-
-(defun wls--vc--get-state ()
-  "Get the version control state."
-  (when-let ((backend (vc-backend buffer-file-name)))
-    (vc-state (file-local-name buffer-file-name) backend)))
-
-(defun wls--vc--face-for-state ()
-  "Get the correct face for the state."
-  (let ((state wls--vc--state))
-    (cond ((eq state 'needs-update)
-           'whale-line-contrast)
-          ((eq state 'edited)
-           'whale-line-indicate)
-          ((memq state '(removed conflict unregistered))
-           'whale-line-contrast)
-          (t 'whale-line-neutral))))
+(declare-function vc-git-root "ext:vc-git.el")
 
 (defvar wls--vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
-(defvar-local wls--vc--info nil)
 
-(defun wls--vc--update-info ()
-  "Update version control info."
-  (when-let ((info (wls--vc--get-info)))
-    (setq-local wls--vc--info info)))
+(defvar wls--vc--states '((up-to-date . whale-line-neutral)
+                          (edited . whale-line-indicate)
+                          (needs-update . whale-line-contrast)
+                          (needs-merge . whale-line-urgent)
+                          (unlocked-changes . whale-line-urgent)
+                          (added . whale-line-emphasis)
+                          (removed . whale-line-emphasis)
+                          (conflict . whale-line-urgent)
+                          (missing . whale-line-contrast)
+                          (ignored . whale-line-shadow)
+                          (unregistered . whale-line-shadow)))
 
-(defun wls--vc--get-info ()
+(defun wls--vc--face-for-state (state)
+  "Get the correct face for the STATE."
+  (alist-get state wls--vc--states 'whale-line-neutral))
+
+(defun wls--vc ()
   "Get version control info."
+  (and-let* (((buffer-file-name))
+             (info (or (wls--vc-registered--info) (wls--vc-unregistered--info))))
+
+    `(,@(when-let ((icon (whale-line-iconify 'vc)))
+          (list icon (whale-line--spacer)))
+      ,info)))
+
+;;;; -- Registered
+
+(defun wls--vc-registered--info ()
+  "Get info for registered files."
   (and-let* (((and vc-mode buffer-file-name))
              (backend (vc-backend buffer-file-name))
-             (status (if vc-display-status
-                         (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))
-                       ""))
-             (face (wls--vc--face-for-state)))
+             (status (and vc-display-status
+                          (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))))
+             (state (vc-state buffer-file-name backend)))
 
-    `(,@(when-let ((icon (whale-line-iconify 'vc face)))
-          (list icon (whale-line--spacer)))
-      (:propertize ,(replace-regexp-in-string wls--vc--scope-regexp "" status)
-                   mouse-face whale-line-highlight
-                   face ,face))))
+    `(:propertize ,(replace-regexp-in-string wls--vc--scope-regexp "" status)
+                  mouse-face whale-line-highlight
+                  face ,(wls--vc--face-for-state state))))
 
-(defun wls--vc--segment ()
-  "Get the VC segment."
-  (progn
-    (wls--vc--update-state)
-    (wls--vc--update-info)
-    wls--vc--info))
+;;;; -- Unregistered
+
+(defun wls--vc-unregistered--git-p (file)
+  "Check whether the unregistered FILE is in a git repository."
+  (require 'vc-git)
+  (vc-git-root file))
+
+(defun wls--vc-unregistered--info ()
+  "Get info for unregistered files."
+  (when-let ((file (buffer-file-name)))
+
+    (cond
+     ((wls--vc-unregistered--git-p file)
+      (when-let* ((state (vc-state file 'Git))
+                  (help (format "File state: %s" state)))
+
+        `(:propertize "Git"
+                      face ,(wls--vc--face-for-state state)
+                      help-echo ,help))))))
 
 (whale-line-create-stateful-segment vc
-  :getter wls--vc--segment
+  :getter wls--vc
 
   :hooks
   (find-file-hook after-save-hook)

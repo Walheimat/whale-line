@@ -497,72 +497,69 @@
 
       (should (propertized-string= " 42 " (whale-line-segments--tab-bar--segment))))))
 
-(ert-deftest vc--segment ()
-  (let ((whale-line-segments--vc--info "test"))
-
-    (bydi (whale-line-segments--vc--update-state
-           whale-line-segments--vc--update-info)
-
-      (should (string= "test" (whale-line-segments--vc--segment)))
-      (bydi-was-called whale-line-segments--vc--update-state)
-      (bydi-was-called whale-line-segments--vc--update-info))))
-
-(ert-deftest vc--update-state ()
-  (bydi ((:mock whale-line-segments--vc--get-state :with bydi-rt))
-    (with-temp-buffer
-      (should-not whale-line-segments--vc--state)
-
-      (whale-line-segments--vc--update-state)
-
-      (should (equal 'testing whale-line-segments--vc--state)))))
-
-(ert-deftest vc--get-state ()
-  (bydi ((:mock vc-backend :with bydi-rt)
-         vc-state
-         (:mock file-local-name :return "/tmp/testing"))
-
-    (whale-line-segments--vc--get-state)
-
-    (bydi-was-called-with vc-state (list "/tmp/testing" 'testing))))
+;;; -- VC
 
 (ert-deftest vc--face-for-state ()
-  (with-temp-buffer
-    (setq whale-line-segments--vc--state 'needs-update)
-    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-contrast))
+  (let ((whale-line-segments--vc--states '((test . neutral)
+                                           (live . urgent))))
 
-    (setq whale-line-segments--vc--state 'edited)
-    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-indicate))
+    (should (eq 'neutral (whale-line-segments--vc--face-for-state 'test)))
+    (should (eq 'urgent (whale-line-segments--vc--face-for-state 'live)))
+    (should (eq 'whale-line-neutral (whale-line-segments--vc--face-for-state 'unknown)))))
 
-    (setq whale-line-segments--vc--state 'conflict)
-    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-contrast))
+(ert-deftest vc ()
+  (bydi ((:always buffer-file-name)
+         (:ignore whale-line-segments--vc-registered--info)
+         (:mock whale-line-segments--vc-unregistered--info :return "test")
+         (:mock whale-line-iconify :return "*"))
 
-    (setq whale-line-segments--vc--state 'unknown)
-    (should (eq (whale-line-segments--vc--face-for-state) 'whale-line-neutral))))
+    (should (equal '("*" " " "test")
+                   (whale-line-segments--vc)))))
 
-(ert-deftest vc--update-info ()
-  (with-temp-buffer
-    (should-not whale-line-segments--vc--info)
+(ert-deftest vc-registered--info ()
+  (defvar vc-mode)
+  (defvar buffer-file-name)
 
-    (bydi ((:mock whale-line-segments--vc--get-info :return "testing"))
-      (whale-line-segments--vc--update-info)
-      (should (string= whale-line-segments--vc--info "testing")))))
-
-(ert-deftest vc--get-info--no-op-for-non-vc-files ()
-  (with-temp-buffer
-    (should-not (whale-line-segments--vc--get-info))))
-
-(ert-deftest vc--get-info ()
   (let ((vc-display-status t)
-        (find-file-hook . nil))
+        (find-file-hook . nil)
+        (buffer-file-name "/tmp/test")
+        (vc-mode " Git:feature/tests"))
 
     (bydi ((:mock vc-backend :return "none")
-           (:mock whale-line-iconify :return "*"))
+           (:mock vc-state :return 'testing)
+           (:mock whale-line-iconify :return "*")
+           (:mock whale-line-segments--vc--face-for-state :return 'test-face))
 
-      (ert-with-temp-file testing
-        (with-current-buffer (find-file-noselect testing)
-          (setq-local vc-mode " Git:feature/tests")
-          (should (string= "*" (nth 0 (whale-line-segments--vc--get-info))))
-          (should (string= "tests" (nth 1 (nth 2 (whale-line-segments--vc--get-info))))))))))
+      (should (equal '(:propertize "tests" mouse-face whale-line-highlight face test-face)
+                     (whale-line-segments--vc-registered--info))))))
+
+(ert-deftest vc-unregistered--git-p ()
+  (let ((file "/tmp/test"))
+
+    (bydi (require
+           (:sometimes vc-git-root))
+
+      (should (whale-line-segments--vc-unregistered--git-p file))
+      (bydi-toggle-sometimes)
+      (should-not (whale-line-segments--vc-unregistered--git-p file))
+
+      (bydi-was-called-last-with vc-git-root file))))
+
+(ert-deftest vc-unregistered--info ()
+  (let ((name nil))
+    (bydi ((:mock buffer-file-name :return name)
+           (:sometimes whale-line-segments--vc-unregistered--git-p)
+           (:mock whale-line-segments--vc--face-for-state :return 'test-face)
+           (:mock vc-state :return 'testing))
+
+      (should-not (whale-line-segments--vc-unregistered--info))
+      (setq name "/tmp/testing")
+      (should (equal '(:propertize "Git" face test-face help-echo "File state: testing")
+                     (whale-line-segments--vc-unregistered--info)))
+      (bydi-toggle-sometimes)
+      (should-not (whale-line-segments--vc-unregistered--info)))))
+
+;;; -- Partial recall
 
 (ert-deftest can-use-partial-recall ()
   (should-not (whale-line-segments--can-use-partial-recall-p))

@@ -37,7 +37,7 @@ This has no effect if icons cannot be enabled. See
 
 (defcustom whale-line-iconify-specs
   '((project . (:name "package" :font octicon :face whale-line-emphasis))
-    (vc . (:name "code-fork"))
+    (vc . (:name "code-fork" :face whale-line-contrast))
     (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@" :parent buffer-status))
     (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&" :parent buffer-status))
     (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*" :parent buffer-status))

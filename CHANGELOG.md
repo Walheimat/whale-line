@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   set.
 - Segment `lsp-mode` now shows the servers/workspaces it's connected
   to.
+- The logic for `vc` segment has changed. It now can display all
+  states for Git-based projects.
 
 ### Fixed
 
