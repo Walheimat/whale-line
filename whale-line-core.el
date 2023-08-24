@@ -36,7 +36,7 @@
   "A minimal mode-line configuration inspired by doom-modeline."
   :group 'mode-line)
 
-(defcustom whale-line-segments '(buffer-icon
+(defcustom whale-line-segments '(major-mode
                                  buffer-identification
                                  org
                                  buffer-status

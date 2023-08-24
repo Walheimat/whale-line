@@ -47,6 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to.
 - The logic for `vc` segment has changed. It now can display all
   states for Git-based projects.
+- Segment `buffer-icon` was renamed to `major-mode`; it now displays
+  either the icon or the `mode-name` when the segment is part of
+  `whale-line-iconify-disabled`.
 
 ### Fixed
 

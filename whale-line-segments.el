@@ -334,25 +334,33 @@ Returns nil if not checking or if no errors were found."
   :hooks
   (flycheck-status-changed-functions))
 
-;;;; -- Buffer icon
+;;;; -- Major mode
 
-(defun wls--buffer-icon ()
-  "Get the buffer icon segment."
-  (let ((icon (all-the-icons-icon-for-buffer)))
+(defun wls--major-mode--icon ()
+  "Get the icon for the `major-mode'."
+  (and-let* (((whale-line-iconify--use-for-p 'major-mode))
+             (icon (all-the-icons-icon-for-buffer))
+             (icon (if (or (null icon) (symbolp icon))
+                       '(:eval (whale-line-iconify 'buffer-fallback))
+                     icon)))
 
-    `((:propertize ,(if (or (null icon) (symbolp icon))
-                        '(:eval (whale-line-iconify 'buffer-fallback))
-                      icon)
+    `((:propertize ,icon
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
-(whale-line-create-stateful-segment buffer-icon
-  :verify whale-line-iconify--can-use-p
+(defun wls--major-mode--text ()
+    "Get the text for the `major-mode'."
+    `((:propertize ,(format " %s " mode-name) face whale-line-highlight)))
 
+(defun wls--major-mode ()
+  "Get the `major-mode' segment."
+  (or (wls--major-mode--icon) (wls--major-mode--text)))
+
+(whale-line-create-stateful-segment major-mode
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
 
-  :getter wls--buffer-icon)
+  :getter wls--major-mode)
 
 ;;; -- LSP
 

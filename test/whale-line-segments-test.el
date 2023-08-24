@@ -237,12 +237,34 @@
 
         (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success)) whale-line-buffer-identification--segment))))))
 
-(ert-deftest buffer-icon ()
-  (bydi ((:mock all-the-icons-icon-for-buffer :return "?")
+;;; -- Major mode
+
+(ert-deftest major-mode--icon ()
+  (bydi ((:always whale-line-iconify--use-for-p)
+         (:mock all-the-icons-icon-for-buffer :return "?")
          (:mock format-mode-line :return "echo"))
 
-    (should (equal (whale-line-segments--buffer-icon)
-                   '((:propertize "?" help-echo "echo" display (raise -0.135)))))))
+    (should (equal '((:propertize "?" help-echo "echo" display (raise -0.135)))
+                   (whale-line-segments--major-mode--icon)))))
+
+(ert-deftest major-mode--text ()
+  (let ((mode-name "Test"))
+
+    (should (equal '((:propertize " Test " face whale-line-highlight))
+                   (whale-line-segments--major-mode--text)))))
+
+(ert-deftest major-mode ()
+  (bydi ((:sometimes whale-line-segments--major-mode--icon)
+         (:always whale-line-segments--major-mode--text))
+
+    (should (whale-line-segments--major-mode))
+    (bydi-was-called whale-line-segments--major-mode--icon)
+    (bydi-was-not-called whale-line-segments--major-mode--text)
+    (bydi-toggle-sometimes)
+    (whale-line-segments--major-mode)
+    (bydi-was-called whale-line-segments--major-mode--text)))
+
+;;; -- LSP mode
 
 (ert-deftest lsp--uses-lsp-mode-p ()
   (defvar lsp-mode)
