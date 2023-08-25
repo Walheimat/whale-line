@@ -255,31 +255,6 @@ Afterwards a mode-line update is forced to display the new frame."
 
   :priority current-low)
 
-;;;; -- Cursors
-
-(declare-function mc/num-cursors "ext:multiple-cursors.el")
-(declare-function iedit-counter "ext:iedit.el")
-
-(defun wls--cursors--count ()
-  "Get the cursor count."
-  (let* ((mc-cursors (when (bound-and-true-p multiple-cursors-mode)
-                       (mc/num-cursors)))
-         (iedit-cursors (when (bound-and-true-p iedit-mode)
-                          (iedit-counter)))
-         (cursors (or mc-cursors iedit-cursors)))
-
-    (when cursors
-      `((:propertize ,(format " %d " cursors) face whale-line-highlight)))))
-
-(whale-line-create-stateless-segment cursors
-  :getter wls--cursors--count
-
-  :condition
-  (or (bound-and-true-p multiple-cursors-mode)
-      (bound-and-true-p iedit-mode))
-
-  :priority current)
-
 ;;;; -- Flycheck
 
 (declare-function flycheck-count-errors "ext:flycheck.el")

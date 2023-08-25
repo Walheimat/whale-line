@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `whale-line-segments-project-provider` was removed; `projectile` is
   no longer supported.
+- `whale-line-cursors` segment. The information is already available
+  through the minor mode strings.
 
 ### Changed
 

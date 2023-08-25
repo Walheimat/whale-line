@@ -44,7 +44,6 @@
                                  lsp
                                  dap
                                  selection
-                                 cursors
                                  process
                                  window-status
                                  |

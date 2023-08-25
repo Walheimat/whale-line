@@ -157,29 +157,6 @@
       (bydi-was-called cancel-timer)
       (should-not whale-line-segments--animation-timer))))
 
-(ert-deftest cursors--count ()
-  (defvar mulitple-cursors-mode)
-  (defvar iedit-mode)
-
-  (let ((mulitple-cursors-mode nil)
-        (iedit-mode nil))
-
-    (should-not (whale-line-segments--cursors--count))
-
-    (bydi ((:mock mc/num-cursors :return 2))
-
-      (with-temp-buffer
-        (setq-local multiple-cursors-mode t)
-
-        (should (propertized-string= " 2 " (whale-line-segments--cursors--count)))))
-
-    (bydi ((:mock iedit-counter :return 3))
-
-      (with-temp-buffer
-        (setq-local iedit-mode t)
-
-        (should (propertized-string= " 3 " (whale-line-segments--cursors--count)))))))
-
 (ert-deftest can-use-flycheck-p ()
   (bydi ((:sometimes require))
 
