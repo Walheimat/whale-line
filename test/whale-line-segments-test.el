@@ -58,23 +58,22 @@
 
   (set-window-parameter (selected-window) 'no-other-window nil))
 
+;;; Position
+
 (ert-deftest position ()
-  (bydi ((:mock image-mode-window-get :return 1)
-         (:mock doc-view-last-page-number :return 2))
-
-    (with-temp-buffer
-      (setq major-mode 'doc-view-mode)
-
-      (should (propertized-string= "1/2" (whale-line-segments--position)))))
-
   (with-temp-buffer
-    (should (propertized-string= "%l:%c %p%" (whale-line-segments--position)))
+    (setq major-mode 'doc-view-mode)
 
-    (defvar follow-mode)
+    (should (equal '((:propertize (:eval (format "%d/%d" (image-mode-window-get 'page) (doc-view-last-page-number)))
+                                  face whale-line-shadow))
+                   (whale-line-segments--position))))
 
-    (setq follow-mode t)
+  (let ((mode-line-position-column-line-format '(" (%l/%c)")))
 
-    (should (propertized-string= "f: %l:%c %p%" (whale-line-segments--position)))))
+    (should (equal '((:propertize "(%l/%c)" face whale-line-shadow)
+                     " "
+                     (:propertize ("" mode-line-percent-position) face whale-line-shadow))
+                   (whale-line-segments--position)))))
 
 (ert-deftest misc-info ()
   (let ((mode-line-misc-info '("a" "b")))

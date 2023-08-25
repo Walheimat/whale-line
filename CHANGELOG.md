@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `buffer-icon` was renamed to `major-mode`; it now displays
   either the icon or the `mode-name` when the segment is part of
   `whale-line-iconify-disabled`.
+- Segment `position` now respects `mode-line-column-line-format` and
+  `mode-line-percent-position`.
 
 ### Fixed
 
