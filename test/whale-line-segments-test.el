@@ -39,14 +39,24 @@
 
                         (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
 
+;;; -- Window status
+
 (ert-deftest window-status ()
   (should-not (whale-line-segments--window-status))
 
   (set-window-dedicated-p (selected-window) t)
 
-  (should (propertized-string= "^" (whale-line-segments--window-status)))
+  (should (string= "^" (whale-line-segments--window-status)))
 
-  (set-window-dedicated-p (selected-window) nil))
+  (set-window-parameter (selected-window) 'no-other-window t)
+
+  (should (string= "~ ^" (whale-line-segments--window-status)))
+
+  (set-window-dedicated-p (selected-window) nil)
+
+  (should (string= "~" (whale-line-segments--window-status)))
+
+  (set-window-parameter (selected-window) 'no-other-window nil))
 
 (ert-deftest position ()
   (bydi ((:mock image-mode-window-get :return 1)

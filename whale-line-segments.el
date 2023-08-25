@@ -121,8 +121,14 @@ icon name and the face.")
 
 (defun wls--window-status ()
   "Render window status segment."
-  (when (window-dedicated-p)
-    (whale-line-iconify 'window-dedicated)))
+  (let* ((icons (delq nil
+                         (list
+                          (and (window-parameter (selected-window) 'no-other-window) 'window-no-other)
+                          (and (window-dedicated-p) 'window-dedicated))))
+         (combined (mapconcat #'whale-line-iconify icons (whale-line--spacer))))
+
+    (unless (string-empty-p combined)
+      combined)))
 
 (whale-line-create-stateless-segment window-status
   :getter wls--window-status

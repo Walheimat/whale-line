@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment for `dap-mode`.
 - `project` segment now has a local map, binding `project-dired` to
   `mouse-1`.
+- `window-status` segment now indicates when a window has parameter
+  `no-other-window`.
 
 ### Removed
 
