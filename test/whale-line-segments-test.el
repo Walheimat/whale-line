@@ -86,12 +86,9 @@
 
     (should (equal '("a" "b") (whale-line-segments--process)))))
 
-(ert-deftest selection--get-columns ()
-  (with-temp-buffer
-    (insert-file-contents rectangle)
-    (should (eq (whale-line-selection--get-columns 1 30) 9))))
+;;; -- Selection
 
-(ert-deftest selection--lines ()
+(ert-deftest selection--area ()
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
@@ -99,9 +96,8 @@
       (push-mark))
     (goto-char (point-max))
 
-    (should (propertized-string= " 3 " (whale-line-segments--selection)))))
+    (should (string= " 3 " (whale-line-segments--selection--area))))
 
-(ert-deftest selection--rectangle ()
   (with-temp-buffer
     (insert-file-contents rectangle)
     (goto-char (point-min))
@@ -109,7 +105,11 @@
       (rectangle-mark-mode))
     (goto-char (1- (point-max)))
 
-    (should (propertized-string= " 3x9 " (whale-line-segments--selection)))))
+    (should (string= " 3×9 " (whale-line-segments--selection--area)))))
+
+(ert-deftest selection ()
+  (should (equal '((:propertize (:eval (whale-line-segments--selection--area)) face region))
+                 (whale-line-segments--selection))))
 
 (ert-deftest animation-animate ()
   (bydi (force-mode-line-update)

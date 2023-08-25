@@ -185,24 +185,34 @@ icon name and the face.")
 
 ;;;; -- Selection
 
-(defun whale-line-selection--get-columns (beg end)
-  "Get the columns from BEG to END for displaying `rectangle-mode'."
-  (abs (- (save-excursion (goto-char end)
-                          (current-column))
-          (save-excursion (goto-char beg)
-                          (current-column)))))
+(defun wls--selection--columns ()
+  "Get the columns for the region."
+  (let ((beg (region-beginning))
+        (end (region-end)))
+
+    (abs (- (save-excursion (goto-char end)
+                            (current-column))
+            (save-excursion (goto-char beg)
+                            (current-column))))))
+
+(defun wls--selection--rows ()
+  "Get the rows for the region.."
+  (let ((beg (region-beginning))
+        (end (region-end)))
+
+    (count-lines beg (min end (point-max)))))
+
+(defun wls--selection--area ()
+  "Get area of selection."
+  (let ((rows (wls--selection--rows)))
+
+    (if (bound-and-true-p rectangle-mark-mode)
+        (format (format " %d×%d " rows (wls--selection--columns)))
+      (format " %d " rows))))
 
 (defun wls--selection ()
   "Show the selection."
-  (let* ((beg (region-beginning))
-         (end (region-end))
-         (lines (count-lines beg (min end (point-max)))))
-
-    `((:propertize ,(if (bound-and-true-p rectangle-mark-mode)
-                        (let ((columns (whale-line-selection--get-columns beg end)))
-                          (format " %dx%d " lines columns))
-                      (format " %d " lines))
-                   face region))))
+  `((:propertize (:eval (wls--selection--area)) face region)))
 
 (whale-line-create-stateless-segment selection
   :condition mark-active
