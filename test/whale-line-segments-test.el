@@ -66,20 +66,19 @@
 
 ;;; Position
 
+(ert-deftest position--line-and-column ()
+  (let ((mode-line-position-column-line-format '(" (%l, %c)")))
+
+    (should (string= "(%l, %c)" (whale-line-segments--position--line-and-column)))))
+
+(ert-deftest position--doc-view ()
+  (bydi ((:mock image-mode-window-get :return 1)
+         (:mock doc-view-last-page-number :return 42))
+
+    (should (string= "1/42" (whale-line-segments--position--doc-view)))))
+
 (ert-deftest position ()
-  (with-temp-buffer
-    (setq major-mode 'doc-view-mode)
-
-    (should (equal '((:propertize (:eval (format "%d/%d" (image-mode-window-get 'page) (doc-view-last-page-number)))
-                                  face whale-line-shadow))
-                   (whale-line-segments--position))))
-
-  (let ((mode-line-position-column-line-format '(" (%l/%c)")))
-
-    (should (equal '((:propertize "(%l/%c)" face whale-line-shadow)
-                     " "
-                     (:propertize ("" mode-line-percent-position) face whale-line-shadow))
-                   (whale-line-segments--position)))))
+  (should (equal whale-line-segments--position (whale-line-segments--position))))
 
 (ert-deftest misc-info ()
   (let ((mode-line-misc-info '("a" "b")))
