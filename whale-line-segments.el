@@ -180,13 +180,8 @@ icon name and the face.")
 
 ;;;; -- Misc info
 
-(defun wls--misc-info ()
-  "Render the misc info segment."
-  mode-line-misc-info)
-
 (whale-line-create-stateless-segment misc-info
-  :condition mode-line-misc-info
-  :getter wls--misc-info
+  :getter (lambda () mode-line-misc-info)
   :priority current-low)
 
 ;;;; -- Minor modes
@@ -197,13 +192,8 @@ icon name and the face.")
 
 ;;;; -- Process
 
-(defun wls--process ()
-  "Get process segment."
-  mode-line-process)
-
 (whale-line-create-stateless-segment process
-  :getter wls--process
-  :condition mode-line-process
+  :getter (lambda () mode-line-process)
   :priority current)
 
 ;;;; -- Selection

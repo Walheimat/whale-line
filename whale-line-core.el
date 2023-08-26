@@ -407,7 +407,7 @@ the docstring. If APPLY is t, use `apply' instead of `funcall'."
             `(apply ,fun args))
         (if (symbolp fun)
             `(funcall ',fun)
-          fun))))
+          `(funcall ,fun)))))
 
 (defmacro whale-line--omit (name type)
   "Indicate that segment NAME was omitted.

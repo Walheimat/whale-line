@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Augment `flycheck` now sets variables for `buffer-identification` so
   that segment running its hooks won't remove the underlining.
+- Passing lambdas as a `:getter` should work now.
 
 ## [v0.7.1]
 

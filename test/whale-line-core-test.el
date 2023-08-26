@@ -192,7 +192,7 @@
    '(defun test-fun
        (&rest _args)
      "Docs."
-     (lambda nil t))))
+     (funcall (lambda nil t)))))
 
 (ert-deftest whale-line--function--sym ()
   (bydi-match-expansion

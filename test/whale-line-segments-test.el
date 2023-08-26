@@ -71,16 +71,6 @@
 (ert-deftest position ()
   (should (equal whale-line-segments--position (whale-line-segments--position))))
 
-(ert-deftest misc-info ()
-  (let ((mode-line-misc-info '("a" "b")))
-
-    (should (equal '("a" "b") (whale-line-segments--misc-info)))))
-
-(ert-deftest process ()
-  (let ((mode-line-process '("a" "b")))
-
-    (should (equal '("a" "b") (whale-line-segments--process)))))
-
 ;;; -- Selection
 
 (ert-deftest selection--area ()
