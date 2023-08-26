@@ -28,22 +28,13 @@
     (should (whale-line-segments--buffer-status--dense-p))))
 
 (ert-deftest buffer-status ()
-  (with-temp-buffer
-    (read-only-mode)
+  (bydi ((:always buffer-modified-p))
+    (should (string= "*" (whale-line-segments--buffer-status--modified))))
 
-    (should (propertized-string= "@" (whale-line-segments--buffer-status)))
+  (should (string= "@" (whale-line-segments--buffer-status--read-only)))
+  (should (string= "&" (whale-line-segments--buffer-status--no-file)))
 
-    (read-only-mode -1)
-
-    (should (propertized-string= "&" (whale-line-segments--buffer-status))))
-
-  (ert-with-temp-file buffer-status :buffer current
-                      (with-current-buffer current
-                        (should-not (whale-line-segments--buffer-status))
-
-                        (insert "test")
-
-                        (should (propertized-string= "*" (whale-line-segments--buffer-status))))))
+  (should (equal whale-line-segments--buffer-status (whale-line-segments--buffer-status))))
 
 ;;; -- Window status
 

@@ -100,18 +100,29 @@ icon name and the face.")
 
 ;;;; -- Buffer status
 
+(defvar wls--buffer-status
+  '((buffer-read-only
+     (:eval (wls--buffer-status--read-only))
+     (buffer-file-name
+      (:eval (wls--buffer-status--modified))
+      (:eval (wls--buffer-status--no-file))))))
+
+(defun wls--buffer-status--modified ()
+  "Buffer status for a modified buffer."
+  (and (buffer-modified-p)
+       (whale-line-iconify 'buffer-modified)))
+
+(defun wls--buffer-status--read-only ()
+  "Buffer status for a read-only buffer."
+  (whale-line-iconify 'buffer-read-only))
+
+(defun wls--buffer-status--no-file ()
+  "Buffer status for non-file buffers."
+  (whale-line-iconify 'buffer-file-name))
+
 (defun wls--buffer-status ()
   "Render buffer status segment."
-  (let ((render (cond
-                 (buffer-read-only
-                  (whale-line-iconify 'buffer-read-only))
-                 ((not (buffer-file-name))
-                  (whale-line-iconify 'buffer-file-name))
-                 ((buffer-modified-p)
-                  (whale-line-iconify 'buffer-modified))
-                 (t nil))))
-
-    render))
+  wls--buffer-status)
 
 (defun wls--buffer-status--dense-p ()
   "Check whether the segment should be dense."
