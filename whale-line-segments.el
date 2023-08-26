@@ -120,16 +120,12 @@ icon name and the face.")
   "Buffer status for non-file buffers."
   (whale-line-iconify 'buffer-file-name))
 
-(defun wls--buffer-status ()
-  "Render buffer status segment."
-  wls--buffer-status)
-
 (defun wls--buffer-status--dense-p ()
   "Check whether the segment should be dense."
   (not (whale-line-iconify--use-for-p 'buffer-status)))
 
 (whale-line-create-stateless-segment buffer-status
-  :getter wls--buffer-status
+  :getter (lambda () wls--buffer-status)
   :dense wls--buffer-status--dense-p)
 
 ;;;; -- Window status
@@ -170,12 +166,8 @@ icon name and the face.")
   "Get the position in a document."
   (format "%d/%d" (image-mode-window-get 'page) (doc-view-last-page-number)))
 
-(defun wls--position ()
-  "Render the position segment."
-  wls--position)
-
 (whale-line-create-stateless-segment position
-  :getter wls--position
+  :getter (lambda () wls--position)
   :priority current)
 
 ;;;; -- Misc info
@@ -225,12 +217,8 @@ icon name and the face.")
 
     (number-to-string (count-lines beg (min end (point-max))))))
 
-(defun wls--selection ()
-  "Show the selection."
-  wls--selection)
-
 (whale-line-create-stateless-segment selection
-  :getter wls--selection
+  :getter (lambda () wls--selection)
   :priority current-low)
 
 ;;;; -- Animation
@@ -238,6 +226,10 @@ icon name and the face.")
 (defvar wls--animation-frame-index 0)
 (defvar wls--animation-timer nil)
 (defvar wls--animation-frame nil)
+
+(defvar wls--animation
+  `((wls--animation-frame
+     (:propertize wls--animation-frame face whale-line-emphasis))))
 
 (defun wls--animation-animate ()
   "Animate.
@@ -254,11 +246,6 @@ Afterwards a mode-line update is forced to display the new frame."
 
     (force-mode-line-update)))
 
-(defun wls--animation-segment ()
-  "Get the animation segment."
-  (when-let ((frame wls--animation-frame))
-    `((:propertize ,frame face whale-line-emphasis))))
-
 (defun wls--animation-start-timer ()
   "Set up the animation timer."
   (unless wls--animation-timer
@@ -271,12 +258,9 @@ Afterwards a mode-line update is forced to display the new frame."
     (setq wls--animation-timer nil)))
 
 (whale-line-create-stateless-segment animation
-  :getter wls--animation-segment
-
+  :getter (lambda () wls--animation)
   :setup wls--animation-start-timer
-
   :teardown wls--animation-stop-timer
-
   :priority current-low)
 
 ;;;; -- Flycheck

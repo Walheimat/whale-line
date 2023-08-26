@@ -32,9 +32,7 @@
     (should (string= "*" (whale-line-segments--buffer-status--modified))))
 
   (should (string= "@" (whale-line-segments--buffer-status--read-only)))
-  (should (string= "&" (whale-line-segments--buffer-status--no-file)))
-
-  (should (equal whale-line-segments--buffer-status (whale-line-segments--buffer-status))))
+  (should (string= "&" (whale-line-segments--buffer-status--no-file))))
 
 ;;; -- Window status
 
@@ -68,9 +66,6 @@
 
     (should (string= "1/42" (whale-line-segments--position--doc-view)))))
 
-(ert-deftest position ()
-  (should (equal whale-line-segments--position (whale-line-segments--position))))
-
 ;;; -- Selection
 
 (ert-deftest selection--area ()
@@ -92,10 +87,6 @@
 
     (should (string= "9" (whale-line-segments--selection--columns)))))
 
-(ert-deftest selection ()
-  (should (equal whale-line-segments--selection
-                 (whale-line-segments--selection))))
-
 (ert-deftest animation-animate ()
   (bydi (force-mode-line-update)
 
@@ -108,12 +99,6 @@
 
       (whale-line-segments--animation-animate)
       (should (string= ".. " whale-line-segments--animation-frame)))))
-
-(ert-deftest animation-segment ()
-  "Get the animation segment."
-  (let ((whale-line-segments--animation-frame "..."))
-
-    (should (equal `((:propertize "..." face whale-line-emphasis)) (whale-line-segments--animation-segment)))))
 
 (ert-deftest animation-start-timer ()
   (bydi (run-with-timer)
