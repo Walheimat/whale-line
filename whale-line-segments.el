@@ -83,15 +83,19 @@ icon name and the face.")
 
 ;;;; -- Buffer identification
 
+(defvar-local wls--buffer-identification--additional-face nil)
+(defvar-local wls--buffer-identification--additional-help nil)
+
 (defun wls--buffer-identification ()
   "Get the buffer name."
-  '((:propertize (:eval (propertized-buffer-identification "%b"))
-                 mouse-face whale-line-highlight
-                 face whale-line-neutral)))
+  `((:propertize (:eval (propertized-buffer-identification "%b"))
+                 face ,(list 'mode-line-buffer-id wls--buffer-identification--additional-face)
+                 ,@(and wls--buffer-identification--additional-help
+                        (list 'help-echo wls--buffer-identification--additional-help)))))
 
 (whale-line-create-stateful-segment buffer-identification
   :getter wls--buffer-identification
-  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook)
+  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook wls-flycheck-hook)
   :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
 
 ;;;; -- Buffer status
@@ -290,43 +294,41 @@ Afterwards a mode-line update is forced to display the new frame."
   "Face used to indicate running state.")
 
 (defvar flycheck-current-errors)
-(defun wls--flycheck--get-face-for-status (status)
+(defun wls--flycheck--face (status)
   "Get the face to use for STATUS."
   (pcase status
     ('running 'wls--flycheck-running)
     ('finished
-     (if flycheck-current-errors
-         (let-alist (flycheck-count-errors flycheck-current-errors)
-           (cond
-            (.error 'flycheck-error)
-            (.warning 'flycheck-warning)
-            (.info 'flycheck-info)))
-       'whale-line-neutral))
-    (_ 'whale-line-neutral)))
+     (when flycheck-current-errors
+       (let-alist (flycheck-count-errors flycheck-current-errors)
+         (cond
+          (.error 'flycheck-error)
+          (.warning 'flycheck-warning)
+          (.info 'flycheck-info)))))
+    (_ nil)))
 
-(defun wls--flycheck--get-error-help (status)
+(defvar wls--flycheck--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
+
+(defun wls--flycheck--help (status)
   "Get the error count for STATUS.
 
 Returns nil if not checking or if no errors were found."
-  (pcase status
-    ('running "Still checking")
-    ('finished
-     (when flycheck-current-errors
-       (let-alist (flycheck-count-errors flycheck-current-errors)
-         (format "Errors: %s, warnings: %s, infos: %s" (or .error 0) (or .warning 0) (or .info 0)))))
-    (_ nil)))
+  (concat
+   wls--flycheck--default-help
+   (pcase status
+     ('running "\n\nFlycheck: Still checking")
+     ('finished
+      (when flycheck-current-errors
+        (let-alist (flycheck-count-errors flycheck-current-errors)
+          (format "\n\nFlycheck: %d error(s), %d warning(s), %d info(s)" (or .error 0) (or .warning 0) (or .info 0)))))
+     (_ nil))))
 
-(defun wls--flycheck--underline (status &rest _r)
-  "Underline buffer name based on STATUS."
-  (let ((face (wls--flycheck--get-face-for-status status))
-        (text (wls--flycheck--get-error-help status)))
+(defun wls--flycheck (status)
+  "Set face and help based on STATUS."
+  (setq wls--buffer-identification--additional-face (wls--flycheck--face status)
+        wls--buffer-identification--additional-help (wls--flycheck--help status))
 
-	(setq-local whale-line-buffer-identification--segment
-                (if text
-					`((:propertize (:eval (propertized-buffer-identification "%b"))
-                                   face ,face help-echo ,text))
-				  `((:propertize (:eval (propertized-buffer-identification "%b"))
-                                 face ,face))))))
+  (run-hooks 'wls-flycheck-hook))
 
 (defun wls--flycheck--can-use-flycheck-p ()
   "Verify that flycheck augment can be used."
@@ -334,11 +336,8 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment flycheck
   :verify wls--flycheck--can-use-flycheck-p
-
-  :action wls--flycheck--underline
-
-  :hooks
-  (flycheck-status-changed-functions))
+  :action wls--flycheck
+  :hooks (flycheck-status-changed-functions))
 
 ;;;; -- Major mode
 

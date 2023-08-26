@@ -12,9 +12,15 @@
 
 (ert-deftest buffer-identification ()
   (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
-                                mouse-face whale-line-highlight
-                                face whale-line-neutral))
-                 (whale-line-segments--buffer-identification))))
+                                face (mode-line-buffer-id nil)))
+                 (whale-line-segments--buffer-identification)))
+
+  (let ((whale-line-segments--buffer-identification--additional-help "help"))
+
+    (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
+                                  face (mode-line-buffer-id nil)
+                                  help-echo "help"))
+                   (whale-line-segments--buffer-identification)))))
 
 (ert-deftest buffer-status--dense-p ()
   (let ((whale-line-iconify-disabled '(buffer-status)))
@@ -165,15 +171,15 @@
 
     (should-not (whale-line-segments--flycheck--can-use-flycheck-p))))
 
-(ert-deftest flycheck--get-face-for-status ()
-  (should (equal 'whale-line-neutral (whale-line-segments--flycheck--get-face-for-status nil)))
-  (should (equal 'whale-line-segments--flycheck-running (whale-line-segments--flycheck--get-face-for-status 'running)))
+(ert-deftest flycheck--face ()
+  (should-not (whale-line-segments--flycheck--face nil))
+  (should (equal 'whale-line-segments--flycheck-running (whale-line-segments--flycheck--face 'running)))
 
   (defvar flycheck-current-errors)
   (let ((flycheck-current-errors nil)
         (mock-errors nil))
 
-    (should (equal 'whale-line-neutral (whale-line-segments--flycheck--get-face-for-status 'finished)))
+    (should-not (whale-line-segments--flycheck--face 'finished))
 
     (setq flycheck-current-errors 'errors)
 
@@ -181,47 +187,43 @@
 
       (setq mock-errors '((error . 1)))
 
-      (should (equal 'flycheck-error (whale-line-segments--flycheck--get-face-for-status 'finished)))
+      (should (equal 'flycheck-error (whale-line-segments--flycheck--face 'finished)))
 
       (setq mock-errors '((warning . 1)))
 
-      (should (equal 'flycheck-warning (whale-line-segments--flycheck--get-face-for-status 'finished)))
+      (should (equal 'flycheck-warning (whale-line-segments--flycheck--face 'finished)))
 
       (setq mock-errors '((info . 1)))
 
-      (should (equal 'flycheck-info (whale-line-segments--flycheck--get-face-for-status 'finished))))))
+      (should (equal 'flycheck-info (whale-line-segments--flycheck--face 'finished))))))
 
-(ert-deftest flycheck--get-error-help ()
-  (should (string= "Still checking" (whale-line-segments--flycheck--get-error-help 'running)))
+(ert-deftest flycheck--help ()
+  (let ((whale-line-segments--flycheck--default-help ""))
 
-  (should-not (whale-line-segments--flycheck--get-error-help nil))
+    (should (string= "\n\nFlycheck: Still checking" (whale-line-segments--flycheck--help 'running)))
+    (should (string= "" (whale-line-segments--flycheck--help nil)))
 
-  (defvar flycheck-current-errors)
+    (defvar flycheck-current-errors)
 
-  (let ((flycheck-current-errors '((error . 1) (warning . 2) (info . 3))))
+    (let ((flycheck-current-errors '((error . 1) (warning . 2) (info . 3))))
 
-    (bydi ((:mock flycheck-count-errors :with bydi-rf))
-      (should (string= "Errors: 1, warnings: 2, infos: 3" (whale-line-segments--flycheck--get-error-help 'finished))))))
+      (bydi ((:mock flycheck-count-errors :with bydi-rf))
+        (should (string= "\n\nFlycheck: 1 error(s), 2 warning(s), 3 info(s)" (whale-line-segments--flycheck--help 'finished)))))))
 
 (ert-deftest flycheck--underline ()
-  (let ((whale-line-buffer-identification--segment nil)
-        (segment "test")
-        (text "testing"))
+  (let ((whale-line-segments--buffer-identification--additional-face nil)
+        (whale-line-segments--buffer-identification--additional-help nil))
 
-    (bydi ((:mock whale-line-buffer-name--get-segment :return segment)
-           (:mock whale-line-segments--flycheck--get-face-for-status :return 'success)
-           (:mock whale-line-segments--flycheck--get-error-help :return text))
+    (bydi ((:mock whale-line-segments--flycheck--face :return "face")
+           (:mock whale-line-segments--flycheck--help :return "help")
+           (:spy run-hooks))
 
-      (with-temp-buffer
-        (whale-line-segments--flycheck--underline 'status)
+      (whale-line-segments--flycheck 'status)
 
-        (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success help-echo "testing")) whale-line-buffer-identification--segment))
+      (bydi-was-called-with run-hooks 'whale-line-segments-flycheck-hook)
 
-        (setq text nil)
-
-        (whale-line-segments--flycheck--underline 'status)
-
-        (should (equal '((:propertize (:eval (propertized-buffer-identification "%b")) face success)) whale-line-buffer-identification--segment))))))
+      (should (string= "face" whale-line-segments--buffer-identification--additional-face))
+      (should (string= "help" whale-line-segments--buffer-identification--additional-help)))))
 
 ;;; -- Major mode
 
