@@ -91,7 +91,7 @@
       (push-mark))
     (goto-char (point-max))
 
-    (should (string= " 3 " (whale-line-segments--selection--area))))
+    (should (string= "3" (whale-line-segments--selection--rows))))
 
   (with-temp-buffer
     (insert-file-contents rectangle)
@@ -100,10 +100,10 @@
       (rectangle-mark-mode))
     (goto-char (1- (point-max)))
 
-    (should (string= " 3×9 " (whale-line-segments--selection--area)))))
+    (should (string= "9" (whale-line-segments--selection--columns)))))
 
 (ert-deftest selection ()
-  (should (equal '((:propertize (:eval (whale-line-segments--selection--area)) face region))
+  (should (equal whale-line-segments--selection
                  (whale-line-segments--selection))))
 
 (ert-deftest animation-animate ()

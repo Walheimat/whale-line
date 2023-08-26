@@ -137,9 +137,9 @@ icon name and the face.")
 (defun wls--window-status ()
   "Render window status segment."
   (let* ((icons (delq nil
-                         (list
-                          (and (window-parameter (selected-window) 'no-other-window) 'window-no-other)
-                          (and (window-dedicated-p) 'window-dedicated))))
+                      (list
+                       (and (window-parameter (selected-window) 'no-other-window) 'window-no-other)
+                       (and (window-dedicated-p) 'window-dedicated))))
          (combined (mapconcat #'whale-line-iconify icons (whale-line--spacer))))
 
     (unless (string-empty-p combined)
@@ -208,37 +208,38 @@ icon name and the face.")
 
 ;;;; -- Selection
 
+(defvar wls--selection
+  '((mark-active
+     (:propertize
+      ((:eval (whale-line--spacer))
+       (rectangle-mark-mode
+        ((:eval (wls--selection--rows)) "×" (:eval (wls--selection--columns)))
+        (:eval (wls--selection--rows)))
+       (:eval (whale-line--spacer)))
+      face region))))
+
 (defun wls--selection--columns ()
   "Get the columns for the region."
   (let ((beg (region-beginning))
         (end (region-end)))
 
-    (abs (- (save-excursion (goto-char end)
-                            (current-column))
-            (save-excursion (goto-char beg)
-                            (current-column))))))
+    (number-to-string (abs (- (save-excursion (goto-char end)
+                                              (current-column))
+                              (save-excursion (goto-char beg)
+                                              (current-column)))))))
 
 (defun wls--selection--rows ()
   "Get the rows for the region.."
   (let ((beg (region-beginning))
         (end (region-end)))
 
-    (count-lines beg (min end (point-max)))))
-
-(defun wls--selection--area ()
-  "Get area of selection."
-  (let ((rows (wls--selection--rows)))
-
-    (if (bound-and-true-p rectangle-mark-mode)
-        (format (format " %d×%d " rows (wls--selection--columns)))
-      (format " %d " rows))))
+    (number-to-string (count-lines beg (min end (point-max))))))
 
 (defun wls--selection ()
   "Show the selection."
-  `((:propertize (:eval (wls--selection--area)) face region)))
+  wls--selection)
 
 (whale-line-create-stateless-segment selection
-  :condition mark-active
   :getter wls--selection
   :priority current-low)
 
