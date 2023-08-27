@@ -219,11 +219,6 @@
   (should (string= " " (whale-line--spacer)))
   (should (string= "" (whale-line--spacer t))))
 
-(ert-deftest whale-line--car-safe-until ()
-  (should (string= (whale-line--car-safe-until '((("test"))) #'stringp) "test"))
-  (should (string= (whale-line--car-safe-until "test" #'stringp) "test"))
-  (should (string= (whale-line--car-safe-until '((((nothing)))) #'stringp "test") "test")))
-
 (ert-deftest whale-line--format-side ()
   (bydi (format-mode-line
          (:mock whale-line--render :return "test"))

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Segment `buffer-identifiation` now uses face `mode-line-buffer-id`
+- Segment `buffer-identification` now uses face `mode-line-buffer-id`
   as base.
 
 ### Fixed

@@ -8,7 +8,8 @@
 
 ;;; Commentary:
 
-;; The mode-line I use.
+;; The core library provides macros to create new segments and
+;; augments. It also contains the logic to render the mode line.
 
 ;;; Code:
 
@@ -17,18 +18,16 @@
 
 ;;; -- Variables
 
-(defvar whale-line--segments nil)
-
-(defvar whale-line--type nil)
-(defvar whale-line--priority nil)
-(defvar whale-line--dense nil)
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
+(defvar whale-line--dense nil)
+(defvar whale-line--priority nil)
+(defvar whale-line--segments nil)
+(defvar whale-line--stateful-timer nil)
+(defvar whale-line--type nil)
 
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
-
-(defvar whale-line--stateful-timer nil)
 
 ;;; -- Customization
 
@@ -115,60 +114,20 @@ constraints."
   "Face used for urgency."
   :group 'whale-line)
 
-;;; -- Utility
-
-(defun whale-line--spacer (&optional dense)
-  "A space used for padding.
-
-If DENSE is t, add no padding."
-  (if dense "" " "))
-
-(defun whale-line--car-safe-until (seq compare-fn &optional default-value)
-  "Inspect car of SEQ until non-list item is found.
-
-That item is returned if COMPARE-FN yields t. Otherwise nil or an
-optional DEFAULT-VALUE is returned."
-  (let ((rest seq))
-
-    (while (and rest (listp rest))
-      (setq rest (car-safe rest)))
-
-    (if (apply compare-fn (list rest))
-        rest
-      (or default-value nil))))
-
 ;;; -- Formatting
 
-(defun whale-line--format-side (side &optional filter)
-  "Get the formatted SIDE.
+(defun whale-line--format ()
+  "Return a list of aligned left and right segments.
 
-Optionally FILTER out low priority segments."
-  (format-mode-line (whale-line--render side filter)))
-
-(defun whale-line--calculate-width (side)
-  "Calculate the width for SIDE.
-
-This uses `string-pixel-width' for Emacs 29+, otherwise
-`window-font-width.'"
-  (let ((formatted (whale-line--format-side side)))
-
-    (if (fboundp 'string-pixel-width)
-        (string-pixel-width formatted)
-      (* (window-font-width) (length formatted)))))
-
-(defun whale-line--enough-space-p ()
-  "Calculate whether there is enough space to display both sides' segments."
-  (let* ((left (whale-line--calculate-width :left))
-         (right (whale-line--calculate-width :right)))
-
-    (> (- (window-pixel-width) (+ left right)) 0)))
-
-(defun whale-line--format-ignore ()
-  "Format mode line ignoring space constraints."
-  (let ((lhs (whale-line--render :left))
-        (rhs (whale-line--render :right))
-        (rlen (length (whale-line--format-side :right))))
-    `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
+If there's not enough space, only shows the left segments and an
+ellipsis."
+  (pcase whale-line-segment-strategy
+    ('ignore
+     (whale-line--format-ignore))
+    ('elide
+     (whale-line--format-elide))
+    ('prioritize
+     (whale-line--format-prioritize))))
 
 (defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
@@ -192,18 +151,38 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
           (rlen (length (whale-line--format-side :right t))))
       `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
 
-(defun whale-line--format ()
-  "Return a list of aligned left and right segments.
+(defun whale-line--format-ignore ()
+  "Format mode line ignoring space constraints."
+  (let ((lhs (whale-line--render :left))
+        (rhs (whale-line--render :right))
+        (rlen (length (whale-line--format-side :right))))
+    `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
 
-If there's not enough space, only shows the left segments and an
-ellipsis."
-  (pcase whale-line-segment-strategy
-    ('ignore
-     (whale-line--format-ignore))
-    ('elide
-     (whale-line--format-elide))
-    ('prioritize
-     (whale-line--format-prioritize))))
+(defun whale-line--format-side (side &optional filter)
+  "Get the formatted SIDE.
+
+Optionally FILTER out low priority segments."
+  (format-mode-line (whale-line--render side filter)))
+
+;;; -- Space calculation
+
+(defun whale-line--calculate-width (side)
+  "Calculate the width for SIDE.
+
+This uses `string-pixel-width' for Emacs 29+, otherwise
+`window-font-width.'"
+  (let ((formatted (whale-line--format-side side)))
+
+    (if (fboundp 'string-pixel-width)
+        (string-pixel-width formatted)
+      (* (window-font-width) (length formatted)))))
+
+(defun whale-line--enough-space-p ()
+  "Calculate whether there is enough space to display both sides' segments."
+  (let* ((left (whale-line--calculate-width :left))
+         (right (whale-line--calculate-width :right)))
+
+    (> (- (window-pixel-width) (+ left right)) 0)))
 
 (defun whale-line--space-between (length)
   "Get the space between sides aligned using LENGTH."
@@ -232,33 +211,7 @@ ellipsis."
   (and whale-line--current-window
        (eq (whale-line--get-current-window) whale-line--current-window)))
 
-;;; -- Segments and augments
-
-(defun whale-line--pad-segment (segment render)
-  "Add padding to SEGMENT's RENDER based on its position."
-  (let* ((dense (alist-get segment whale-line--dense))
-         (dense (if (functionp dense) (funcall dense) dense))
-         (render (if (listp render) render (list render)))
-         (padded
-          (delq
-           nil
-           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
-                (whale-line--spacer dense))
-             ,@render
-             ,(when (assoc segment (plist-get whale-line--segments :right))
-                (whale-line--spacer dense))))))
-
-    (if (whale-line--empty-render-p padded)
-        nil
-      padded)))
-
-(defun whale-line--empty-render-p (render)
-  "Check if RENDER is empty."
-  (or (equal render '(" " ""))
-      (equal render '("" " "))
-      (equal render '(" " " "))
-      (equal render '(" "))
-      (equal render '("" ""))))
+;;; -- Building segments
 
 (defun whale-line--build-segments ()
   "Build the segments."
@@ -307,27 +260,6 @@ Optionally with a PRIORITY and DENSE."
   (if-let ((existing (assoc segment whale-line--dense)))
       (setcdr existing dense)
     (push (cons segment dense) whale-line--dense)))
-
-(defun whale-line--queue-refresh ()
-  "Queue a refresh.
-
-This will refresh stateful segments."
-  (when whale-line--stateful-timer
-    (unless (timer--triggered whale-line--stateful-timer)
-      (cancel-timer whale-line--stateful-timer)))
-
-  (setq whale-line--stateful-timer (run-with-idle-timer 0.5 nil #'whale-line--refresh-stateful-segments)))
-
-(defun whale-line--refresh-stateful-segments ()
-  "Refresh all stateful segments.
-
-This will call the respective segment's action."
-  (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
-         (actions (cl-loop for (a . b) in whale-line--type
-                           if (eq b 'stateful)
-                           collect (funcall interner a))))
-
-    (mapc #'funcall actions)))
 
 ;;; -- Macros
 
@@ -552,33 +484,6 @@ If VERIFY is t, the setup will verify before being executed."
 
 ;;; -- Rendering
 
-(defun whale-line--filter (segments &optional low-space)
-  "Filter SEGMENTS.
-
-This filters differently for current and other window.
-
-If LOW-SPACE is t, additional segments are filtered."
-  (let ((filter (if (whale-line--is-current-window-p)
-                    (whale-line--filter-for-current low-space)
-                  (whale-line--filter-for-other low-space))))
-    (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
-
-(defun whale-line--filter-for-current (&optional low-space)
-  "Build the filter for current window.
-
-If LOW-SPACE is t, filter out additional segments."
-  (if low-space
-      (list 'low 'current-low)
-    nil))
-
-(defun whale-line--filter-for-other (&optional low-space)
-  "Build the filter for other window.
-
-If LOW-SPACE is t, filter out additional segments."
-  (if low-space
-      (list 'current 'current-low 'low)
-    (list 'current 'current-low)))
-
 (defun whale-line--render (side &optional filter)
   "Render SIDE.
 
@@ -607,8 +512,93 @@ Optionally FILTER out low priority segments."
                      `(:eval (whale-line--pad-segment ',sym ,eval))))))
              segments)))
 
-;;; -- API
+;;; -- Padding
 
+(defun whale-line--pad-segment (segment render)
+  "Add padding to SEGMENT's RENDER based on its position."
+  (let* ((dense (alist-get segment whale-line--dense))
+         (dense (if (functionp dense) (funcall dense) dense))
+         (render (if (listp render) render (list render)))
+         (padded
+          (delq
+           nil
+           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
+                (whale-line--spacer dense))
+             ,@render
+             ,(when (assoc segment (plist-get whale-line--segments :right))
+                (whale-line--spacer dense))))))
+
+    (if (whale-line--empty-render-p padded)
+        nil
+      padded)))
+
+(defun whale-line--spacer (&optional dense)
+  "A space used for padding.
+
+If DENSE is t, add no padding."
+  (if dense "" " "))
+
+(defun whale-line--empty-render-p (render)
+  "Check if RENDER is empty."
+  (or (equal render '(" " ""))
+      (equal render '("" " "))
+      (equal render '(" " " "))
+      (equal render '(" "))
+      (equal render '("" ""))))
+
+;;; -- Filtering
+
+(defun whale-line--filter (segments &optional low-space)
+  "Filter SEGMENTS.
+
+This filters differently for current and other window.
+
+If LOW-SPACE is t, additional segments are filtered."
+  (let ((filter (if (whale-line--is-current-window-p)
+                    (whale-line--filter-for-current low-space)
+                  (whale-line--filter-for-other low-space))))
+    (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
+
+(defun whale-line--filter-for-current (&optional low-space)
+  "Build the filter for current window.
+
+If LOW-SPACE is t, filter out additional segments."
+  (if low-space
+      (list 'low 'current-low)
+    nil))
+
+(defun whale-line--filter-for-other (&optional low-space)
+  "Build the filter for other window.
+
+If LOW-SPACE is t, filter out additional segments."
+  (if low-space
+      (list 'current 'current-low 'low)
+    (list 'current 'current-low)))
+
+;;; -- Refreshing
+
+(defun whale-line--queue-refresh ()
+  "Queue a refresh.
+
+This will refresh stateful segments."
+  (when whale-line--stateful-timer
+    (unless (timer--triggered whale-line--stateful-timer)
+      (cancel-timer whale-line--stateful-timer)))
+
+  (setq whale-line--stateful-timer (run-with-idle-timer 0.5 nil #'whale-line--refresh-stateful-segments)))
+
+(defun whale-line--refresh-stateful-segments ()
+  "Refresh all stateful segments.
+
+This will call the respective segment's action."
+  (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
+         (actions (cl-loop for (a . b) in whale-line--type
+                           if (eq b 'stateful)
+                           collect (funcall interner a))))
+
+    (mapc #'funcall actions)))
+
+;;; -- API
 
 ;;;###autoload
 (defmacro whale-line-create-stateful-segment (name &rest args)
