@@ -18,10 +18,10 @@
      ,@body
      (setq whale-line--testing t)))
 
-(ert-deftest whale-line-core--create-stateful-segment ()
+(ert-deftest whale-line--create-stateful-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-stateful-segment test
+     (whale-line--create-stateful-segment test
        :getter (lambda () t)
        :hooks (test-mode-hook)
        :teardown (lambda () t)
@@ -49,10 +49,10 @@
        nil
        (whale-line--add-segment 'test 'stateful 't 'nil)))))
 
-(ert-deftest whale-line-core--create-stateful-segment--simple ()
+(ert-deftest whale-line--create-stateful-segment--simple ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-stateful-segment test
+     (whale-line--create-stateful-segment test
        :getter (lambda () t))
      '(progn
        (defvar-local whale-line-test--segment 'initial)
@@ -71,10 +71,10 @@
        nil
        (whale-line--add-segment 'test 'stateful 't 'nil)))))
 
-(ert-deftest whale-line-core--create-stateful-segment--using-symbols ()
+(ert-deftest whale-line--create-stateful-segment--using-symbols ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-stateful-segment test
+     (whale-line--create-stateful-segment test
        :getter ignore
        :advice (:before . (ancient old))
        :verify (lambda () t)
@@ -102,10 +102,10 @@
 
        (whale-line--add-segment 'test 'stateful 'low 'nil)))))
 
-(ert-deftest whale-line-core--create-stateless-segment ()
+(ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-stateless-segment test
+     (whale-line--create-stateless-segment test
        :getter (lambda () t)
        :verify (lambda () t)
        :teardown (lambda () t)
@@ -124,10 +124,10 @@
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
        (whale-line--add-segment 'test 'stateless 't 'nil)))))
 
-(ert-deftest whale-line-core--create-stateless-segment--using-symbol ()
+(ert-deftest whale-line--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-stateless-segment test
+     (whale-line--create-stateless-segment test
        :getter ignore
        :condition buffer-file-name
        :dense t)
@@ -143,10 +143,10 @@
        nil
        (whale-line--add-segment 'test 'stateless 't 't)))))
 
-(ert-deftest whale-line-core--create-augment ()
+(ert-deftest whale-line--create-augment ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-augment test
+     (whale-line--create-augment test
        :action ignore
        :setup (lambda () t)
        :teardown (lambda () t))
@@ -163,10 +163,10 @@
        nil
        (whale-line--add-segment 'test 'augment)))))
 
-(ert-deftest whale-line-core--create-augment--using-symbol ()
+(ert-deftest whale-line--create-augment--using-symbol ()
   (whale-line-do-expand
     (bydi-match-expansion
-     (whale-line-core--create-augment test
+     (whale-line--create-augment test
        :action (lambda () t)
        :hooks (emacs-start-up)
        :advice (:after . (kill-line))

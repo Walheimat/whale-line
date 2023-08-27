@@ -360,7 +360,7 @@ nothing for augments."
        (unless (bound-and-true-p whale-line--testing)
          (message "Couldn't add %s `%s' segment" ',type ',name)))))
 
-(cl-defmacro wlc--create-stateful-segment (name &key getter hooks advice verify setup teardown priority dense)
+(cl-defmacro whale-line--create-stateful-segment (name &key getter hooks advice verify setup teardown priority dense)
   "Create a stateful segment named NAME.
 
 Stateful segments are represented by a variable that is updated
@@ -411,7 +411,7 @@ If DENSE is t, the segment will not be padded."
       `(progn
          (whale-line--omit ,name stateful)))))
 
-(cl-defmacro wlc--create-stateless-segment (name &key getter condition verify setup teardown priority dense)
+(cl-defmacro whale-line--create-stateless-segment (name &key getter condition verify setup teardown priority dense)
   "Create a stateless segment name NAME.
 
 A stateless segment is represented by a function that is called
@@ -455,7 +455,7 @@ If DENSE is t, the segment will not be padded."
       `(progn
          (whale-line--omit ,name stateless)))))
 
-(cl-defmacro wlc--create-augment (name &key action hooks advice setup teardown verify)
+(cl-defmacro whale-line--create-augment (name &key action hooks advice setup teardown verify)
   "Create augment(-or) named NAME.
 
 ACTION is the function to call for HOOKS.
@@ -608,7 +608,7 @@ See underlying macro for the usage of ARGS."
   (declare (indent defun))
 
   `(progn
-     (whale-line-core--create-stateful-segment ,name ,@args)))
+     (whale-line--create-stateful-segment ,name ,@args)))
 
 (defalias 'whale-line-create-static-segment 'whale-line-create-stateful-segment)
 (make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.1")
@@ -621,7 +621,7 @@ See underlying macro for the usage of ARGS."
   (declare (indent defun))
 
   `(progn
-     (whale-line-core--create-stateless-segment ,name ,@args)))
+     (whale-line--create-stateless-segment ,name ,@args)))
 
 (defalias 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment)
 (make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.1")
@@ -634,12 +634,8 @@ See underlying macro for the usage of ARGS."
   (declare (indent defun))
 
   `(progn
-     (whale-line-core--create-augment ,name ,@args)))
+     (whale-line--create-augment ,name ,@args)))
 
 (provide 'whale-line-core)
 
 ;;; whale-line-core.el ends here
-
-;; Local Variables:
-;; read-symbol-shorthands: (("wlc-" . "whale-line-core-"))
-;; End:
