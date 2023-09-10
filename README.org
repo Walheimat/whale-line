@@ -1,4 +1,4 @@
-* whale-line.el
+* whale-line
 
 #+BEGIN_HTML
 <a href='https://coveralls.io/github/Walheimat/whale-line?branch=trunk'>
@@ -9,12 +9,19 @@
 </a>
 #+END_HTML
 
-This package is my personal Emacs mode-line.
+This package provides a highly modular mode-line. The =whale-line=
+mode-line comprises a set of segments. Each of them can be freely
+positioned or disabled by setting =whale-line-segments= (segments
+belong either to the left or the right side). Many are customizable.
 
-It displays buffer information in two sections. Each section has its
-dedicated segments. Segments come in various priorities that will
-determine if they are shown. Some are only shown on the selected
-window, some are hidden if there isn't enough space (split windows).
+You can also create augments to change the behavior or look of an
+existing segment.
+
+You may also create your own segments and augments using the
+=whale-line-create-*= macros.
+
+This package takes inspiration from two other great custom mode-lines:
+=mood-line= and =doom-modeline=.
 
 ** Installation
 
@@ -48,7 +55,6 @@ will need to call =whale-line-rebuild=.
                          lsp
                          dap
                          selection
-                         cursors
                          process
                          window-status
                          | ;; Divides into left and right.
@@ -141,24 +147,33 @@ position.
 
 ** Example Screenshot
 
-Modeline in a split frame (theme is =kaolin-galaxy=).
+Modeline in a split frame (theme is =doom-vibrant=).
 
-[[file:assets/mode-line-selected.png]]
+[[file:assets/mode-line.png]]
 
-The left window is selected and shows:
+On the left window, the segment son the left are
 
-- buffer icon using =all-the-icons=
-- status (warnings) using =flycheck=
-- position in =org= document
-- buffer-status (edited)
-- file position
-- selection (6 lines)
-- minimized minor modes using =minions=
-- project
-- version control status (unedited)
-- =tab-bar-mode= name
-- animation
+- =major-mode= (using =all-the-icons=)
+- =buffer-identification=
+- =flycheck= augmenting the prior to indicate errors and warnings
+- =org= segment to show the current top heading and its parent
+- =buffer-status= segment to indicate the buffer is edited
 
-The right window hides segments with low priority.
+Not shown are segments for =lsp-mode=, =dap-mode= and =window-status=
+that each show an icon when they're active. Also not shown is
+=process= that shows =mode-line-process=
 
-[[file:assets/mode-line-deselected.png]]
+On the right you can see
+
+- =minor-mode-alist= segment augmented by =minions=
+- =partial-recall= segment (one of my packages)
+- =project= segment
+- =vc= segment
+- =tab-bar= segment
+- =animation= segment
+
+Not shown is the =misc-info= segment that shows =mode-line-misc-info=.
+
+The right window shows fewer segments. That's because many segments
+are defined to only show on the current window or if space isn't
+tight.
