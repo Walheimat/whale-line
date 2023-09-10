@@ -201,10 +201,8 @@
                    (whale-line-segments--major-mode--icon)))))
 
 (ert-deftest major-mode--text ()
-  (let ((mode-name "Test"))
-
-    (should (equal '((:propertize " Test " face whale-line-highlight))
-                   (whale-line-segments--major-mode--text)))))
+  (should (equal '((:propertize (" " mode-name " ") face whale-line-highlight))
+                 (whale-line-segments--major-mode--text))))
 
 (ert-deftest major-mode ()
   (bydi ((:sometimes whale-line-segments--major-mode--icon)

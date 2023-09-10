@@ -335,7 +335,7 @@ Returns nil if not checking or if no errors were found."
 
 (defun wls--major-mode--text ()
     "Get the text for the `major-mode'."
-    `((:propertize ,(format " %s " mode-name) face whale-line-highlight)))
+    `((:propertize (" " mode-name " ") face whale-line-highlight)))
 
 (defun wls--major-mode ()
   "Get the `major-mode' segment."
