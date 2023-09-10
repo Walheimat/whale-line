@@ -126,7 +126,7 @@ to 2, only the 3rd level is elided."
   (not (whale-line-iconify--use-for-p 'buffer-status)))
 
 (whale-line-create-stateless-segment buffer-status
-  :getter (lambda () wls--buffer-status)
+  :var wls--buffer-status
   :dense wls--buffer-status--dense-p)
 
 ;;;; -- Window status
@@ -168,26 +168,26 @@ to 2, only the 3rd level is elided."
   (format "%d/%d" (image-mode-window-get 'page) (doc-view-last-page-number)))
 
 (whale-line-create-stateless-segment position
-  :getter (lambda () wls--position)
+  :var wls--position
   :priority current)
 
 ;;;; -- Misc info
 
 (whale-line-create-stateless-segment misc-info
-  :getter (lambda () mode-line-misc-info)
+  :var mode-line-misc-info
   :priority current-low)
 
 ;;;; -- Minor modes
 
 (whale-line-create-stateless-segment minor-modes
-  :getter (lambda () minor-mode-alist)
+  :var minor-mode-alist
   :padded left
   :priority current-low)
 
 ;;;; -- Process
 
 (whale-line-create-stateless-segment process
-  :getter (lambda () mode-line-process)
+  :var mode-line-process
   :priority low)
 
 ;;;; -- Selection
@@ -220,7 +220,7 @@ to 2, only the 3rd level is elided."
     (number-to-string (count-lines beg (min end (point-max))))))
 
 (whale-line-create-stateless-segment selection
-  :getter (lambda () wls--selection)
+  :var wls--selection
   :priority current)
 
 ;;;; -- Animation
@@ -260,7 +260,7 @@ Afterwards a mode-line update is forced to display the new frame."
     (setq wls--animation-timer nil)))
 
 (whale-line-create-stateless-segment animation
-  :getter (lambda () wls--animation)
+  :var wls--animation
   :setup wls--animation-start-timer
   :teardown wls--animation-stop-timer
   :priority current-low)

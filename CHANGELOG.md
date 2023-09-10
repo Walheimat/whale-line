@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Segment `buffer-identification` now uses face `mode-line-buffer-id`
   as base.
+- Segments that are based on a variable now use keyword `:var` instead
+  of providing an anonymous function returning it.
 
 ### Fixed
 

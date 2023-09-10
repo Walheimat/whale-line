@@ -124,6 +124,21 @@
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
        (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
 
+(ert-deftest whale-line--create-stateless-segment--with-variable ()
+  (whale-line-do-expand
+   (defvar test-variable-segment "test")
+    (bydi-match-expansion
+     (whale-line--create-stateless-segment test
+       :var test-variable-segment)
+     '(progn
+       (defun whale-line-test--segment ()
+         "Render `test' segment."
+         (or (when t test-variable-segment) ""))
+       nil
+       (whale-line--setup test :setup nil :teardown nil :verify nil)
+       nil
+       (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
+
 (ert-deftest whale-line--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
     (bydi-match-expansion

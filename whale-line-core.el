@@ -449,6 +449,7 @@ the segment comes pre-padded on that or all sides."
     (name
      &key
      getter
+     var
      condition
      verify
      setup
@@ -461,7 +462,8 @@ the segment comes pre-padded on that or all sides."
 A stateless segment is represented by a function that is called
 on every mode-line update.
 
-GETTER is the function to call on re-render.
+GETTER is the function to call on render. Alternatively VAR can
+be used to return a variable.
 
 CONDITION is the condition to evaluate before calling the
 renderer. If NEEDS-CURRENT is truthy, it will be an additional
@@ -491,10 +493,11 @@ the segment comes pre-padded on that or all sides."
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
-                   (,getter-sym))
+                   ,(if var `,var `(,getter-sym)))
                  ""))
 
-           (whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name))
+           ,(unless var
+              `(whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name)))
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
