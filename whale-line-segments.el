@@ -181,13 +181,13 @@ icon name and the face.")
 (whale-line-create-stateless-segment minor-modes
   :getter (lambda () minor-mode-alist)
   :padded left
-  :priority low)
+  :priority current-low)
 
 ;;;; -- Process
 
 (whale-line-create-stateless-segment process
   :getter (lambda () mode-line-process)
-  :priority current)
+  :priority low)
 
 ;;;; -- Selection
 
@@ -220,7 +220,7 @@ icon name and the face.")
 
 (whale-line-create-stateless-segment selection
   :getter (lambda () wls--selection)
-  :priority current-low)
+  :priority current)
 
 ;;;; -- Animation
 
@@ -344,7 +344,6 @@ Returns nil if not checking or if no errors were found."
 (whale-line-create-stateful-segment major-mode
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
-
   :getter wls--major-mode)
 
 ;;; -- LSP
@@ -407,13 +406,13 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-stateful-segment lsp
   :getter wls--lsp
-
   :hooks
   (lsp-after-initialize-hook
    lsp-after-uninitialized-functions
    lsp-after-open-hook
    eglot-server-initialized-hook
-   eglot-managed-mode-hook))
+   eglot-managed-mode-hook)
+  :priority low)
 
 ;;; -- DAP
 
@@ -465,9 +464,7 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment minions
   :action whale-line-minions--list
-
-  :advice
-  (:after-while . (whale-line-minor-modes--segment)))
+  :advice (:after-while . (whale-line-minor-modes--segment)))
 
 ;;; -- Org
 
@@ -534,7 +531,8 @@ Use FACE for the ellipsis glyph."
 
 (whale-line-create-stateless-segment org
   :getter wls--org
-  :condition (derived-mode-p 'org-mode))
+  :condition (derived-mode-p 'org-mode)
+  :priority current)
 
 ;;; -- Project
 
@@ -677,12 +675,8 @@ This is either an explicit name or its index."
 
 (whale-line-create-stateful-segment vc
   :getter wls--vc
-
-  :hooks
-  (find-file-hook after-save-hook)
-
-  :advice
-  (:after . (vc-refresh-state)))
+  :hooks (find-file-hook after-save-hook)
+  :advice (:after . (vc-refresh-state)))
 
 ;;; -- Partial recall
 
@@ -768,13 +762,10 @@ menu for the library's command map."
 
 (whale-line-create-stateful-segment partial-recall
   :verify wls--can-use-partial-recall-p
-
   :getter wls--partial-recall
-
   :hooks (partial-recall-after-insert-hook
           partial-recall-probe-hook
           partial-recall-permanence-change-hook)
-
   :priority current-low)
 
 (provide 'whale-line-segments)
