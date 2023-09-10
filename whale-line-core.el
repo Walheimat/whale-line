@@ -664,13 +664,16 @@ The results are cached."
 If DENSE is t, add no padding."
   (if dense "" " "))
 
+(defvar whale-line--empty-renders
+  `((,(whale-line--spacer) ,(whale-line--spacer t))
+    (,(whale-line--spacer t) ,(whale-line--spacer))
+    (,(whale-line--spacer) ,(whale-line--spacer))
+    (,(whale-line--spacer t) ,(whale-line--spacer t))
+    (,(whale-line--spacer))))
+
 (defun whale-line--empty-render-p (render)
   "Check if RENDER is empty."
-  (or (equal render '(" " ""))
-      (equal render '("" " "))
-      (equal render '(" " " "))
-      (equal render '(" "))
-      (equal render '("" ""))))
+  (member render whale-line--empty-renders))
 
 ;;; -- Filtering
 

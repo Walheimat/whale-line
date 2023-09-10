@@ -23,9 +23,18 @@
                    (whale-line-segments--buffer-identification)))))
 
 (ert-deftest buffer-status--dense-p ()
-  (let ((whale-line-iconify-disabled '(buffer-status)))
+  (bydi ((:always whale-line-iconify--can-use-p))
 
-    (should (whale-line-segments--buffer-status--dense-p))))
+    (let ((whale-line-iconify-disabled '(buffer-status)))
+
+      (should (whale-line-segments--buffer-status--dense-p)))
+
+    (ert-with-temp-file status
+      :buffer b
+      (with-current-buffer b
+        (should (whale-line-segments--buffer-status--dense-p))
+        (insert "test")
+        (should-not (whale-line-segments--buffer-status--dense-p))))))
 
 (ert-deftest buffer-status ()
   (bydi ((:always buffer-modified-p))

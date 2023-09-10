@@ -110,8 +110,8 @@ to 2, only the 3rd level is elided."
 
 (defun wls--buffer-status--modified ()
   "Buffer status for a modified buffer."
-  (and (buffer-modified-p)
-       (whale-line-iconify 'buffer-modified)))
+  (when (buffer-modified-p)
+    (whale-line-iconify 'buffer-modified)))
 
 (defun wls--buffer-status--read-only ()
   "Buffer status for a read-only buffer."
@@ -123,7 +123,9 @@ to 2, only the 3rd level is elided."
 
 (defun wls--buffer-status--dense-p ()
   "Check whether the segment should be dense."
-  (not (whale-line-iconify--use-for-p 'buffer-status)))
+  (or (not (whale-line-iconify--use-for-p 'buffer-status))
+      (and buffer-file-name
+           (not (buffer-modified-p)))))
 
 (whale-line-create-stateless-segment buffer-status
   :var wls--buffer-status
