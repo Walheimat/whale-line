@@ -529,6 +529,36 @@ If VERIFY is t, the setup will verify before being executed."
       `(progn
          (whale-line--omit ,name augment)))))
 
+;;; -- Priorities
+
+(defvar whale-line--priorities '(t low current current-low))
+
+(defun whale-line--update-priorities (segments priority)
+  "Update priority to PRIORITY for all SEGMENTS."
+  (dolist (it segments)
+    (when-let ((def (assoc it whale-line--props))
+               (props (cdr def)))
+      (plist-put props :priority priority)
+      (setcdr def props))))
+
+(defmacro whale-line-with-priorities (&rest args)
+  "Set priorities for segments.
+
+ARGS is a list of segments followed by a priority value."
+  (declare (indent 0))
+
+  (let ((filter (lambda (it) (not (memq it whale-line--priorities))))
+        commands)
+
+    (while args
+      (let ((segments (seq-take-while filter args)))
+
+        (setq args (seq-drop-while filter args))
+        (push `(whale-line--update-priorities ',segments ',(car args)) commands)
+        (setq args (cdr args))))
+
+    (macroexp-progn commands)))
+
 ;;; -- Rendering
 
 (defun whale-line--render (side &optional filter)

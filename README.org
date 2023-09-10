@@ -98,6 +98,36 @@ will need to call =whale-line-rebuild=.
   (whale-line-iconify-disabled nil))
 #+END_SRC
 
+** Customizing Priorities
+
+All segments are created with a priority that determines whether it is
+shown. The possible values are:
+
+- =t= to always show
+- =current= to always show for the selected window
+- =current-low= to show for current window if space allows it
+- =low= to show if space allows it
+
+If you're unhappy with these settings, you can use
+=whale-line-with-priorities= to change them in bulk.
+
+#+begin_src emacs-lisp
+(whale-line-with-priorities
+  ;; Make `major-mode' and `buffer-status' segment show only for
+  ;; current window.
+  major-mode
+  buffer-status
+  current
+
+  ;; Make `project' segment show only if space allows it.
+  project
+  low
+
+  ;; Always show `lsp' segment.
+  lsp
+  t)
+#+end_src
+
 ** Custom Segments
 
 You may create your own segments using macros

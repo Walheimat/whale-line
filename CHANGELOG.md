@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to segments to the left or right of it.
 - Space calculations for windows are now cached, greatly reducing the
   time spent on figuring out which segments can be shown.
+- Priorities can now be updated in bulk using macro
+  `whale-line-with-priorities`.
 
 ### Changed
 

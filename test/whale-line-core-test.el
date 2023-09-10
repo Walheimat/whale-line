@@ -186,6 +186,37 @@
          "Verify `test' augment." t)
        (whale-line--set-props 'test 'augment)))))
 
+;;; -- Priorities
+
+(ert-deftest whale-line--update-priorities ()
+  (let ((whale-line--props '((one :priority nil) (two :priority nil) (three :priority nil))))
+
+    (whale-line--update-priorities '(one three) 'current)
+
+    (should (equal '((one :priority current) (two :priority nil) (three :priority current))
+                   whale-line--props))))
+
+(ert-deftest whale-line-with-priorities ()
+  (bydi-match-expansion
+   (whale-line-with-priorities
+     major-mode
+     buffer-status
+     current
+     project
+     low
+     lsp
+     t)
+   '(progn
+      (whale-line--update-priorities
+       '(lsp)
+       't)
+      (whale-line--update-priorities
+       '(project)
+       'low)
+      (whale-line--update-priorities
+       '(major-mode buffer-status)
+       'current))))
+
 (ert-deftest whale-line--function--lambda ()
   (bydi-match-expansion
    (whale-line--function test-fun (lambda () t) "Docs.")
