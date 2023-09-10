@@ -67,15 +67,6 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
-(defconst whale-line-icon-type
-  '(cons symbol
-         (restricted-sexp
-          :match-alternatives
-          (stringp listp)))
-  "Icon type as a cons cell of the icon library and the icons specs.
-The specs are either a string of the icon name or a list of the
-icon name and the face.")
-
 ;;; -- Segments
 
 (declare-function image-mode-window-get "ext:image-mode.el")
