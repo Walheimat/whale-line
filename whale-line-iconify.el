@@ -47,13 +47,32 @@ This has no effect if icons cannot be enabled. See
     (lsp . (:name "plug" :face whale-line-contrast :fallback "LSP"))
     (dap . (:name "bug" :face whale-line-urgent :fallback "DAP"))
     (partial-recall . (:name "tag" :face whale-line-contrast :fallback "PR")))
-  "Named icon specifications.
+  "Icon specifications.
 
-Each specifications defines icon NAME and, optionally, FALLBACK
-text, NO-DEFAULTS and PARENT. Icons using fonts other than
-FontAwesome need to set FONT. Any remaining spec will be passed
-as icon specs. See `whale-line-iconify-default-specs' for
-automatically applied specs."
+This is an alist of (ICON-SYMBOL . SPECS). The ICON-SYMBOL is the
+symbol passed to `whale-line-iconify' to retrieve the associated
+specs. SPECS is a plist with the following keys.
+
+NAME is the name of the icon in the font. The remaining keys are
+optional.
+
+FACE is the face to use for the icon.
+
+FONT is a symbol, namely one of the possible suffixes of
+`all-the-icons-insert-*'. It defaults to `faicon'.
+
+FALLBACK is a string to use when the icon can't be used or is
+disabled.
+
+PARENT is a symbol of another icon. This allows disabling an icon
+through its parent.
+
+NO-DEFAULTS is a boolean. If it is non-nil, no default icon specs
+will be applied. See `whale-line-iconify-default-specs' for
+automatically applied specs.
+
+All remaining keys and their values will be passed to
+`propertize' as-is."
   :group 'whale-line-iconify
   :type '(alist :key-type symbol :value-type plist))
 
@@ -109,8 +128,8 @@ Only properties not in EXISTING are added."
 If optional argument FACE is passed, it will be used instead of
 the value in the retrieved specs.
 
-If icon can't or shouldn't be displayed return any existing
-fallback."
+If icon can't or shouldn't be displayed, any existing fallback is
+returned."
   (if-let* ((specs (cdr-safe (assoc name wli-specs)))
             (specs (if face (plist-put specs :face face) specs))
             (parent (or (plist-get specs :parent) name))
