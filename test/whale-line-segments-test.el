@@ -296,7 +296,7 @@
          (:mock whale-line-segments--lsp--help :return "help"))
 
     (should (equal '((:propertize (:eval (whale-line-segments--lsp--with-count)) help-echo "help"))
-                   (whale-line-segments--lsp--segment)))))
+                   (whale-line-segments--lsp)))))
 
 (ert-deftest dap-active-p ()
   (let ((session nil)
@@ -327,7 +327,7 @@
          (:mock dap--debug-session-name :return "Test"))
 
     (should (equal '((:propertize "*" help-echo "Debugging Test"))
-                   (whale-line-segments--dap--segment)))))
+                   (whale-line-segments--dap)))))
 
 (ert-deftest minions--list ()
   (defvar minions-mode)
@@ -382,7 +382,7 @@
 
       (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-segments--org--collect-headings))))))
 
-(ert-deftest org--build-segment ()
+(ert-deftest org ()
   (defmacro org-with-wide-buffer (&rest body)
     "Mock implementation that just expands BODY."
     `(progn
@@ -398,36 +398,29 @@
            (:mock whale-line-segments--org--collect-headings :return headings)
            (:mock whale-line-segments--org--maybe-truncate :with bydi-rf))
       (with-temp-buffer
-        (should-not (whale-line-segments--org--build-segment)))
+        (should-not (whale-line-segments--org)))
 
       (setq first-heading nil)
       (with-temp-buffer
-        (should-not (whale-line-segments--org--build-segment)))
+        (should-not (whale-line-segments--org)))
 
       (setq headings (list (propertize "One" 'face 'shadow)
                            (propertize "Two" 'face 'shadow)
                            (propertize "Three" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "Three Two One" (whale-line-segments--org--build-segment))))
+        (should (string= "Three Two One" (whale-line-segments--org))))
 
       (setq whale-line-segments-org-max-count 1)
 
       (with-temp-buffer
-        (should (string= "Three * One" (whale-line-segments--org--build-segment))))
+        (should (string= "Three * One" (whale-line-segments--org))))
 
       (setq whale-line-segments-org-max-count 2
             headings (list (propertize "One" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "One" (whale-line-segments--org--build-segment)))))))
-
-(ert-deftest org--segment ()
-  (bydi ((:always derived-mode-p)
-         (:always whale-line-segments--org--build-segment))
-
-    (should (whale-line-segments--org--segment))
-    (bydi-was-called whale-line-segments--org--build-segment)))
+        (should (string= "One" (whale-line-segments--org)))))))
 
 (ert-deftest project--display-for-buffer-p--no-show-for-non-file-non-dired ()
   (with-temp-buffer
@@ -456,7 +449,7 @@
                                             mouse-face whale-line-highlight
                                             help-echo "help"
                                             local-map nil))
-                     (whale-line-segments--project--segment))))))
+                     (whale-line-segments--project))))))
 
 (ert-deftest tab-bar ()
   (let ((tab '((explicit-name . t) (name . "test-tab")))
@@ -466,11 +459,11 @@
            (:mock tab-bar--current-tab-index :return 42)
            (:risky-mock fboundp :with always))
 
-      (should (propertized-string= " test-tab " (whale-line-segments--tab-bar--segment)))
+      (should (propertized-string= " test-tab " (whale-line-segments--tab-bar)))
 
       (setcdr (assoc 'explicit-name tab) nil)
 
-      (should (propertized-string= " 42 " (whale-line-segments--tab-bar--segment))))))
+      (should (propertized-string= " 42 " (whale-line-segments--tab-bar))))))
 
 ;;; -- VC
 

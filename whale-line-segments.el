@@ -397,7 +397,7 @@ Returns nil if not checking or if no errors were found."
             (propertize (number-to-string count) 'face 'whale-line-shadow))
     icon))
 
-(defun wls--lsp--segment (&rest _args)
+(defun wls--lsp (&rest _args)
   "Indicate an active LSP session."
   (and-let* (((wls--lsp--active-p))
              (help (wls--lsp--help)))
@@ -405,7 +405,7 @@ Returns nil if not checking or if no errors were found."
     `((:propertize (:eval (wls--lsp--with-count)) help-echo ,help))))
 
 (whale-line-create-stateful-segment lsp
-  :getter wls--lsp--segment
+  :getter wls--lsp
 
   :hooks
   (lsp-after-initialize-hook
@@ -427,7 +427,7 @@ Returns nil if not checking or if no errors were found."
              (session (dap--cur-session))
              ((dap--session-running session)))))
 
-(defun wls--dap--segment ()
+(defun wls--dap ()
   "Indicate an active DAP session."
   (when-let* (((wls--dap--active-p))
               (name (dap--debug-session-name (dap--cur-session)))
@@ -436,7 +436,7 @@ Returns nil if not checking or if no errors were found."
     `((:propertize ,(whale-line-iconify 'dap) help-echo ,help))))
 
 (whale-line-create-stateful-segment dap
-  :getter wls--dap--segment
+  :getter wls--dap
   :hooks
   (dap-session-created-hook
    dap-session-changed-hook
@@ -506,7 +506,7 @@ Use FACE for the ellipsis glyph."
     (cl-loop collect (wls--org--get-next-heading)
              while (org-up-heading-safe))))
 
-(defun wls--org--build-segment ()
+(defun wls--org ()
   "Build the segment from included segments."
   (org-with-wide-buffer
 
@@ -531,15 +531,9 @@ Use FACE for the ellipsis glyph."
        (reverse headings))
       (propertize wls-org-separator 'face 'whale-line-shadow)))))
 
-(defun wls--org--segment ()
-  "Get the Org segment."
-  (when (derived-mode-p 'org-mode)
-    (wls--org--build-segment)))
-
 (whale-line-create-stateless-segment org
-  :getter wls--org--segment
-  :condition
-  (eq major-mode 'org-mode))
+  :getter wls--org
+  :condition (derived-mode-p 'org-mode))
 
 ;;; -- Project
 
@@ -571,7 +565,7 @@ Only consider Dired buffers and file buffers."
 
     (format "Project (%s)\nmouse-1: Open root" root)))
 
-(defun wls--project--segment ()
+(defun wls--project ()
   "Get the project segment."
   (when-let* ((candidate (wls--project--display-for-buffer-p))
               (project (project-current))
@@ -587,12 +581,12 @@ Only consider Dired buffers and file buffers."
                    local-map ,wls--project--map))))
 
 (whale-line-create-stateful-segment project
-  :getter wls--project--segment
+  :getter wls--project
   :hooks (find-file-hook))
 
 ;;; --- Tab bar
 
-(defun wls--tab-bar--get-identifier ()
+(defun wls--tab-bar--identifier ()
   "Get the identifier of the current tab.
 
 This is either an explicit name or its index."
@@ -602,16 +596,16 @@ This is either an explicit name or its index."
       name
     (number-to-string (tab-bar--current-tab-index))))
 
-(defun wls--tab-bar--segment ()
+(defun wls--tab-bar ()
   "Get the name or number of the tab."
   (and-let* (((bound-and-true-p tab-bar-mode))
-             (id (wls--tab-bar--get-identifier)))
+             (id (wls--tab-bar--identifier)))
 
-    `((:propertize ,(concat " " id " ") face whale-line-highlight))))
+    `((:propertize ,(format " %s " id) face whale-line-highlight))))
 
 (whale-line-create-stateful-segment tab-bar
   :verify (lambda () (featurep 'tab-bar))
-  :getter wls--tab-bar--segment
+  :getter wls--tab-bar
   :hooks (window-configuration-change-hook)
   :priority current-low)
 
