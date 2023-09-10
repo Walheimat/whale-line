@@ -33,6 +33,7 @@
   ;; Make setups do their thing.
   (run-hooks 'whale-line-setup-hook)
   (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+  (add-hook 'window-configuration-change-hook #'whale-line--calculate-space)
   (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
   ;; Set the new mode-line-format
@@ -43,6 +44,7 @@
   ;; Tear down everything.
   (run-hooks 'whale-line-teardown-hook)
   (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+  (remove-hook 'window-configuration-change-hook #'whale-line--calculate-space)
   (remove-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
   ;; Restore the original mode-line format

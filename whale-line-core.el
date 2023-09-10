@@ -22,8 +22,10 @@
 (defvar whale-line--default-mode-line nil)
 (defvar whale-line--dense nil)
 (defvar whale-line--padded nil)
+(defvar whale-line--padded-cache (make-hash-table))
 (defvar whale-line--priority nil)
 (defvar whale-line--segments nil)
+(defvar whale-line--space-cache (make-hash-table))
 (defvar whale-line--stateful-timer nil)
 (defvar whale-line--type nil)
 
@@ -167,23 +169,43 @@ Optionally FILTER out low priority segments."
 
 ;;; -- Space calculation
 
+(defun whale-line--calculate-space ()
+  "Calculate space constraints for all visible windows.
+
+This will cache the results so the calculation is only done once
+per window configuration change."
+  (let ((windows (window-list-1 nil 'never 'visible)))
+
+    (dolist (win windows)
+      (with-selected-window win
+        (puthash win (whale-line--raw-enough-space-p) whale-line--space-cache)))))
+
 (defun whale-line--calculate-width (side)
   "Calculate the width for SIDE.
 
 This uses `string-pixel-width' for Emacs 29+, otherwise
 `window-font-width.'"
-  (let ((formatted (whale-line--format-side side)))
+  (let ((formatted (whale-line--format-side side 'none)))
 
     (if (fboundp 'string-pixel-width)
         (string-pixel-width formatted)
       (* (window-font-width) (length formatted)))))
 
-(defun whale-line--enough-space-p ()
+(defun whale-line--raw-enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
   (let* ((left (whale-line--calculate-width :left))
-         (right (whale-line--calculate-width :right)))
+         (right (whale-line--calculate-width :right))
+         (calc (> (- (window-pixel-width) (+ left right)) 0)))
 
-    (> (- (window-pixel-width) (+ left right)) 0)))
+    calc))
+
+(defun whale-line--enough-space-p ()
+  "Calculate whether there is enough space to display both sides' segments."
+  (or (gethash (selected-window) whale-line--space-cache)
+      (let ((calc (whale-line--raw-enough-space-p)))
+
+        (puthash (selected-window) calc whale-line--space-cache)
+        calc)))
 
 (defun whale-line--space-between (length)
   "Get the space between sides aligned using LENGTH."
@@ -212,10 +234,19 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
   (and whale-line--current-window
        (eq (whale-line--get-current-window) whale-line--current-window)))
 
+;;; -- Caches
+
+(defun whale-line--clear-caches ()
+  "Clear all caches."
+  (clrhash whale-line--padded-cache)
+  (clrhash whale-line--space-cache))
+
 ;;; -- Building segments
 
 (defun whale-line--build-segments ()
   "Build the segments."
+  (whale-line--clear-caches)
+
   (and-let* (((memq '| whale-line-segments))
              (break (cl-position '| whale-line-segments))
              (left (cl-subseq whale-line-segments 0 break))
@@ -525,7 +556,9 @@ If VERIFY is t, the setup will verify before being executed."
 
 Optionally FILTER out low priority segments."
   (let* ((segments (plist-get whale-line--segments side))
-         (filtered (whale-line--filter segments filter)))
+         (filtered (if (eq filter 'none)
+                       segments
+                     (whale-line--filter segments filter))))
     (whale-line--render-segments filtered)))
 
 (defun whale-line--render-segments (segments)
@@ -576,17 +609,22 @@ Optionally FILTER out low priority segments."
   "Get padding of SEGMENT.
 
 Returns a cons of (OWN-LEFT or LEFT-NEIGHBOR-RIGHT . OWN-RIGHT or
-RIGHT-NEIGHBOR-LEFT)."
-  (let ((own (assoc segment whale-line--padded))
-        (left (whale-line--neighbor segment :left))
-        (right (whale-line--neighbor segment :right)))
+RIGHT-NEIGHBOR-LEFT).
 
-    (cons (or (memq (cdr-safe own) '(left all))
-              (memq (cdr-safe (assoc left whale-line--padded))
-                    '(right all)))
-          (or (memq (cdr-safe own) '(right all))
-              (memq (cdr-safe (assoc right whale-line--padded))
-                    '(left all))))))
+The results are cached."
+  (or (gethash segment whale-line--padded-cache)
+      (let* ((own (assoc segment whale-line--padded))
+             (left (whale-line--neighbor segment :left))
+             (right (whale-line--neighbor segment :right))
+             (padding (cons (or (memq (cdr-safe own) '(left all))
+                                (memq (cdr-safe (assoc left whale-line--padded))
+                                      '(right all)))
+                            (or (memq (cdr-safe own) '(right all))
+                                (memq (cdr-safe (assoc right whale-line--padded))
+                                      '(left all))))))
+
+        (puthash segment padding whale-line--padded-cache)
+        padding)))
 
 (defun whale-line--side (segment)
   "Get the side the SEGMENT is on."

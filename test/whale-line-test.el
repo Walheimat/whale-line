@@ -20,7 +20,8 @@
 
       (bydi-was-called-with run-hooks (list 'whale-line-setup-hook))
       (bydi-was-called-nth-with add-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
-      (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 1)
+      (bydi-was-called-nth-with add-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
+      (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
 
       (eq 'format whale-line--default-mode-line)
 
@@ -37,7 +38,8 @@
 
       (bydi-was-called-with run-hooks (list 'whale-line-teardown-hook))
       (bydi-was-called-nth-with remove-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
-      (bydi-was-called-nth-with remove-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 1)
+      (bydi-was-called-nth-with remove-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
+      (bydi-was-called-nth-with remove-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
 
       (should (eq 'other mode-line-format)))))
 

@@ -227,35 +227,48 @@
     (bydi-was-called-with whale-line--render '(:left filter))
     (bydi-was-called-with format-mode-line "test")))
 
+(ert-deftest calculate-space ()
+  (bydi ((:always whale-line--enough-space-p))
+    (let ((whale-line--space-cache (make-hash-table)))
+
+      (whale-line--calculate-space)
+
+      (should (length> (hash-table-keys whale-line--space-cache) 0)))))
+
 (ert-deftest whale-line--enough-space ()
   (let ((left "left")
         (right "right")
-        (width 10))
+        (width 10)
+        (whale-line--space-cache (make-hash-table)))
 
     (bydi ((:mock window-font-width :return 1)
            (:mock window-pixel-width :return  width)
-           (:mock whale-line--format-side :with (lambda (side)
+           (:mock whale-line--format-side :with (lambda (side &optional _)
                                                   (pcase side
                                                     (:left left)
                                                     (:right right)))))
       (should (whale-line--enough-space-p))
       (setq width 8)
-      (should-not (whale-line--enough-space-p)))))
+      (clrhash whale-line--space-cache)
+      (should-not (whale-line--enough-space-p))
+      (bydi-was-called-with whale-line--format-side '(... none)))))
 
 (ert-deftest whale-line--enough-space--old-calculation ()
   (let ((left "left")
         (right "right")
-        (width 10))
+        (width 10)
+        (whale-line--space-cache (make-hash-table)))
 
     (bydi ((:risky-mock fboundp :with ignore)
            (:mock window-font-width :return 1)
            (:mock window-pixel-width :return  width)
-           (:mock whale-line--format-side :with (lambda (side)
+           (:mock whale-line--format-side :with (lambda (side &optional _)
                                                   (pcase side
                                                     (:left left)
                                                     (:right right)))))
       (should (whale-line--enough-space-p))
       (setq width 8)
+      (clrhash whale-line--space-cache)
       (should-not (whale-line--enough-space-p)))))
 
 (defmacro with-whale-line (&rest body)
@@ -497,7 +510,14 @@
 
       (whale-line--render :left)
 
-      (bydi-was-called-with whale-line--render-segments (list '((one . t)))))))
+      (bydi-was-called-with whale-line--render-segments (list '((one . t))))
+      (bydi-was-called whale-line--filter)
+
+      (whale-line--render :left 'none)
+
+      (bydi-clear-mocks)
+
+      (bydi-was-not-called whale-line--filter))))
 
 (ert-deftest whale-line--render-segments ()
   (bydi ((:mock functionp :with (lambda (x) (eq 'whale-line-three--segment x))))
