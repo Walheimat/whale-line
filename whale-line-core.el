@@ -21,6 +21,7 @@
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
 (defvar whale-line--dense nil)
+(defvar whale-line--padded nil)
 (defvar whale-line--priority nil)
 (defvar whale-line--segments nil)
 (defvar whale-line--stateful-timer nil)
@@ -236,13 +237,14 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
         (funcall verify-sym)
       t)))
 
-(defun whale-line--add-segment (segment type &optional priority dense)
+(defun whale-line--add-segment (segment type &optional priority dense padded)
   "Add SEGMENT of TYPE to the list of segments.
 
-Optionally with a PRIORITY and DENSE."
+Optionally with a PRIORITY, DENSE and PADDED."
   (whale-line--set-segment-priority segment (or priority t))
   (whale-line--set-type segment type)
-  (whale-line--set-dense segment dense))
+  (whale-line--set-dense segment dense)
+  (whale-line--set-padded segment padded))
 
 (defun whale-line--set-segment-priority (segment priority)
   "Set PRIORITY of a SEGMENT."
@@ -261,6 +263,12 @@ Optionally with a PRIORITY and DENSE."
   (if-let ((existing (assoc segment whale-line--dense)))
       (setcdr existing dense)
     (push (cons segment dense) whale-line--dense)))
+
+(defun whale-line--set-padded (segment padded)
+  "Set SEGMENT as PADDED."
+  (if-let ((existing (assoc segment whale-line--padded)))
+      (setcdr existing padded)
+    (push (cons segment padded) whale-line--padded)))
 
 ;;; -- Macros
 
@@ -361,7 +369,18 @@ nothing for augments."
        (unless (bound-and-true-p whale-line--testing)
          (message "Couldn't add %s `%s' segment" ',type ',name)))))
 
-(cl-defmacro whale-line--create-stateful-segment (name &key getter hooks advice verify setup teardown priority dense)
+(cl-defmacro whale-line--create-stateful-segment
+    (name
+     &key
+     getter
+     hooks
+     advice
+     verify
+     setup
+     teardown
+     priority
+     dense
+     padded)
   "Create a stateful segment named NAME.
 
 Stateful segments are represented by a variable that is updated
@@ -382,7 +401,10 @@ SETUP is the function called on setup, TEARDOWN that during teardown.
 
 This will also add the segment with PRIORITY or t.
 
-If DENSE is t, the segment will not be padded."
+If DENSE is t, the segment will not be padded.
+
+PADDED can be either `left', `right' or `all' to document that
+the segment comes pre-padded on that or all sides."
   (declare (indent defun))
 
   (let* ((sym-name (symbol-name name))
@@ -408,11 +430,21 @@ If DENSE is t, the segment will not be padded."
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
 
-           (whale-line--add-segment ',name 'stateful ',prio ',dense))
+           (whale-line--add-segment ',name 'stateful ',prio ',dense ',padded))
       `(progn
          (whale-line--omit ,name stateful)))))
 
-(cl-defmacro whale-line--create-stateless-segment (name &key getter condition verify setup teardown priority dense)
+(cl-defmacro whale-line--create-stateless-segment
+    (name
+     &key
+     getter
+     condition
+     verify
+     setup
+     teardown
+     priority
+     dense
+     padded)
   "Create a stateless segment name NAME.
 
 A stateless segment is represented by a function that is called
@@ -431,7 +463,10 @@ SETUP is the function called on setup, TEARDOWN that during teardown.
 
 The segment will be added with PRIORITY or t.
 
-If DENSE is t, the segment will not be padded."
+If DENSE is t, the segment will not be padded.
+
+PADDED can be either `left', `right' or `all' to document that
+the segment comes pre-padded on that or all sides."
   (declare (indent defun))
 
   (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
@@ -452,7 +487,7 @@ If DENSE is t, the segment will not be padded."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
-           (whale-line--add-segment ',name 'stateless ',prio ',dense))
+           (whale-line--add-segment ',name 'stateless ',prio ',dense ',padded))
       `(progn
          (whale-line--omit ,name stateless)))))
 
@@ -520,18 +555,58 @@ Optionally FILTER out low priority segments."
   (let* ((dense (alist-get segment whale-line--dense))
          (dense (if (functionp dense) (funcall dense) dense))
          (render (if (listp render) render (list render)))
+         (side (whale-line--side segment))
+         (paddings (whale-line--padding segment))
          (padded
           (delq
            nil
-           `(,(when (and (assoc segment (plist-get whale-line--segments :left)))
+           `(,(when (and (eq side :left)
+                         (not (car-safe paddings)))
                 (whale-line--spacer dense))
              ,@render
-             ,(when (assoc segment (plist-get whale-line--segments :right))
+             ,(when (and (eq side :right)
+                         (not (cdr-safe paddings)))
                 (whale-line--spacer dense))))))
 
     (if (whale-line--empty-render-p padded)
         nil
       padded)))
+
+(defun whale-line--padding (segment)
+  "Get padding of SEGMENT.
+
+Returns a cons of (OWN-LEFT or LEFT-NEIGHBOR-RIGHT . OWN-RIGHT or
+RIGHT-NEIGHBOR-LEFT)."
+  (let ((own (assoc segment whale-line--padded))
+        (left (whale-line--neighbor segment :left))
+        (right (whale-line--neighbor segment :right)))
+
+    (cons (or (memq (cdr-safe own) '(left all))
+              (memq (cdr-safe (assoc left whale-line--padded))
+                    '(right all)))
+          (or (memq (cdr-safe own) '(right all))
+              (memq (cdr-safe (assoc right whale-line--padded))
+                    '(left all))))))
+
+(defun whale-line--side (segment)
+  "Get the side the SEGMENT is on."
+  (if (assoc segment (plist-get whale-line--segments :left))
+      :left
+    :right))
+
+(defun whale-line--neighbor (segment side)
+  "Get SEGMENT's neighbor on SIDE."
+  (when-let* ((segment-side (whale-line--side segment))
+              (segments (mapcar #'car (plist-get whale-line--segments segment-side)))
+              (index (seq-position segments segment)))
+
+    (cond
+     ((and (eq side :left)
+           (> index 0))
+      (nth (1- index) segments))
+     ((and (eq side :right)
+           (< index (1- (length segments))))
+      (nth (1+ index) segments)))))
 
 (defun whale-line--spacer (&optional dense)
   "A space used for padding.

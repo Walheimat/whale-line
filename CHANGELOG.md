@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Segments can now set key `:padded` to `left`, `right` or `all` to
+  communicate that they come with padding. `minor-modes` sets this to
+  `left`. This value is respected and no additional padding is added
+  to segments to the left or right of it.
+
 ### Changed
 
 - Segment `buffer-identification` now uses face `mode-line-buffer-id`

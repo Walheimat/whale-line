@@ -180,6 +180,7 @@ icon name and the face.")
 
 (whale-line-create-stateless-segment minor-modes
   :getter (lambda () minor-mode-alist)
+  :padded left
   :priority low)
 
 ;;;; -- Process

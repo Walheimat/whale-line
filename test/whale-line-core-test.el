@@ -47,7 +47,7 @@
          (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateful 't 'nil)))))
+       (whale-line--add-segment 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--simple ()
   (whale-line-do-expand
@@ -69,7 +69,7 @@
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateful 't 'nil)))))
+       (whale-line--add-segment 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--using-symbols ()
   (whale-line-do-expand
@@ -100,7 +100,7 @@
 
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
 
-       (whale-line--add-segment 'test 'stateful 'low 'nil)))))
+       (whale-line--add-segment 'test 'stateful 'low 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
@@ -122,7 +122,7 @@
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-       (whale-line--add-segment 'test 'stateless 't 'nil)))))
+       (whale-line--add-segment 'test 'stateless 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
@@ -141,7 +141,7 @@
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateless 't 't)))))
+       (whale-line--add-segment 'test 'stateless 't 't 'nil)))))
 
 (ert-deftest whale-line--create-augment ()
   (whale-line-do-expand
@@ -457,6 +457,17 @@
     (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))
     (should (equal '("test" "") (whale-line--pad-segment 'four "test")))
     (should (equal '("" "test") (whale-line--pad-segment 'five "test")))))
+
+(ert-deftest pad-segment--pre-padded ()
+  (let ((whale-line--segments '(:left ((one . t) (two . t) (three . t)) :right ((four . t) (five . t) (six . t))))
+        (whale-line--padded '((two . all) (five . left))))
+
+    (should (equal '(" " "one") (whale-line--pad-segment 'one "one")))
+    (should (equal '("two") (whale-line--pad-segment 'two "two")))
+    (should (equal '("three") (whale-line--pad-segment 'three "three")))
+    (should (equal '("four") (whale-line--pad-segment 'four "four")))
+    (should (equal '("five" " ") (whale-line--pad-segment 'five "five")))
+    (should (equal '("six" " ") (whale-line--pad-segment 'six "six")))))
 
 (ert-deftest whale-line--filter ()
   (let ((current nil)
