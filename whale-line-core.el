@@ -215,9 +215,10 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
 (defun whale-line--build-segments ()
   "Build the segments."
-  (let* ((break (cl-position '| whale-line-segments))
-         (left (cl-subseq whale-line-segments 0 break))
-         (right (cl-subseq whale-line-segments (1+ break))))
+  (and-let* (((memq '| whale-line-segments))
+             (break (cl-position '| whale-line-segments))
+             (left (cl-subseq whale-line-segments 0 break))
+             (right (cl-subseq whale-line-segments (1+ break))))
 
     (setq whale-line--segments (plist-put whale-line--segments :left (delq nil (mapcar #'whale-line--map-segment left))))
     (setq whale-line--segments (plist-put whale-line--segments :right (delq nil (mapcar #'whale-line--map-segment right))))))

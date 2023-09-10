@@ -24,10 +24,11 @@
 
 (defun whale-line-mode--setup ()
   "Set up `whale-line-mode'."
+  (unless (whale-line--build-segments)
+    (user-error "Failed to build segments"))
+
   ;; Save a copy of the previous mode-line.
   (setq whale-line--default-mode-line mode-line-format)
-
-  (whale-line--build-segments)
 
   ;; Make setups do their thing.
   (run-hooks 'whale-line-setup-hook)

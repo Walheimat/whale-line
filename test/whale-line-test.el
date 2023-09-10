@@ -9,11 +9,11 @@
 (require 'whale-line)
 
 (ert-deftest whale-line-mode--setup ()
-  (let ((whale-line-features '(one two three))
-        (mode-line-format 'format)
+  (let ((mode-line-format 'format)
         (whale-line--default-mode-line nil))
 
     (bydi ((:mock require :return t)
+           (:sometimes whale-line--build-segments)
            add-hook
            run-hooks)
       (whale-line-mode--setup)
@@ -22,7 +22,11 @@
       (bydi-was-called-nth-with add-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
       (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 1)
 
-      (eq 'format whale-line--default-mode-line))))
+      (eq 'format whale-line--default-mode-line)
+
+      (bydi-toggle-sometimes)
+
+      (should-error (whale-line-mode--setup)))))
 
 (ert-deftest whale-line-mode--teardown ()
   (let ((mode-line-format 'whale)

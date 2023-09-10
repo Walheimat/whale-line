@@ -575,6 +575,17 @@
       (funcall 'two))
     (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))
 
+(ert-deftest whale-line--build-segments ()
+  (let ((whale-line--priority '((one . low) (two . high)))
+        (whale-line-segments '(one | two))
+        (whale-line--segments nil))
+
+    (bydi ((:always whale-line--valid-segment-p))
+      (whale-line--build-segments)
+
+      (should (equal '(:left ((one . low)) :right ((two . high)))
+                     whale-line--segments)))))
+
 ;;; whale-line-core-test.el ends here
 
 ;; Local Variables:
