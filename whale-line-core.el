@@ -18,16 +18,16 @@
 
 ;;; -- Variables
 
+(defvar whale-line--segments nil)
+(defvar whale-line--props nil)
+
 (defvar whale-line--current-window nil)
 (defvar whale-line--default-mode-line nil)
-(defvar whale-line--dense nil)
-(defvar whale-line--padded nil)
+
 (defvar whale-line--padded-cache (make-hash-table))
-(defvar whale-line--priority nil)
-(defvar whale-line--segments nil)
 (defvar whale-line--space-cache (make-hash-table))
+
 (defvar whale-line--stateful-timer nil)
-(defvar whale-line--type nil)
 
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
@@ -249,16 +249,13 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
   (and-let* (((memq '| whale-line-segments))
              (break (cl-position '| whale-line-segments))
-             (left (cl-subseq whale-line-segments 0 break))
-             (right (cl-subseq whale-line-segments (1+ break))))
+             (left (seq-filter #'whale-line--valid-segment-p
+                              (cl-subseq whale-line-segments 0 break)))
+             (right (seq-filter #'whale-line--valid-segment-p
+                                (cl-subseq whale-line-segments (1+ break))))
+             (props (list :left left :right right)))
 
-    (setq whale-line--segments (plist-put whale-line--segments :left (delq nil (mapcar #'whale-line--map-segment left))))
-    (setq whale-line--segments (plist-put whale-line--segments :right (delq nil (mapcar #'whale-line--map-segment right))))))
-
-(defun whale-line--map-segment (segment)
-  "Map SEGMENT to its priority declaration."
-  (when (whale-line--valid-segment-p segment)
-    (assoc segment whale-line--priority)))
+    (setq whale-line--segments props)))
 
 (defun whale-line--valid-segment-p (segment)
   "Check that SEGMENT can be included."
@@ -268,38 +265,21 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
         (funcall verify-sym)
       t)))
 
-(defun whale-line--add-segment (segment type &optional priority dense padded)
-  "Add SEGMENT of TYPE to the list of segments.
+;;; -- Props
 
-Optionally with a PRIORITY, DENSE and PADDED."
-  (whale-line--set-segment-priority segment (or priority t))
-  (whale-line--set-type segment type)
-  (whale-line--set-dense segment dense)
-  (whale-line--set-padded segment padded))
+(defun whale-line--set-props (segment type &optional priority dense padded)
+  "Set props for SEGMENT.
 
-(defun whale-line--set-segment-priority (segment priority)
-  "Set PRIORITY of a SEGMENT."
-  (if-let ((existing (assoc segment whale-line--priority)))
-      (setcdr existing priority)
-    (push (cons segment priority) whale-line--priority)))
+These are its TYPE, PRIORITY, as well as whether it is DENSE
+and/or PADDED."
+  (if-let ((props (list :type type :priority (or priority t) :dense dense :padded padded))
+           (existing (assoc segment whale-line--props)))
+      (setcdr existing props)
+    (push (cons segment props) whale-line--props)))
 
-(defun whale-line--set-type (segment type)
-  "Set TYPE of SEGMENT."
-  (if-let ((existing (assoc segment whale-line--type)))
-      (setcdr existing type)
-    (push (cons segment type) whale-line--type)))
-
-(defun whale-line--set-dense (segment dense)
-  "Set SEGMENT as DENSE."
-  (if-let ((existing (assoc segment whale-line--dense)))
-      (setcdr existing dense)
-    (push (cons segment dense) whale-line--dense)))
-
-(defun whale-line--set-padded (segment padded)
-  "Set SEGMENT as PADDED."
-  (if-let ((existing (assoc segment whale-line--padded)))
-      (setcdr existing padded)
-    (push (cons segment padded) whale-line--padded)))
+(defun whale-line--prop (segment prop)
+  "Get PROP for SEGMENT."
+  (plist-get (cdr-safe (assoc segment whale-line--props)) prop))
 
 ;;; -- Macros
 
@@ -461,7 +441,7 @@ the segment comes pre-padded on that or all sides."
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
 
-           (whale-line--add-segment ',name 'stateful ',prio ',dense ',padded))
+           (whale-line--set-props ',name 'stateful ',prio ',dense ',padded))
       `(progn
          (whale-line--omit ,name stateful)))))
 
@@ -518,7 +498,7 @@ the segment comes pre-padded on that or all sides."
            (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
-           (whale-line--add-segment ',name 'stateless ',prio ',dense ',padded))
+           (whale-line--set-props ',name 'stateless ',prio ',dense ',padded))
       `(progn
          (whale-line--omit ,name stateless)))))
 
@@ -545,7 +525,7 @@ If VERIFY is t, the setup will verify before being executed."
            (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
            ,(when verify
               `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))
-           (whale-line--add-segment ',name 'augment))
+           (whale-line--set-props ',name 'augment))
       `(progn
          (whale-line--omit ,name augment)))))
 
@@ -565,8 +545,7 @@ Optionally FILTER out low priority segments."
   "Render SEGMENTS."
   (delq nil (mapcar
              (lambda (it)
-               (when-let* ((should-use (cdr it))
-                           (sym (car it))
+               (when-let* ((sym it)
                            (name (symbol-name sym))
                            (segment (intern (format "whale-line-%s--segment" name)))
                            (setter (intern (format "whale-line-%s--action" name))))
@@ -585,7 +564,7 @@ Optionally FILTER out low priority segments."
 
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
-  (let* ((dense (alist-get segment whale-line--dense))
+  (let* ((dense (whale-line--prop segment :dense))
          (dense (if (functionp dense) (funcall dense) dense))
          (render (if (listp render) render (list render)))
          (side (whale-line--side segment))
@@ -613,14 +592,14 @@ RIGHT-NEIGHBOR-LEFT).
 
 The results are cached."
   (or (gethash segment whale-line--padded-cache)
-      (let* ((own (assoc segment whale-line--padded))
+      (let* ((own (whale-line--prop segment :padded))
              (left (whale-line--neighbor segment :left))
              (right (whale-line--neighbor segment :right))
-             (padding (cons (or (memq (cdr-safe own) '(left all))
-                                (memq (cdr-safe (assoc left whale-line--padded))
+             (padding (cons (or (memq own '(left all))
+                                (memq (whale-line--prop left :padded)
                                       '(right all)))
-                            (or (memq (cdr-safe own) '(right all))
-                                (memq (cdr-safe (assoc right whale-line--padded))
+                            (or (memq own '(right all))
+                                (memq (whale-line--prop right :padded)
                                       '(left all))))))
 
         (puthash segment padding whale-line--padded-cache)
@@ -628,14 +607,14 @@ The results are cached."
 
 (defun whale-line--side (segment)
   "Get the side the SEGMENT is on."
-  (if (assoc segment (plist-get whale-line--segments :left))
+  (if (memq segment (plist-get whale-line--segments :left))
       :left
     :right))
 
 (defun whale-line--neighbor (segment side)
   "Get SEGMENT's neighbor on SIDE."
   (when-let* ((segment-side (whale-line--side segment))
-              (segments (mapcar #'car (plist-get whale-line--segments segment-side)))
+              (segments (plist-get whale-line--segments segment-side))
               (index (seq-position segments segment)))
 
     (cond
@@ -671,7 +650,7 @@ If LOW-SPACE is t, additional segments are filtered."
   (let ((filter (if (whale-line--is-current-window-p)
                     (whale-line--filter-for-current low-space)
                   (whale-line--filter-for-other low-space))))
-    (seq-filter (lambda (it) (not (memq (cdr it) filter))) segments)))
+    (seq-filter (lambda (it) (not (memq (whale-line--prop it :priority) filter))) segments)))
 
 (defun whale-line--filter-for-current (&optional low-space)
   "Build the filter for current window.
@@ -706,8 +685,8 @@ This will refresh stateful segments."
 
 This will call the respective segment's action."
   (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
-         (actions (cl-loop for (a . b) in whale-line--type
-                           if (eq b 'stateful)
+         (actions (cl-loop for (a . b) in whale-line--props
+                           if (eq 'stateful (plist-get b :type))
                            collect (funcall interner a))))
 
     (mapc #'funcall actions)))

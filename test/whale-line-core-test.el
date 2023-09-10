@@ -47,7 +47,7 @@
          (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateful 't 'nil 'nil)))))
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--simple ()
   (whale-line-do-expand
@@ -69,7 +69,7 @@
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateful 't 'nil 'nil)))))
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--using-symbols ()
   (whale-line-do-expand
@@ -100,7 +100,7 @@
 
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
 
-       (whale-line--add-segment 'test 'stateful 'low 'nil 'nil)))))
+       (whale-line--set-props 'test 'stateful 'low 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
@@ -122,7 +122,7 @@
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-       (whale-line--add-segment 'test 'stateless 't 'nil 'nil)))))
+       (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
@@ -141,7 +141,7 @@
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
        nil
-       (whale-line--add-segment 'test 'stateless 't 't 'nil)))))
+       (whale-line--set-props 'test 'stateless 't 't 'nil)))))
 
 (ert-deftest whale-line--create-augment ()
   (whale-line-do-expand
@@ -161,7 +161,7 @@
          :teardown (lambda nil t)
          :verify nil)
        nil
-       (whale-line--add-segment 'test 'augment)))))
+       (whale-line--set-props 'test 'augment)))))
 
 (ert-deftest whale-line--create-augment--using-symbol ()
   (whale-line-do-expand
@@ -184,7 +184,7 @@
        (whale-line--function whale-line-test--verify
          (lambda nil t)
          "Verify `test' augment." t)
-       (whale-line--add-segment 'test 'augment)))))
+       (whale-line--set-props 'test 'augment)))))
 
 (ert-deftest whale-line--function--lambda ()
   (bydi-match-expansion
@@ -395,7 +395,7 @@
     (cancel-timer timer)))
 
 (ert-deftest whale-line--refresh-stateful-segments ()
-  (let ((whale-line--type '((a . stateful) (b . stateless) (c . stateful))))
+  (let ((whale-line--props '((a :type stateful) (b :type stateless) (c :type stateful))))
 
     (defun whale-line-a--action () nil)
     (defun whale-line-b--action () nil)
@@ -426,28 +426,25 @@
 
       (should (whale-line--is-current-window-p)))))
 
-(ert-deftest whale-line--add-segment ()
-  (let ((whale-line--priority '((one . nil) (two . t)))
-        (whale-line--type '((one . stateful) (two . stateless)))
-        (whale-line--dense '((one . nil))))
+(ert-deftest whale-line--set-props ()
+  (let ((whale-line--props '((one :priority nil :type stateful :dense nil)
+                             (two :priority t :type stateless))))
 
-    (whale-line--add-segment 'one 'stateful)
+    (whale-line--set-props 'one 'stateful)
 
-    (should (equal whale-line--priority '((one . t) (two . t))))
-    (should (equal whale-line--type '((one . stateful) (two . stateless))))
+    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil)
+                                       (two :priority t :type stateless))))
 
-    (whale-line--add-segment 'two 'stateful 'low)
+    (whale-line--set-props 'two 'stateful 'low)
 
-    (should (equal whale-line--priority '((one . t) (two . low))))
-    (should (equal whale-line--type '((one . stateful) (two . stateful))))
+    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil)
+                                       (two :type stateful :priority low :dense nil :padded nil))))
 
-    (whale-line--add-segment 'three 'stateful 'current-low)
+    (whale-line--set-props 'three 'stateless nil t t)
 
-    (should (equal whale-line--priority '((three . current-low) (one . t) (two . low))))
-
-    (whale-line--add-segment 'one 'stateful nil t)
-
-    (should (equal whale-line--dense '((three) (two) (one . t))))))
+    (should (equal whale-line--props '((three :type stateless :priority t :dense t :padded t)
+                                       (one :type stateful :priority t :dense nil :padded nil)
+                                       (two :type stateful :priority low :dense nil :padded nil))))))
 
 (ert-deftest whale-line--valid-segment-p ()
   (let ((verifies nil))
@@ -462,8 +459,8 @@
     (should (whale-line--valid-segment-p 'test))))
 
 (ert-deftest whale-line--pad-segment ()
-  (let ((whale-line--segments '(:left ((one . t) (three . t) (five . t)) :right ((two . t) (four . t))))
-        (whale-line--dense '((four . t) (five . always))))
+  (let ((whale-line--segments '(:left (one three five) :right (two four)))
+        (whale-line--props '((four :dense t) (five :dense always))))
 
     (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
     (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
@@ -472,8 +469,8 @@
     (should (equal '("" "test") (whale-line--pad-segment 'five "test")))))
 
 (ert-deftest pad-segment--pre-padded ()
-  (let ((whale-line--segments '(:left ((one . t) (two . t) (three . t)) :right ((four . t) (five . t) (six . t))))
-        (whale-line--padded '((two . all) (five . left))))
+  (let ((whale-line--segments '(:left (one two three) :right (four five six)))
+        (whale-line--props '((two :padded all) (five :padded left))))
 
     (should (equal '(" " "one") (whale-line--pad-segment 'one "one")))
     (should (equal '("two") (whale-line--pad-segment 'two "two")))
@@ -484,23 +481,24 @@
 
 (ert-deftest whale-line--filter ()
   (let ((current nil)
-        (segments '((a . low) (b . current-low) (c . t) (d . current))))
+        (segments '(a b c d))
+        (whale-line--props '((a :priority low) (b :priority current-low) (c :priority t) (d :priority current))))
 
     (bydi ((:mock whale-line--is-current-window-p :return current))
 
       (should (equal (whale-line--filter segments)
-                     '((a . low) (c . t))))
+                     '(a c)))
 
       (should (equal (whale-line--filter segments t)
-                     '((c . t))))
+                     '(c)))
 
       (setq current t)
 
       (should (equal (whale-line--filter segments)
-                     '((a . low) (b . current-low) (c . t) (d . current))))
+                     '(a b c d)))
 
       (should (equal (whale-line--filter segments t)
-                     '((c . t) (d . current)))))))
+                     '(c d))))))
 
 (ert-deftest whale-line--render ()
   (let ((whale-line--segments '(:left ((one . t)) :right ((two . nil)))))
@@ -523,7 +521,7 @@
   (bydi ((:mock functionp :with (lambda (x) (eq 'whale-line-three--segment x))))
     (defvar whale-line-one--segment)
     (defvar whale-line-four--segment)
-    (let ((segments '((one . t) (two . nil) (three . t) (four . initial)))
+    (let ((segments '(one three four))
           (whale-line-one--segment "one")
           (whale-line-four--segment 'initial))
 
@@ -607,14 +605,14 @@
     (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))
 
 (ert-deftest whale-line--build-segments ()
-  (let ((whale-line--priority '((one . low) (two . high)))
+  (let ((whale-line--props '((one :priority low) (two :priority high)))
         (whale-line-segments '(one | two))
         (whale-line--segments nil))
 
     (bydi ((:always whale-line--valid-segment-p))
       (whale-line--build-segments)
 
-      (should (equal '(:left ((one . low)) :right ((two . high)))
+      (should (equal '(:left (one) :right (two))
                      whale-line--segments)))))
 
 ;;; whale-line-core-test.el ends here
