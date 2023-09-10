@@ -1,4 +1,4 @@
-;;; whale-line-iconify.el -- Icon usage -*- lexical-binding: t; -*-
+;;; whale-line-iconify.el -- Use icons in segments -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
@@ -7,7 +7,10 @@
 
 ;;; Commentary:
 
-;; Use icons for segments.
+;; Common logic for icon usage in segments. This package is built
+;; around external package `all-the-icons'. You may adjust or disable
+;; any icon. See the definitions of segments in `whale-line-segments'
+;; for the names of icons.
 
 ;;; Code:
 

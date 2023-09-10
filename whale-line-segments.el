@@ -1,4 +1,4 @@
-;;; whale-line-segments.el -- Default segments. -*- lexical-binding: t; -*-
+;;; whale-line-segments.el -- Built-in segments -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
@@ -8,7 +8,13 @@
 
 ;;; Commentary:
 
-;; Definitions of all mode-line segments.
+;; This package includes the definitions of all built-in segments
+;; (also cf. custom variable `whale-line-segments' for their default
+;; positioning) as well as their private logic.
+;;
+;; Some of these segments may be customized. See also
+;; `whale-line-iconify-disabled' if you want to disable icons for a
+;; segment that would otherwise use them.
 
 ;;; Code:
 
@@ -34,7 +40,11 @@
   :type '(vector string))
 
 (defcustom whale-line-segments-animation-speed 1.0
-  "Animation speed."
+  "Animation speed.
+
+Note that this value also determines how often
+`force-mode-line-update' will be called to display the next
+frame."
   :group 'whale-line-segments
   :type 'float)
 
@@ -44,12 +54,12 @@
   :type 'string)
 
 (defcustom whale-line-segments-org-ellipsis "…"
-  "The string indicating truncation."
+  "The string indicating truncation of a heading."
   :group 'whale-line-segments
   :type 'string)
 
 (defcustom whale-line-segments-org-elision "*"
-  "The string indicating elision."
+  "The string indicating elision of a heading."
   :group 'whale-line-segments
   :type :string)
 
@@ -63,7 +73,7 @@ to 2, only the 3rd level is elided."
   :type 'integer)
 
 (defcustom whale-line-segments-org-max-heading-length 12
-  "The max length of a heading before truncation."
+  "The max length of a heading after which it will be truncated."
   :group 'whale-line-segments
   :type 'integer)
 
@@ -78,7 +88,7 @@ to 2, only the 3rd level is elided."
 (defvar-local wls--buffer-identification--additional-help nil)
 
 (defun wls--buffer-identification ()
-  "Get the buffer name."
+  "Get the buffer identification."
   `((:propertize (:eval (propertized-buffer-identification "%b"))
                  face ,(list 'mode-line-buffer-id wls--buffer-identification--additional-face)
                  ,@(and wls--buffer-identification--additional-help

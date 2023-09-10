@@ -8,7 +8,20 @@
 
 ;;; Commentary:
 
-;; The mode-line I use.
+;; This package provides a highly modular mode-line. The `whale-line'
+;; mode-line comprises a set of segments. Each of them can be freely
+;; positioned or disabled by setting `whale-line-segments' (segments
+;; belong either to the left or the right side). Many are
+;; customizable.
+;;
+;; You can also create augments to change the behavior or look of an
+;; existing segment.
+;;
+;; You may also create your own segments and augments using the
+;; `whale-line-create-*' macros.
+;;
+;; This package takes inspiration from two other great custom
+;; mode-lines: `mood-line' and `doom-modeline'.
 
 ;;; Code:
 
@@ -62,7 +75,7 @@ Only necessary if you have changed `whale-line-segments'."
 
 ;;;###autoload
 (define-minor-mode whale-line-mode
-  "Toggle mood-line on or off."
+  "Toggle `whale-line' on or off."
   :group 'whale-line
   :global t
   :lighter " wll"
