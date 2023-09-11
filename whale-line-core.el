@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
-;; Version: 0.7.1
+;; Version: 0.7.2
 ;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: faces mode-line
 
@@ -740,7 +740,7 @@ See underlying macro for the usage of ARGS."
      (whale-line--create-stateful-segment ,name ,@args)))
 
 (defalias 'whale-line-create-static-segment 'whale-line-create-stateful-segment)
-(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.1")
+(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.2")
 
 ;;;###autoload
 (defmacro whale-line-create-stateless-segment (name &rest args)
@@ -753,7 +753,7 @@ See underlying macro for the usage of ARGS."
      (whale-line--create-stateless-segment ,name ,@args)))
 
 (defalias 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment)
-(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.1")
+(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.2")
 
 ;;;###autoload
 (defmacro whale-line-create-augment (name &rest args)
