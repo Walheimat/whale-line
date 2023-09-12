@@ -539,7 +539,6 @@ Use FACE for the ellipsis glyph."
 
 ;;; -- Project
 
-(declare-function projectile-project-root "ext:projectile.el")
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
 
