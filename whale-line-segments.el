@@ -145,8 +145,7 @@ to 2, only the 3rd level is elided."
       combined)))
 
 (whale-line-create-stateless-segment window-status
-  :getter wls--window-status
-  :priority low)
+  :getter wls--window-status)
 
 ;;;; -- Position
 
@@ -184,7 +183,7 @@ to 2, only the 3rd level is elided."
 (whale-line-create-stateless-segment minor-modes
   :var minor-mode-alist
   :padded left
-  :priority current-low)
+  :priority current)
 
 ;;;; -- Process
 
@@ -414,8 +413,7 @@ Returns nil if not checking or if no errors were found."
    lsp-after-uninitialized-functions
    lsp-after-open-hook
    eglot-server-initialized-hook
-   eglot-managed-mode-hook)
-  :priority low)
+   eglot-managed-mode-hook))
 
 ;;; -- DAP
 
@@ -583,7 +581,8 @@ Only consider Dired buffers and file buffers."
 
 (whale-line-create-stateful-segment project
   :getter wls--project
-  :hooks (find-file-hook))
+  :hooks (find-file-hook)
+  :priority low)
 
 ;;; --- Tab bar
 
@@ -608,7 +607,7 @@ This is either an explicit name or its index."
   :verify (lambda () (featurep 'tab-bar))
   :getter wls--tab-bar
   :hooks (window-configuration-change-hook)
-  :priority current-low)
+  :priority current)
 
 ;;; -- VC
 
@@ -678,7 +677,8 @@ This is either an explicit name or its index."
 (whale-line-create-stateful-segment vc
   :getter wls--vc
   :hooks (find-file-hook after-save-hook)
-  :advice (:after . (vc-refresh-state)))
+  :advice (:after . (vc-refresh-state))
+  :priority current)
 
 ;;; -- Partial recall
 
@@ -768,7 +768,7 @@ menu for the library's command map."
   :hooks (partial-recall-after-insert-hook
           partial-recall-probe-hook
           partial-recall-permanence-change-hook)
-  :priority current-low)
+  :priority current)
 
 (provide 'whale-line-segments)
 
