@@ -1,9 +1,7 @@
 *.elc
-*.tar
-tasks.org
-
-coverage/
-
-# Cask
-dist/
 .cask/
+.dir-locals.el
+coverage/
+dist/
+whale-line-autoloads.el
+whale-line-pkg.el

@@ -1,6 +1,4 @@
-.dir-locals.el
+.github/
 Cask
 Makefile
-
-.github/
 test/
