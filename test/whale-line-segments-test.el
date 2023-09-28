@@ -362,14 +362,15 @@
                        (whale-line-minions--list)))))))
 
 (ert-deftest org--maybe-truncate--truncates ()
-  (let ((whale-line-segments-org-max-heading-length 5))
-
-    (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing" 'success)))))
+  (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing" 'success 5))))
 
 (ert-deftest org--maybe-truncate--skips ()
-  (let ((whale-line-segments-org-max-heading-length 7))
+  (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing" 'success 7))))
 
-    (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing" 'success)))))
+(ert-deftest org--maybe-truncate--obeys-min ()
+  (bydi ((:mock whale-line--space :return -123))
+    (should (eq whale-line-segments--org--min-length
+                (whale-line-segments--org--max-length)))))
 
 (ert-deftest org--get-next-heading ()
   (let ((org-level-faces '(red green blue orange)))

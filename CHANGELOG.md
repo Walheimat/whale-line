@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `dir-locals.el` is no longer tracked.
 
+### Changed
+
+- `org` segment now reduces the max heading length if space is an
+  issue using a crude heuristic.
+
 ## [v0.7.2]
 
 ### Added

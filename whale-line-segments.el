@@ -478,13 +478,15 @@ Returns nil if not checking or if no errors were found."
 (declare-function org-link-display-format "ext:org.el")
 (declare-function org-up-heading-safe "ext:org.el")
 
-(defun wls--org--maybe-truncate (heading face)
-  "Maybe truncate HEADING.
+(defvar wls--org--min-length 4)
+
+(defun wls--org--maybe-truncate (heading face max-len)
+  "Maybe truncate HEADING depending on MAX-LEN.
 
 Use FACE for the ellipsis glyph."
-  (let ((max-len wls-org-max-heading-length)
-        (len (string-width heading))
+  (let ((len (string-width heading))
         (ellipsis-len (string-width wls-org-ellipsis)))
+
     (if (> len max-len)
         (concat (substring heading 0 (max (- max-len ellipsis-len) 1))
                 (propertize wls-org-ellipsis 'face face))
@@ -498,6 +500,16 @@ Use FACE for the ellipsis glyph."
          (face (nth (- level 1) org-level-faces))
          (heading (org-link-display-format (nth 4 components))))
     (propertize heading 'face face)))
+
+(defun wls--org--max-length ()
+  "Check if we're in a low space environment."
+  (let ((space (whale-line--space)))
+
+    (if (> space 0)
+        (max wls--org--min-length
+             (/ wls-org-max-heading-length
+                (max (/ 300 space) 1)))
+      wls--org--min-length)))
 
 (defun wls--org--collect-headings ()
   "Collect headings until it's no longer safe."
@@ -513,7 +525,8 @@ Use FACE for the ellipsis glyph."
 
    (and-let* (((not (org-before-first-heading-p)))
               (headings (wls--org--collect-headings))
-              (count 0))
+              (count 0)
+              (max-len (wls--org--max-length)))
 
      (mapconcat
       #'identity
@@ -526,7 +539,7 @@ Use FACE for the ellipsis glyph."
            (if (>= count wls-org-max-count)
                (propertize wls-org-elision 'face (nth i org-level-faces))
              (setq count (1+ count))
-             (wls--org--maybe-truncate it (nth i org-level-faces)))))
+             (wls--org--maybe-truncate it (nth i org-level-faces) max-len))))
        (reverse headings))
       (propertize wls-org-separator 'face 'whale-line-shadow)))))
 
