@@ -294,6 +294,7 @@
                                                     (:left left)
                                                     (:right right)))))
       (should (whale-line--enough-space-p))
+      (should (whale-line--enough-space-p))
       (setq width 8)
       (clrhash whale-line--space-cache)
       (should-not (whale-line--enough-space-p))

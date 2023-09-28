@@ -178,7 +178,9 @@ per window configuration change."
 
     (dolist (win windows)
       (with-selected-window win
-        (puthash win (whale-line--raw-enough-space-p) whale-line--space-cache)))))
+        (let* ((remaining (whale-line--calculate-remaining-space)))
+
+          (puthash win remaining whale-line--space-cache))))))
 
 (defun whale-line--calculate-width (side)
   "Calculate the width for SIDE.
@@ -191,21 +193,26 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
         (string-pixel-width formatted)
       (* (window-font-width) (length formatted)))))
 
-(defun whale-line--raw-enough-space-p ()
-  "Calculate whether there is enough space to display both sides' segments."
+(defun whale-line--calculate-remaining-space ()
+  "Calculate the space remaining between left and right side."
   (let* ((left (whale-line--calculate-width :left))
-         (right (whale-line--calculate-width :right))
-         (calc (> (- (window-pixel-width) (+ left right)) 0)))
+         (right (whale-line--calculate-width :right)))
 
-    calc))
+    (- (window-pixel-width) (+ left right))))
 
 (defun whale-line--enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
-  (or (gethash (selected-window) whale-line--space-cache)
-      (let ((calc (whale-line--raw-enough-space-p)))
+  (let ((space (whale-line--space)))
 
-        (puthash (selected-window) calc whale-line--space-cache)
-        calc)))
+    (> space 0)))
+
+(defun whale-line--space ()
+  "Get the available space between the sides."
+  (or (gethash (selected-window) whale-line--space-cache)
+      (let* ((remaining (whale-line--calculate-remaining-space)))
+
+        (puthash (selected-window) remaining whale-line--space-cache)
+        remaining)))
 
 (defun whale-line--space-between (length)
   "Get the space between sides aligned using LENGTH."
