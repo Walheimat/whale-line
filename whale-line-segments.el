@@ -72,11 +72,6 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
-(defcustom whale-line-segments-org-max-heading-length 12
-  "The max length of a heading after which it will be truncated."
-  :group 'whale-line-segments
-  :type 'integer)
-
 ;;; -- Segments
 
 (declare-function image-mode-window-get "ext:image-mode.el")
@@ -479,6 +474,7 @@ Returns nil if not checking or if no errors were found."
 (declare-function org-up-heading-safe "ext:org.el")
 
 (defvar wls--org--min-length 4)
+(defvar wls--org--max-length 24)
 
 (defun wls--org--maybe-truncate (heading face max-len)
   "Maybe truncate HEADING depending on MAX-LEN.
@@ -503,13 +499,13 @@ Use FACE for the ellipsis glyph."
 
 (defun wls--org--max-length ()
   "Check if we're in a low space environment."
-  (let ((space (whale-line--space)))
+  (let* ((space (max 1 (whale-line--space)))
+         (width (/ space (window-font-width))))
 
-    (if (> space 0)
-        (max wls--org--min-length
-             (/ wls-org-max-heading-length
-                (max (/ 300 space) 1)))
-      wls--org--min-length)))
+    (if (> width (* wls-org-max-count wls--org--max-length))
+        wls--org--max-length
+      (min wls--org--max-length
+           (max wls--org--min-length (/ width wls-org-max-count))))))
 
 (defun wls--org--collect-headings ()
   "Collect headings until it's no longer safe."

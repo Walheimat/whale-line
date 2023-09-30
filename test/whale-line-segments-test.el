@@ -367,10 +367,29 @@
 (ert-deftest org--maybe-truncate--skips ()
   (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing" 'success 7))))
 
-(ert-deftest org--maybe-truncate--obeys-min ()
-  (bydi ((:mock whale-line--space :return -123))
+(ert-deftest org--max-length--obeys-min ()
+  (bydi ((:mock whale-line--space :return -123)
+         (:mock window-font-width :return 10))
     (should (eq whale-line-segments--org--min-length
                 (whale-line-segments--org--max-length)))))
+
+(ert-deftest org--max-length--obeys-max ()
+  (let ((whale-line-segments-org-max-count 3)
+        (whale-line-segments--org--max-length 12)
+        (whale-line-segments--org--min-length 4))
+
+    (bydi ((:mock whale-line--space :return 40)
+           (:mock window-font-width :return 1))
+      (should (eq 12 (whale-line-segments--org--max-length))))))
+
+(ert-deftest org--max-length--reduces-max ()
+  (let ((whale-line-segments-org-max-count 3)
+        (whale-line-segments--org--max-length 12)
+        (whale-line-segments--org--min-length 3))
+
+    (bydi ((:mock whale-line--space :return 32)
+           (:mock window-font-width :return 1))
+      (should (eq 10 (whale-line-segments--org--max-length))))))
 
 (ert-deftest org--get-next-heading ()
   (let ((org-level-faces '(red green blue orange)))

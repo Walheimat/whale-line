@@ -85,7 +85,6 @@ will need to call =whale-line-rebuild=.
   (whale-line-segments-org-ellispis "…")
   (whale-line-segments-org-elision "*")
   (whale-line-segments-org-max-count 2)
-  (whale-line-segments-org-max-heading-length 12)
 
   ;; Specs for used icons.
   (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))

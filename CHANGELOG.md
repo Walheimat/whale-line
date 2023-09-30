@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `dir-locals.el` is no longer tracked.
+- Custom variable `whale-line-segments-org-max-length`.
 
 ### Changed
 
