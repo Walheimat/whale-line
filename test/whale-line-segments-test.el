@@ -69,11 +69,9 @@
 
     (should (string= "(%l, %c)" (whale-line-segments--position--line-and-column)))))
 
-(ert-deftest position--doc-view ()
-  (bydi ((:mock image-mode-window-get :return 1)
-         (:mock doc-view-last-page-number :return 42))
-
-    (should (string= "1/42" (whale-line-segments--position--doc-view)))))
+(ert-deftest position--default ()
+  (bydi ((:mock format-mode-line :return " 2% 5/6"))
+    (should (string= "2%% 5/6" (whale-line-segments--position--default)))))
 
 ;;; -- Selection
 

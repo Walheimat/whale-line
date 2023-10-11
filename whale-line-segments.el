@@ -145,23 +145,28 @@ to 2, only the 3rd level is elided."
 ;;;; -- Position
 
 (defvar wls--position
-  '((doc-view--buffer-file-name
-     ((:propertize (:eval (wls--position--doc-view))
+  '((pdf-view--server-file-name
+     ((:propertize (:eval (wls--position--default))
                    face whale-line-shadow))
-
-     ((:propertize ("" mode-line-percent-position)
-                   face whale-line-shadow)
-      (:eval (whale-line--spacer))
-      (:propertize (:eval (wls--position--line-and-column)) face whale-line-shadow)))))
+     (doc-view--buffer-file-name
+      ((:propertize (:eval (wls--position--default))
+                    face whale-line-shadow))
+      ((:propertize ("" mode-line-percent-position)
+                    face whale-line-shadow)
+       (:eval (whale-line--spacer))
+       (:propertize (:eval (wls--position--line-and-column)) face whale-line-shadow))))))
 
 (defun wls--position--line-and-column ()
   "Get the line and column."
   (when-let* ((format (car-safe mode-line-position-column-line-format)))
     (string-trim format)))
 
-(defun wls--position--doc-view ()
-  "Get the position in a document."
-  (format "%d/%d" (image-mode-window-get 'page) (doc-view-last-page-number)))
+(defun wls--position--default ()
+  "Format the default `mode-line-position' construct."
+  (string-trim
+   (string-replace
+    "%" "%%"
+    (format-mode-line mode-line-position))))
 
 (whale-line-create-stateless-segment position
   :var wls--position
