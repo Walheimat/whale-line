@@ -154,7 +154,8 @@ On the left window, the segment son the left are
 
 - =major-mode= (using =all-the-icons=)
 - =buffer-identification=
-- =flycheck= augmenting the prior to indicate errors and warnings
+- =flycheck= augmenting the prior to indicate errors and warnings (an
+  equivalent =flymake= augment exists)
 - =org= segment to show the current top heading and its parent
 - =buffer-status= segment to indicate the buffer is edited
 

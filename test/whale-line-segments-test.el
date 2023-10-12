@@ -222,6 +222,60 @@
     (whale-line-segments--major-mode)
     (bydi-was-called whale-line-segments--major-mode--text)))
 
+;;; -- Flymake
+
+(require 'flymake)
+
+(ert-deftest flymake--count-types ()
+  (let ((diagnostics (list (flymake--diag-make :type :note)
+                           (flymake--diag-make :type :error)
+                           (flymake--diag-make :type :warning))))
+
+    (should (equal '(:errors 1 :warnings 1 :notes 1)
+                   (whale-line-segments--flymake--count-types diagnostics)))))
+
+(ert-deftest flymake--face ()
+  (let ((counts '(:errors 0 :warnings 0 :notes 0)))
+
+    (should-not (whale-line-segments--flymake--face counts))
+
+    (plist-put counts :notes 1)
+
+    (should (equal 'flymake-note (whale-line-segments--flymake--face counts)))
+
+    (plist-put counts :warnings 1)
+
+    (should (equal 'flymake-warning (whale-line-segments--flymake--face counts)))
+
+    (plist-put counts :errors 1)
+
+    (should (equal 'flymake-error (whale-line-segments--flymake--face counts)))))
+
+
+
+(ert-deftest flymake--help ()
+  (let ((counts '(:errors 1 :warnings 2 :notes 3)))
+
+    (should (string= "\n\nFlymake: 1 error(s), 2 warning(s), 3 note(s)"
+                     (whale-line-segments--flymake--help counts)))))
+
+(ert-deftest flymake ()
+  (let ((whale-line-segments--buffer-identification--additional-face nil)
+        (whale-line-segments--buffer-identification--additional-help nil))
+
+    (bydi (flymake-diagnostics
+           whale-line-segments--flymake--count-types
+           (:mock whale-line-segments--flymake--face :return "face")
+           (:mock whale-line-segments--flymake--help :return "help"))
+
+      (whale-line-segments--flymake)
+
+      (bydi-was-called flymake-diagnostics)
+      (bydi-was-called whale-line-segments--flymake--count-types)
+
+      (should (string= "face" whale-line-segments--buffer-identification--additional-face))
+      (should (string= "help" whale-line-segments--buffer-identification--additional-help)))))
+
 ;;; -- LSP mode
 
 (ert-deftest lsp--uses-lsp-mode-p ()

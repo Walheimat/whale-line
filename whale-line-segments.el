@@ -321,6 +321,57 @@ Returns nil if not checking or if no errors were found."
   :action wls--flycheck
   :hooks (flycheck-status-changed-functions))
 
+;;;; -- Flymake segment
+
+(declare-function flymake--diag-type "ext:flymake.el")
+
+(defun wls--flymake--count-types (diagnostics)
+  "Count all types found in DIAGNOSTICS."
+  (let ((errors 0)
+        (warnings 0)
+        (notes 0))
+
+    (dolist (diag diagnostics)
+      (pcase (flymake--diag-type diag)
+        (:note
+         (setq notes (1+ notes)))
+        (:warning
+         (setq warnings (1+ warnings)))
+        (:error
+         (setq errors (1+ errors)))))
+
+    (list :errors errors :warnings warnings :notes notes)))
+
+(defun wls--flymake--face (counts)
+  "Get the appropriate face for COUNTS."
+  (cond
+   ((> (plist-get counts :errors) 0)
+    'flymake-error)
+   ((> (plist-get counts :warnings) 0)
+    'flymake-warning)
+   ((> (plist-get counts :notes) 0)
+    'flymake-note)
+   (t nil)))
+
+(defun wls--flymake--help (counts)
+  "Get the help text for COUNTS."
+  (format "\n\nFlymake: %d error(s), %d warning(s), %d note(s)"
+          (plist-get counts :errors)
+          (plist-get counts :warnings)
+          (plist-get counts :notes)))
+
+(defun wls--flymake (&rest _r)
+  "Augment the buffer identification."
+  (let* ((diagnostics (flymake-diagnostics))
+         (counts (wls--flymake--count-types diagnostics)))
+
+    (setq wls--buffer-identification--additional-face (wls--flymake--face counts)
+          wls--buffer-identification--additional-help (wls--flymake--help counts))))
+
+(whale-line-create-augment flymake
+  :action wls--flymake
+  :advice (:after . (flymake--publish-diagnostics)))
+
 ;;;; -- Major mode
 
 (defun wls--major-mode--icon ()

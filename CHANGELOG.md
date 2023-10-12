@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Augment for `flymake` that (hopefully) works just like the
+  `flycheck` augment.
+
 ### Changed
 
 - Position segment now renders the default `mode-line-position`
