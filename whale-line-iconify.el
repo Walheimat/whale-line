@@ -2,7 +2,7 @@
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
-;; Version: 0.7.3
+;; Version: 0.7.4
 ;; Package-Requires: ((emacs "27.1"))
 
 ;;; Commentary:
