@@ -176,7 +176,7 @@ to 2, only the 3rd level is elided."
 
 (whale-line-create-stateless-segment misc-info
   :var mode-line-misc-info
-  :priority current-low)
+  :priority current)
 
 ;;;; -- Minor modes
 
@@ -833,7 +833,7 @@ menu for the library's command map."
   :hooks (partial-recall-after-insert-hook
           partial-recall-probe-hook
           partial-recall-permanence-change-hook)
-  :priority current)
+  :priority current-low)
 
 (provide 'whale-line-segments)
 
