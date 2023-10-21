@@ -254,7 +254,8 @@
 
 
 (ert-deftest flymake--help ()
-  (let ((counts '(:errors 1 :warnings 2 :notes 3)))
+  (let ((counts '(:errors 1 :warnings 2 :notes 3))
+        (whale-line-segments--flymake--default-help ""))
 
     (should (string= "\n\nFlymake: 1 error(s), 2 warning(s), 3 note(s)"
                      (whale-line-segments--flymake--help counts)))))

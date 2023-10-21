@@ -353,12 +353,16 @@ Returns nil if not checking or if no errors were found."
     'flymake-note)
    (t nil)))
 
+(defvar wls--flymake--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
+
 (defun wls--flymake--help (counts)
   "Get the help text for COUNTS."
-  (format "\n\nFlymake: %d error(s), %d warning(s), %d note(s)"
-          (plist-get counts :errors)
-          (plist-get counts :warnings)
-          (plist-get counts :notes)))
+  (concat
+   wls--flymake--default-help
+   (format "\n\nFlymake: %d error(s), %d warning(s), %d note(s)"
+           (plist-get counts :errors)
+           (plist-get counts :warnings)
+           (plist-get counts :notes))))
 
 (defun wls--flymake (&rest _r)
   "Augment the buffer identification."

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `partial-recall`: `current`=>`current-low`
   - `misc-info`: `current-low`=>`current`
 
+### Fixed
+
+- `flymake` segment shows the default help text.
+
 ## [v0.7.4]
 
 ### Added
