@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `partial-recall`: `current`=>`current-low`
   - `misc-info`: `current-low`=>`current`
 
+### Removed
+
+- Segment for `partial-recall` was removed as its mode-line lighter
+  now offers that same functionality.
+
 ### Fixed
 
 - `flymake` segment shows the default help text.

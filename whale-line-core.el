@@ -51,7 +51,6 @@
                                  |
                                  misc-info
                                  minor-modes
-                                 partial-recall
                                  project
                                  vc
                                  tab-bar
