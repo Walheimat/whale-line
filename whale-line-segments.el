@@ -176,7 +176,7 @@ to 2, only the 3rd level is elided."
 
 (whale-line-create-stateless-segment misc-info
   :var mode-line-misc-info
-  :priority current)
+  :priority current-low)
 
 ;;;; -- Minor modes
 
