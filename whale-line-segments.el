@@ -197,9 +197,11 @@ to 2, only the 3rd level is elided."
   '((mark-active
      (:propertize
       ((:eval (whale-line--spacer))
-       (rectangle-mark-mode
-        ((:eval (wls--selection--rows)) "×" (:eval (wls--selection--columns)))
-        (:eval (wls--selection--rows)))
+       (multiple-cursors-mode
+        "mc"
+        (rectangle-mark-mode
+         ((:eval (wls--selection--rows)) "×" (:eval (wls--selection--columns)))
+         (:eval (wls--selection--rows))))
        (:eval (whale-line--spacer)))
       face region))))
 

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated priorities:
   - `partial-recall`: `current`=>`current-low`
   - `misc-info`: `current-low`=>`current`
+- Segment `selection` now shows string `mc` when region *and*
+  `multiple-cursors-mode` is active.
 
 ### Removed
 
