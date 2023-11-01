@@ -265,7 +265,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
 (defun whale-line--valid-segment-p (segment)
   "Check that SEGMENT can be included."
-  (let ((verify-sym (intern (format "whale-line-%s--verify" (symbol-name segment)))))
+  (let ((verify-sym (whale-line-symbol--verify segment)))
 
     (if (fboundp verify-sym)
         (funcall verify-sym)
@@ -287,6 +287,32 @@ and/or PADDED."
   "Get PROP for SEGMENT."
   (plist-get (cdr-safe (assoc segment whale-line--props)) prop))
 
+;; -- Symbol creation
+
+(defun whale-line-symbol--action (name)
+  "Get the symbol for action NAME."
+  (intern (format "whale-line-%s--action" (symbol-name name))))
+
+(defun whale-line-symbol--segment (name)
+  "Get the symbol for segment NAME."
+  (intern (format "whale-line-%s--segment" (symbol-name name))))
+
+(defun whale-line-symbol--verify (name)
+  "Get the symbol for verifying NAME."
+  (intern (format "whale-line-%s--verify" (symbol-name name))))
+
+(defun whale-line-symbol--setup (name)
+  "Get the symbol for setting up NAME."
+  (intern (format "whale-line-%s--setup" (symbol-name name))))
+
+(defun whale-line-symbol--teardown (name)
+  "Get the symbol for tearing down NAME."
+  (intern (format "whale-line-%s--teardown" (symbol-name name))))
+
+(defun whale-line-symbol--get-segment (name)
+  "Get the symbol for getting segment NAME."
+  (intern (format "whale-line-%s--get-segment" (symbol-name name))))
+
 ;;; -- Macros
 
 (cl-defmacro whale-line--setup (name &key setup teardown hooks advice verify)
@@ -305,10 +331,10 @@ execution of the setup. If verification fails, the function will
 return early."
   (declare (indent defun))
 
-  (let ((setter-sym (intern (format "whale-line-%s--action" (symbol-name name))))
-        (setup-sym (intern (format "whale-line-%s--setup" (symbol-name name))))
-        (teardown-sym (intern (format "whale-line-%s--teardown" (symbol-name name))))
-        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name)))))
+  (let ((setter-sym (whale-line-symbol--action name))
+        (setup-sym (whale-line-symbol--setup name))
+        (teardown-sym (whale-line-symbol--teardown name))
+        (verify-sym (whale-line-symbol--verify name)))
 
     `(progn
        (cl-defun ,setup-sym (&rest _)
@@ -373,7 +399,7 @@ the docstring. If APPLY is t, use `apply' instead of `funcall'."
 TYPE controls what is emitted: a variable for stateful segments, a
 function returning the empty string for stateless segments and
 nothing for augments."
-  (let ((segment-sym (intern (format "whale-line-%s--segment" (symbol-name name)))))
+  (let ((segment-sym (whale-line-symbol--segment name)))
     `(progn
        ,(pcase type
           ('stateless
@@ -424,12 +450,10 @@ PADDED can be either `left', `right' or `all' to document that
 the segment comes pre-padded on that or all sides."
   (declare (indent defun))
 
-  (let* ((sym-name (symbol-name name))
-         (formatter (lambda (fs) (intern (format fs sym-name))))
-         (segment (funcall formatter "whale-line-%s--segment"))
-         (setter (funcall formatter "whale-line-%s--action"))
-         (getter-sym (funcall formatter "whale-line-%s--get-segment"))
-         (verify-sym (funcall formatter "whale-line-%s--verify"))
+  (let* ((segment (whale-line-symbol--segment name))
+         (setter (whale-line-symbol--action name))
+         (getter-sym (whale-line-symbol--get-segment name))
+         (verify-sym (whale-line-symbol--verify name))
          (prio (or priority t)))
 
     (if (not (bound-and-true-p whale-line--testing))
@@ -488,9 +512,9 @@ PADDED can be either `left', `right' or `all' to document that
 the segment comes pre-padded on that or all sides."
   (declare (indent defun))
 
-  (let ((segment (intern (format "whale-line-%s--segment" (symbol-name name))))
-        (getter-sym (intern (format "whale-line-%s--get-segment" (symbol-name name))))
-        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name))))
+  (let ((segment (whale-line-symbol--segment name))
+        (getter-sym (whale-line-symbol--get-segment name))
+        (verify-sym (whale-line-symbol--verify name))
         (prio (or priority t))
         (con (or condition t)))
 
@@ -524,8 +548,8 @@ Additional SETUP and TEARDOWN function can be added for more control.
 If VERIFY is t, the setup will verify before being executed."
   (declare (indent defun))
 
-  (let ((augment (intern (format "whale-line-%s--action" (symbol-name name))))
-        (verify-sym (intern (format "whale-line-%s--verify" (symbol-name name)))))
+  (let ((augment (whale-line-symbol--action name))
+        (verify-sym (whale-line-symbol--verify name)))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -585,9 +609,8 @@ Optionally FILTER out low priority segments."
   (delq nil (mapcar
              (lambda (it)
                (when-let* ((sym it)
-                           (name (symbol-name sym))
-                           (segment (intern (format "whale-line-%s--segment" name)))
-                           (setter (intern (format "whale-line-%s--action" name))))
+                           (segment (whale-line-symbol--segment sym))
+                           (setter (whale-line-symbol--action sym)))
 
                  (if (functionp segment)
                      `(:eval (whale-line--pad-segment ',sym (,segment)))
