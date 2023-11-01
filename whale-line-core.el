@@ -769,7 +769,7 @@ See underlying macro for the usage of ARGS."
      (whale-line--create-stateful-segment ,name ,@args)))
 
 (defalias 'whale-line-create-static-segment 'whale-line-create-stateful-segment)
-(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.4")
+(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.1")
 
 ;;;###autoload
 (defmacro whale-line-create-stateless-segment (name &rest args)
@@ -782,7 +782,7 @@ See underlying macro for the usage of ARGS."
      (whale-line--create-stateless-segment ,name ,@args)))
 
 (defalias 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment)
-(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.4")
+(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.1")
 
 ;;;###autoload
 (defmacro whale-line-create-augment (name &rest args)
