@@ -53,13 +53,22 @@
       (should-not (whale-line-iconify--use-for-p 'test)))))
 
 (ert-deftest can-use-icons-p ()
-  (bydi ((:sometimes require))
+  (let ((feature t)
+        (display t))
 
-    (should (whale-line-iconify--can-use-p))
+    (bydi ((:mock display-graphic-p :return display)
+           (:mock featurep :return feature))
 
-    (bydi-toggle-sometimes)
+      (should (whale-line-iconify--can-use-p))
 
-    (should-not (whale-line-iconify--can-use-p))))
+      (setq display nil)
+
+      (should-not (whale-line-iconify--can-use-p))
+
+      (setq display t
+            feature nil)
+
+      (should-not (whale-line-iconify--can-use-p)))))
 
 (ert-deftest iconify ()
   (let ((whale-line-iconify-specs test-specs))

@@ -120,7 +120,8 @@ Only properties not in EXISTING are added."
 
 (defun wli--can-use-p ()
   "Check whether icons can be used."
-  (require 'all-the-icons nil t))
+  (and (display-graphic-p)
+       (featurep 'all-the-icons)))
 
 ;;; -- API
 
