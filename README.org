@@ -60,7 +60,6 @@ will need to call =whale-line-rebuild=.
                          | ;; Divides into left and right.
                          misc-info
                          minor-modes
-                         partial-recall
                          project
                          vc
                          tab-bar
@@ -166,7 +165,6 @@ that each show an icon when they're active. Also not shown is
 On the right you can see
 
 - =minor-mode-alist= segment augmented by =minions=
-- =partial-recall= segment (one of my packages)
 - =project= segment
 - =vc= segment
 - =tab-bar= segment
