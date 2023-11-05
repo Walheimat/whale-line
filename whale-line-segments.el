@@ -272,7 +272,7 @@ Afterwards a mode-line update is forced to display the new frame."
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
 
-(defface wls--flycheck-running
+(defface wls--syntax-checker-running
   '((t (:underline (:style wave)
                    :inherit (shadow))))
   "Face used to indicate running state.")
@@ -281,7 +281,7 @@ Afterwards a mode-line update is forced to display the new frame."
 (defun wls--flycheck--face (status)
   "Get the face to use for STATUS."
   (pcase status
-    ('running 'wls--flycheck-running)
+    ('running 'wls--syntax-checker-running)
     ('finished
      (when flycheck-current-errors
        (let-alist (flycheck-count-errors flycheck-current-errors)
@@ -326,6 +326,10 @@ Returns nil if not checking or if no errors were found."
 ;;;; -- Flymake segment
 
 (declare-function flymake--diag-type "ext:flymake.el")
+(declare-function flymake-running-backends "ext:flymake.el")
+(declare-function flymake-reporting-backends "ext:flymake.el")
+
+(defvar flymake--state)
 
 (defun wls--flymake--count-types (diagnostics)
   "Count all types found in DIAGNOSTICS."
@@ -368,15 +372,36 @@ Returns nil if not checking or if no errors were found."
 
 (defun wls--flymake (&rest _r)
   "Augment the buffer identification."
-  (let* ((diagnostics (flymake-diagnostics))
-         (counts (wls--flymake--count-types diagnostics)))
+  (pcase-let* ((`(,face ,help)
+                (cond
+                 ((zerop (hash-table-count flymake--state))
 
-    (setq wls--buffer-identification--additional-face (wls--flymake--face counts)
-          wls--buffer-identification--additional-help (wls--flymake--help counts))))
+                  `(nil ,(concat wls--flymake--default-help
+                                 "\n\nFlymake: No backends")))
+
+                 ((cl-set-difference
+                   (flymake-running-backends)
+                   (flymake-reporting-backends))
+
+                  `(wls--syntax-checker-running ,(concat wls--flymake--default-help
+                                                         "\n\nFlymake: Running")))
+
+                 (t
+                  (let* ((diagnostics (flymake-diagnostics))
+                         (counts (wls--flymake--count-types diagnostics)))
+
+                    (list (wls--flymake--face counts)
+                          (wls--flymake--help counts)))))))
+
+    (setq wls--buffer-identification--additional-face face
+          wls--buffer-identification--additional-help help)))
 
 (whale-line-create-augment flymake
   :action wls--flymake
-  :advice (:after . (flymake--publish-diagnostics)))
+
+  ;; TODO: This is not ideal and will leave the segment in "running"
+  ;; state.
+  :advice (:after . (flymake--mode-line-exception)))
 
 ;;;; -- Major mode
 

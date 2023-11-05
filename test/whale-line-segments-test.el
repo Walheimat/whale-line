@@ -145,7 +145,7 @@
 
 (ert-deftest flycheck--face ()
   (should-not (whale-line-segments--flycheck--face nil))
-  (should (equal 'whale-line-segments--flycheck-running (whale-line-segments--flycheck--face 'running)))
+  (should (equal 'whale-line-segments--syntax-checker-running (whale-line-segments--flycheck--face 'running)))
 
   (defvar flycheck-current-errors)
   (let ((flycheck-current-errors nil)
@@ -262,12 +262,48 @@
 
 (ert-deftest flymake ()
   (let ((whale-line-segments--buffer-identification--additional-face nil)
-        (whale-line-segments--buffer-identification--additional-help nil))
+        (whale-line-segments--buffer-identification--additional-help nil)
+        (flymake--state (make-hash-table))
+        (count 0)
+        (running nil)
+        (reporting nil))
 
     (bydi (flymake-diagnostics
+           (:mock hash-table-count :return count)
+           (:mock flymake-running-backends :return running)
+           (:mock flymake-reporting-backends :return reporting)
+
            whale-line-segments--flymake--count-types
+
            (:mock whale-line-segments--flymake--face :return "face")
            (:mock whale-line-segments--flymake--help :return "help"))
+
+      ;; No running backends.
+      (whale-line-segments--flymake)
+
+      (bydi-was-not-called flymake-diagnostics)
+      (bydi-was-not-called whale-line-segments--flymake--count-types)
+
+      (should-not whale-line-segments--buffer-identification--additional-face)
+      (should (string-suffix-p "No backends" whale-line-segments--buffer-identification--additional-help))
+
+      ;; Waiting on reports.
+      (setq count 1
+            running '(a b)
+            reported '(a))
+
+      (whale-line-segments--flymake)
+
+      (bydi-was-not-called flymake-diagnostics)
+      (bydi-was-not-called whale-line-segments--flymake--count-types)
+
+      (should (equal 'whale-line-segments--syntax-checker-running
+                     whale-line-segments--buffer-identification--additional-face))
+      (should (string-suffix-p "Running" whale-line-segments--buffer-identification--additional-help))
+
+      ;; Reports are in.
+      (setq running nil
+            reported nil)
 
       (whale-line-segments--flymake)
 
