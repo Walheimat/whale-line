@@ -53,7 +53,7 @@ will need to call =whale-line-rebuild=.
                          buffer-status
                          position
                          lsp
-                         dap
+                         debug
                          selection
                          process
                          window-status
@@ -88,7 +88,7 @@ will need to call =whale-line-rebuild=.
   ;; Specs for used icons.
   (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))
                               (vc . (:name "code-fork"))
-                              (dap . (:name "bug"))
+                              (debug . (:name "bug"))
                               (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@"))
                               (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&"))
                               (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*"))
@@ -158,9 +158,9 @@ On the left window, the segment son the left are
 - =org= segment to show the current top heading and its parent
 - =buffer-status= segment to indicate the buffer is edited
 
-Not shown are segments for =lsp-mode=, =dap-mode= and =window-status=
-that each show an icon when they're active. Also not shown is
-=process= that shows =mode-line-process=
+Not shown are segments for LSP and debug sessions, as well as
+=window-status= that each show an icon when they're active. Also not
+shown is =process= that shows =mode-line-process=
 
 On the right you can see
 

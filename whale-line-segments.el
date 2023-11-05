@@ -497,29 +497,33 @@ Returns nil if not checking or if no errors were found."
    eglot-server-initialized-hook
    eglot-managed-mode-hook))
 
-;;; -- DAP
+;;; -- Debugging
 
 (declare-function dap--cur-session "ext:dap-mode.el")
 (declare-function dap--debug-session-name "ext:dap-mode.el")
 (declare-function dap--session-running "ext:dap-mode.el")
 
-(defun wls--dap--active-p ()
+(defun wls--debug--active-p ()
   "Check whether debugging is in process."
   (and-let* (((featurep 'dap-mode))
              ((bound-and-true-p dap-mode))
              (session (dap--cur-session))
              ((dap--session-running session)))))
 
-(defun wls--dap ()
-  "Indicate an active DAP session."
-  (when-let* (((wls--dap--active-p))
-              (name (dap--debug-session-name (dap--cur-session)))
+(defun wls--debug--name ()
+  "Get the name of the session."
+  (dap--debug-session-name (dap--cur-session)))
+
+(defun wls--debug ()
+  "Indicate an active debugging session."
+  (when-let* (((wls--debug--active-p))
+              (name (wls--debug--name))
               (help (format "Debugging %s" name)))
 
-    `((:propertize ,(whale-line-iconify 'dap) help-echo ,help))))
+    `((:propertize ,(whale-line-iconify 'debug) help-echo ,help))))
 
-(whale-line-create-stateful-segment dap
-  :getter wls--dap
+(whale-line-create-stateful-segment debug
+  :getter wls--debug
   :hooks
   (dap-session-created-hook
    dap-session-changed-hook

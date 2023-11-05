@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Segment `selection` now shows string `mc` when region *and*
   `multiple-cursors-mode` is active.
 - Icons are no longer enabled in non-GUI-mode since they are garbled.
+- **BREAKING** segment `dap` was renamed to `debug` to allow for also
+  handling alternative packages (like `dape`).
 
 ### Removed
 

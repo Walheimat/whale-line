@@ -48,7 +48,7 @@ This has no effect if icons cannot be enabled. See
     (window-no-other . (:name "low-vision" :face whale-line-shadow :fallback "~" :parent window-status))
     (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
     (lsp . (:name "plug" :face whale-line-contrast :fallback "LSP"))
-    (dap . (:name "bug" :face whale-line-urgent :fallback "DAP"))
+    (debug . (:name "bug" :face whale-line-urgent :fallback "BUG"))
     (partial-recall . (:name "tag" :face whale-line-contrast :fallback "PR")))
   "Icon specifications.
 

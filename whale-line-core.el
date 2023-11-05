@@ -44,7 +44,7 @@
                                  buffer-status
                                  position
                                  lsp
-                                 dap
+                                 debug
                                  selection
                                  process
                                  window-status

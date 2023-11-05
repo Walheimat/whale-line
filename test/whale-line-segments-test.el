@@ -394,7 +394,7 @@
     (should (equal '((:propertize (:eval (whale-line-segments--lsp--with-count)) help-echo "help"))
                    (whale-line-segments--lsp)))))
 
-(ert-deftest dap-active-p ()
+(ert-deftest debug--active-p ()
   (let ((session nil)
         (running nil))
 
@@ -405,25 +405,25 @@
       (with-temp-buffer
         (defvar dap-mode t)
 
-        (should-not (whale-line-segments--dap--active-p))
+        (should-not (whale-line-segments--debug--active-p))
         (setq session 'session)
-        (should-not (whale-line-segments--dap--active-p))
+        (should-not (whale-line-segments--debug--active-p))
         (setq running t)
-        (should (whale-line-segments--dap--active-p))
+        (should (whale-line-segments--debug--active-p))
         (setq-local dap-mode nil)
-        (should-not (whale-line-segments--dap--active-p))
+        (should-not (whale-line-segments--debug--active-p))
 
         (bydi-toggle-sometimes)
-        (should-not (whale-line-segments--dap--active-p))))))
+        (should-not (whale-line-segments--debug--active-p))))))
 
 (ert-deftest dap-segment ()
   (bydi ((:mock whale-line-iconify :return "*")
-         (:always whale-line-segments--dap--active-p)
+         (:always whale-line-segments--debug--active-p)
          dap--cur-session
          (:mock dap--debug-session-name :return "Test"))
 
     (should (equal '((:propertize "*" help-echo "Debugging Test"))
-                   (whale-line-segments--dap)))))
+                   (whale-line-segments--debug)))))
 
 (ert-deftest minions--list ()
   (defvar minions-mode)
