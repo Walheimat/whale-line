@@ -564,8 +564,7 @@ GETTER is the function to call on render. Alternatively VAR can
 be used to return a variable.
 
 CONDITION is the condition to evaluate before calling the
-renderer. If NEEDS-CURRENT is truthy, it will be an additional
-condition.
+renderer.
 
 VERIFY is a function called before the segments are built. If it
 returns nil, the segment will not be included.
