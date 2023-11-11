@@ -134,15 +134,213 @@ If you're unhappy with these settings, you can use
 
 ** Custom Segments
 
-You may create your own segments using macros
+You may create your own segments and augments using macros
 =whale-line-create-stateless-segment=,
 =whale-line-create-stateful-segment= and =whale-line-create-augment=.
-/Note/ however that their signature is not stable and may change at
-any time. Augments need to pass a function or symbol to =:verify= to
-be set up/torn down.
+/Note/ however that their signature is not finalized and may change at
+any time.
 
-Be sure to add you segment to =whale-line-segments= at the desired
+Be sure to add your segment to =whale-line-segments= at the desired
 position.
+
+As the macro names suggest, there are three things you can create:
+
+1. Stateless segments
+2. Stateful segments
+3. Augments for either segment type
+
+*** Stateless segments
+
+A stateless segment is just that: a segment without a state. This
+simply means that the segment will be re-rendered on every mode-line
+update.
+
+This is ideal for segments that are not costly to render and should be
+up-to-date at all times.
+
+Stateless segments use either a variable or a function to yield their
+representation on a mode-line. If you're familiar with mode-line
+constructs, this would be the simplest stateless segment definition.
+
+#+begin_src emacs-lisp
+(defvar my-stateless-segment '((:propertize "hello" face success)))
+
+(whale-line-create-stateless-segment stateless
+  :var my-stateless-segment)
+#+end_src
+
+This would create segment =stateless= that would render "hello"
+propertized with face =success= on every mode-line update.
+
+This is fine in most cases but if the construction of your segment is
+a bit more involved than a mode-line construct allows, you might need
+a getter function.
+
+#+begin_src emacs-lisp
+(defun my-stateless-getter ()
+  "Construct my segment."
+  (if (org-before-first-heading-p)
+      "before"
+    "after"))
+
+(whale-line-create-stateless-segment stateless
+  :getter my-stateless-getter)
+#+end_src
+
+Stateless segments accept =:condition= which should be a form that is
+evaluated before the getter. If it returns =nil= an empty string is
+returned instead.
+
+*** Stateful segments
+
+A stateful segment is a segment with a state. This means that it will
+return its state on every mode-line update and only re-calculate that
+state when it's necessary.
+
+This type makes sense when processing the segment takes a lot of
+resources even though the result of the processing itself only changes
+at certain known junctures.
+
+There are two ways to tell such a segment to re-calculate: provide a
+list of hooks or a list functions to advise (or both).
+
+The recalculation is defined as the segment's **getter**.
+
+Let's have a look.
+
+#+begin_src emacs-lisp
+(defun my-stateful-fun ()
+  "Return the major mode."
+  (let ((calculated ;; Do some heavy stuff here.
+         ))
+
+    calculated))
+
+(whale-line-create-stateful-segment stateful
+  :getter my-stateful-fun
+  :hooks (change-major-mode-hook))
+#+end_src
+
+This would call =my-stateless-getter= only on the first mode-line
+update and then store it. On each subsequent update the stored value
+is returned. The value is updated whenever =change-major-mode-hook= is
+run.
+
+It works the same for advised functions.
+
+#+begin_src emacs-lisp
+(whale-line-create-stateful-segment advised
+  :getter my-stateful-fun
+  :advice (:after . (undo redo)))
+#+end_src
+
+Whenever =undo= or =redo= are called, =my-stateful-fun= would be
+called to updated the state.
+
+*** Augments
+
+Sometimes a segment you want already exists in a basic form but you
+want to enhance it when certain criteria are met. This is where
+augments come into play.
+
+The definition of augments is similar to that of stateful segments.
+You define either hooks or functions to advise. Other than stateful
+segments, these hooks being run (or functions being called) do not
+update another segment directly, instead they just call an **action**.
+
+The relationship between a segment and its augment is therefore
+somewhat tenuous in that /you/ need to define /how/ exactly the
+augmentation is to take place.
+
+The easiest way here is using advice in combination with a stateful
+segment or a stateless getter-based segment.
+
+#+begin_src emacs-lisp
+(defun my-augment-fun (calculated)
+  "Enhance CALCULATED value."
+  (concat calculated ":augmented"))
+
+(defun my-augment-should-augment-p ()
+  "Only augment on Linux."
+  (eq system-type 'gnu/linux))
+
+(whale-line-create-augment my-augment
+  :verify my-augment-should-augment-p
+  :action my-augment-fun
+  :advice (:after-while . (whale-line-stateful--get-segment)))
+#+end_src
+
+The function =whale-line-stateful--get-segment= is created by previous
+declaration for segment =stateful=. It is called when the state is
+updated so our augment advises it to return an augmented value.
+
+If you don't set =:verify= =always= will be used for augments. More on
+this below.
+
+*** Shared properties of all types
+
+**** =setup= and =teardown=
+
+If your segment (or augment) requires a setup or teardown routine, you
+can pass a lambda or function symbol to =:setup= and/or =:teardown=.
+These functions will be called whenever
+=whale-line-{setup,teardown}-hook= is run. This is the case when
+=whale-line-mode= is enabled/disabled or when segments are re-built
+using =whale-line-rebuild= (provided the segment was added/removed
+since the previous build).
+
+Note that whether you provide such a routine or not, there's always a
+setup and a teardown function (used for =:hooks= or =:advice= for
+example).
+
+**** =verify=
+
+Mostly makes sense for augments. This function is called before a
+setup or teardown happens. If it yields =nil=, no setup/teardown will
+take place. Note that for segments this function will replace the
+default check of =(memq '<segment> whale-line-segments)=.
+
+*** Shared properties of segments
+
+**** =priority=
+
+The default priority of your segment (see section [[*Customizing Priorities][Customizing Priorities]]).
+
+**** =dense=
+
+You can use this to disallow padding the segment. Normally, depending
+on its position, the segment will have padding to its left/right.
+
+**** =padded=
+
+If you segment comes pre-padded (for example if you use an external
+construct that already adds whitespace on the left or right), you can
+pass =left=, =right= or =all= here. This will ensure that the segment
+won't get superfluous padding on that side or both sides, no matter
+where it's positioned.
+
+*** The nitty gritty
+
+If you want to build something complicated, you might need to know
+what functions and variables are created during macro expansion. So
+here's a summary.
+
+Stateless segments define a function =whale-line-<name>--segment=.
+This function is called to get the segment. If they use =:var= this
+function will just return that variable's value. If they use =:getter=
+this function will call additionally created
+=whale-line-<name>--get-segment= that in turn will finally call the
+passed function. The reason for this nesting is that you may pass
+either a function symbol or an anonymous function to =:getter=.
+
+Stateful segments hold their state in local variable (not function!)
+=whale-line-<name>--segment=. This variable is set to symbol =initial=
+at first to make sure the the value is set at least once during
+=format-mode-line=. The function that does this uses pattern
+=whale-line-<name>--action=. It calls the passed =getter= to set the
+variable.
+
+Augments also create =whale-line-<name>--action=.
 
 ** Example Screenshot
 

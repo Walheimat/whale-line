@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- A section was added that explains how users can create their own
+  segments and augments in detail.
 - Custom variable `whale-line-log`. Setting it to `t` will log setups
   and teardowns. To see the output, call `whale-line-pop-to-logs`.
 - `flymake` segment now also indicates running state.
