@@ -706,7 +706,6 @@ This is either an explicit name or its index."
     `((:propertize ,(format " %s " id) face whale-line-highlight))))
 
 (whale-line-create-stateful-segment tab-bar
-  :verify (lambda () (featurep 'tab-bar))
   :getter wls--tab-bar
   :hooks (window-configuration-change-hook)
   :priority current)
