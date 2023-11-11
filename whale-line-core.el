@@ -383,52 +383,55 @@ return early."
     `(progn
        (cl-defun ,setup-sym (&rest _)
          ,(format "Set up %s segment." name)
-         ,@(delq
-            nil
-            `((unless ,(if verify
-                           `(and (not whale-line--rebuilding) (,verify-sym))
-                         `(memq ',name whale-line-segments))
-                (cl-return-from ,setup-sym))
+         (unless ,(if verify
+                      `(and (not whale-line--rebuilding) (,verify-sym))
+                    `(memq ',name whale-line-segments))
+           (cl-return-from ,setup-sym))
+         ,@(let ((setups (delq
+                          nil
+                          `(,@(mapcar (lambda (it)
+                                        `(add-hook ',it #',setter-sym))
+                                      hooks)
 
-              (whale-line--log ,(format "Setting up %s" name))
+                            ,@(mapcar (lambda (it)
+                                        `(advice-add ',it ,(car advice) #',setter-sym))
+                                      (cdr advice))
 
-              ,@(mapcar (lambda (it)
-                          `(add-hook ',it #',setter-sym))
-                        hooks)
+                            ,(when setup (if (symbolp setup)
+                                             `(funcall ',setup)
+                                           `(funcall ,setup)))))))
 
-              ,@(mapcar (lambda (it)
-                          `(advice-add ',it ,(car advice) #',setter-sym))
-                        (cdr advice))
-
-              ,(when setup (if (symbolp setup)
-                               `(funcall ',setup)
-                             `(funcall ,setup))))))
+             (if setups
+                 `((whale-line--log ,(format "Setting up %s" name))
+                   ,@setups)
+               `((whale-line--log ,(format "Setting up %s (empty setup)" name))))))
 
        (add-hook 'whale-line-setup-hook #',setup-sym)
 
        (cl-defun ,teardown-sym (&rest _)
          ,(format "Tear down %s segment." name)
-         ,@(delq
-            nil
-            `((unless ,(if verify
-                           `(and (not whale-line--rebuilding) (,verify-sym))
-                         `(memq ',name whale-line-segments))
-                (cl-return-from ,teardown-sym))
+         (unless ,(if verify
+                      `(and (not whale-line--rebuilding) (,verify-sym))
+                    `(memq ',name whale-line-segments))
+           (cl-return-from ,teardown-sym))
+         ,@(let ((teardowns (delq
+                             nil
+                             `(,@(mapcar (lambda (it)
+                                           `(remove-hook ',it #',setter-sym))
+                                         hooks)
 
-              (whale-line--log ,(format "Tearing down %s" name))
+                               ,@(mapcar (lambda (it)
+                                           `(advice-remove ',it #',setter-sym))
+                                         (cdr advice))
 
-              ,@(mapcar (lambda (it)
-                          `(remove-hook ',it #',setter-sym))
-                        hooks)
-
-              ,@(mapcar (lambda (it)
-                          `(advice-remove ',it #',setter-sym))
-                        (cdr advice))
-
-              ,(when teardown
-                 (if (symbolp teardown)
-                     `(funcall ',teardown)
-                   `(funcall ,teardown))))))
+                               ,(when teardown
+                                  (if (symbolp teardown)
+                                      `(funcall ',teardown)
+                                    `(funcall ,teardown)))))))
+             (if teardowns
+                 `((whale-line--log ,(format "Tearing down %s" name))
+                   ,@teardowns)
+               `((whale-line--log ,(format "Tearing down %s (empty teardown)" name))))))
 
        (add-hook 'whale-line-teardown-hook #',teardown-sym))))
 

@@ -605,6 +605,27 @@
 
      (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
 
+(ert-deftest whale-line--setup--empty-setup ()
+  (bydi-match-expansion
+   (whale-line--setup test)
+   '(progn
+      (cl-defun whale-line-test--setup
+          (&rest _)
+        "Set up test segment."
+        (unless
+            (memq 'test whale-line-segments)
+          (cl-return-from whale-line-test--setup))
+        (whale-line--log "Setting up test (empty setup)"))
+      (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+      (cl-defun whale-line-test--teardown
+          (&rest _)
+        "Tear down test segment."
+        (unless
+            (memq 'test whale-line-segments)
+          (cl-return-from whale-line-test--teardown))
+        (whale-line--log "Tearing down test (empty teardown)"))
+      (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
+
 (ert-deftest whale-line--setup--early-return ()
   (bydi-match-expansion
    (whale-line--setup test
