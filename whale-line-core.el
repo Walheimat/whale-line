@@ -255,6 +255,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 ;;; -- Building segments
 
 (defvar whale-line--last-build nil)
+(defvar whale-line--rebuilding nil)
 
 (defun whale-line--handle-build-difference ()
   "Handle the difference between the last two builds."
@@ -263,10 +264,20 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
           (removed (cl-set-difference whale-line--last-build whale-line-segments)))
 
       (when added
-        (whale-line--log "Added segment(s) %s since last build" added))
+        (whale-line--log "Added segment(s) %s since last build" added)
+
+        (let ((whale-line--rebuilding t)
+              (whale-line-segments added))
+
+          (run-hooks 'whale-line-setup-hook)))
 
       (when removed
-        (whale-line--log "Removed segment(s) %s since last build" removed))))
+        (whale-line--log "Removed segment(s) %s since last build" removed)
+
+        (let ((whale-line--rebuilding t)
+              (whale-line-segments removed))
+
+          (run-hooks 'whale-line-teardown-hook)))))
 
   (setq whale-line--last-build whale-line-segments))
 
@@ -365,7 +376,7 @@ return early."
          ,@(delq
             nil
             `((unless ,(if verify
-                           `(,verify-sym)
+                           `(and (not whale-line--rebuilding) (,verify-sym))
                          `(memq ',name whale-line-segments))
                 (cl-return-from ,setup-sym))
 
@@ -390,7 +401,7 @@ return early."
          ,@(delq
             nil
             `((unless ,(if verify
-                           `(,verify-sym)
+                           `(and (not whale-line--rebuilding) (,verify-sym))
                          `(memq ',name whale-line-segments))
                 (cl-return-from ,teardown-sym))
 

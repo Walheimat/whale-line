@@ -622,7 +622,7 @@
    '(progn
      (cl-defun whale-line-test--setup (&rest _)
        "Set up test segment."
-       (unless (whale-line-test--verify)
+       (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
          (cl-return-from whale-line-test--setup))
        (whale-line--log "Setting up test")
        (add-hook 'first-hook #'whale-line-test--action)
@@ -635,7 +635,7 @@
 
      (cl-defun whale-line-test--teardown (&rest _)
        "Tear down test segment."
-       (unless (whale-line-test--verify)
+       (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
          (cl-return-from whale-line-test--teardown))
        (whale-line--log "Tearing down test")
        (remove-hook 'first-hook #'whale-line-test--action)

@@ -138,7 +138,8 @@ You may create your own segments using macros
 =whale-line-create-stateless-segment=,
 =whale-line-create-stateful-segment= and =whale-line-create-augment=.
 /Note/ however that their signature is not stable and may change at
-any time.
+any time. Augments need to pass a function or symbol to =:verify= to
+be set up/torn down.
 
 Be sure to add you segment to =whale-line-segments= at the desired
 position.

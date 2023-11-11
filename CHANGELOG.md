@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Custom variable `whale-line-log`. Setting it to `t` will log setups
   and teardowns. To see the output, call `whale-line-pop-to-logs`.
 - `flymake` segment now also indicates running state.
+- Segment setups and teardowns are now easier to reason about.
+  Segments are only set up or torn down during
+  `whale-line-{setup,teardown}-hook` if the segment is part of
+  `whale-line-segments`. When segments are rebuild, only the
+  added/removed segments are set up/torn down. Augments are handled
+  differently, they **need** a verify function that is called when the
+  hooks are run. During rebuild, they are not setup/torn down (the
+  same goes for segments that use `:verify`).
 
 ### Changed
 
