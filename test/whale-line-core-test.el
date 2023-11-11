@@ -169,7 +169,9 @@
          :advice nil
          :setup (lambda nil t)
          :teardown (lambda nil t)
-         :verify nil)))))
+         :verify t)
+       (whale-line--function whale-line-test--verify always
+         "Verify `test' augment." t)))))
 
 (ert-deftest whale-line--create-augment--using-symbol ()
   (whale-line-do-expand

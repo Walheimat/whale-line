@@ -627,9 +627,8 @@ If VERIFY is t, the setup will verify before being executed."
               nil
               `(,(when action
                    `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
-                (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
-                ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t)))))
+                (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify t)
+                (whale-line--function ,verify-sym ,(or verify 'always) ,(format "Verify `%s' augment." name) t))))
       `(progn
          (whale-line--omit ,name augment)))))
 

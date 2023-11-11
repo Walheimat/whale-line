@@ -398,7 +398,6 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment flymake
   :action wls--flymake
-  :verify always
 
   ;; TODO: This is not ideal and will leave the segment in "running"
   ;; state.
@@ -551,7 +550,6 @@ Returns nil if not checking or if no errors were found."
     minor-mode-alist))
 
 (whale-line-create-augment minions
-  :verify always
   :action whale-line-minions--list
   :advice (:after-while . (whale-line-minor-modes--segment)))
 
