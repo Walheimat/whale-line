@@ -27,6 +27,7 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
@@ -45,8 +46,7 @@
          (test-mode-hook)
          :teardown
          (lambda nil t)
-         :verify nil)
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
+         :verify nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--simple ()
   (whale-line-do-expand
@@ -54,6 +54,7 @@
      (whale-line--create-stateful-segment test
        :getter (lambda () t))
      '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
@@ -66,8 +67,7 @@
        (whale-line--function whale-line-test--get-segment
          (lambda nil t)
          "Get the test segment.")
-       (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
+       (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--using-symbols ()
   (whale-line-do-expand
@@ -80,6 +80,7 @@
        :setup ignore
        :priority low)
      '(progn
+       (whale-line--set-props 'test 'stateful 'low 'nil 'nil)
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action (&rest _)
          "Set test segment."
@@ -96,9 +97,7 @@
          :teardown ignore
          :verify t)
 
-       (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-
-       (whale-line--set-props 'test 'stateful 'low 'nil 'nil)))))
+       (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)))))
 
 (ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
@@ -109,6 +108,7 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
+       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or
@@ -119,8 +119,7 @@
          (lambda nil t)
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
-       (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)
-       (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
+       (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)))))
 
 (ert-deftest whale-line--create-stateless-segment--with-variable ()
   (whale-line-do-expand
@@ -129,11 +128,11 @@
      (whale-line--create-stateless-segment test
        :var test-variable-segment)
      '(progn
+       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or (when t test-variable-segment) ""))
-       (whale-line--setup test :setup nil :teardown nil :verify nil)
-       (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
+       (whale-line--setup test :setup nil :teardown nil :verify nil)))))
 
 (ert-deftest whale-line--create-stateless-segment--using-symbol ()
   (whale-line-do-expand
@@ -143,6 +142,7 @@
        :condition buffer-file-name
        :dense t)
      '(progn
+       (whale-line--set-props 'test 'stateless 't 't 'nil)
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or
@@ -150,8 +150,7 @@
             (whale-line-test--get-segment))
           ""))
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
-       (whale-line--setup test :setup nil :teardown nil :verify nil)
-       (whale-line--set-props 'test 'stateless 't 't 'nil)))))
+       (whale-line--setup test :setup nil :teardown nil :verify nil)))))
 
 (ert-deftest whale-line--create-augment ()
   (whale-line-do-expand
@@ -162,6 +161,7 @@
        :teardown (lambda () t))
 
      '(progn
+       (whale-line--set-props 'test 'augment)
        (whale-line--function whale-line-test--action ignore
          "Augment function for `test'." t)
        (whale-line--setup test
@@ -169,8 +169,7 @@
          :advice nil
          :setup (lambda nil t)
          :teardown (lambda nil t)
-         :verify nil)
-       (whale-line--set-props 'test 'augment)))))
+         :verify nil)))))
 
 (ert-deftest whale-line--create-augment--using-symbol ()
   (whale-line-do-expand
@@ -181,6 +180,7 @@
        :advice (:after . (kill-line))
        :verify (lambda () t))
      '(progn
+       (whale-line--set-props 'test 'augment)
        (whale-line--function whale-line-test--action
          (lambda nil t)
          "Augment function for `test'." t)
@@ -192,8 +192,7 @@
          :verify t)
        (whale-line--function whale-line-test--verify
          (lambda nil t)
-         "Verify `test' augment." t)
-       (whale-line--set-props 'test 'augment)))))
+         "Verify `test' augment." t)))))
 
 ;;; -- Priorities
 
@@ -572,38 +571,39 @@
                      (whale-line--render-segments segments))))))
 
 (ert-deftest whale-line--setup ()
-  (bydi-match-expansion
-   (whale-line--setup test
-     :setup (lambda () t)
-     :teardown (lambda () t)
-     :hooks (first-hook second-hook)
-     :advice (:after . (one two)))
-   '(progn
-     (cl-defun whale-line-test--setup (&rest _)
-       "Set up test segment."
-       (unless (memq 'test whale-line-segments)
-         (cl-return-from whale-line-test--setup))
-       (whale-line--log "Setting up test")
-       (add-hook 'first-hook #'whale-line-test--action)
-       (add-hook 'second-hook #'whale-line-test--action)
-       (advice-add 'one :after #'whale-line-test--action)
-       (advice-add 'two :after #'whale-line-test--action)
-       (funcall (lambda nil t)))
+  (let ((whale-line--props '((test :type stateful))))
+    (bydi-match-expansion
+     (whale-line--setup test
+       :setup (lambda () t)
+       :teardown (lambda () t)
+       :hooks (first-hook second-hook)
+       :advice (:after . (one two)))
+     '(progn
+       (cl-defun whale-line-test--setup (&rest _)
+         "Set up test segment."
+         (unless (memq 'test whale-line-segments)
+           (cl-return-from whale-line-test--setup))
+         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (add-hook 'first-hook #'whale-line-test--action)
+         (add-hook 'second-hook #'whale-line-test--action)
+         (advice-add 'one :after #'whale-line-test--action)
+         (advice-add 'two :after #'whale-line-test--action)
+         (funcall (lambda nil t)))
 
-     (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+       (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
 
-     (cl-defun whale-line-test--teardown (&rest _)
-       "Tear down test segment."
-       (unless (memq 'test whale-line-segments)
-         (cl-return-from whale-line-test--teardown))
-       (whale-line--log "Tearing down test")
-       (remove-hook 'first-hook #'whale-line-test--action)
-       (remove-hook 'second-hook #'whale-line-test--action)
-       (advice-remove 'one #'whale-line-test--action)
-       (advice-remove 'two #'whale-line-test--action)
-       (funcall (lambda nil t)))
+       (cl-defun whale-line-test--teardown (&rest _)
+         "Tear down test segment."
+         (unless (memq 'test whale-line-segments)
+           (cl-return-from whale-line-test--teardown))
+         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (remove-hook 'first-hook #'whale-line-test--action)
+         (remove-hook 'second-hook #'whale-line-test--action)
+         (advice-remove 'one #'whale-line-test--action)
+         (advice-remove 'two #'whale-line-test--action)
+         (funcall (lambda nil t)))
 
-     (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
+       (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
 
 (ert-deftest whale-line--setup--empty-setup ()
   (bydi-match-expansion
@@ -615,7 +615,7 @@
         (unless
             (memq 'test whale-line-segments)
           (cl-return-from whale-line-test--setup))
-        (whale-line--log "Setting up test (empty setup)"))
+        (whale-line--log "Would set up test (%s)" (whale-line--prop 'test :type)))
       (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
       (cl-defun whale-line-test--teardown
           (&rest _)
@@ -623,66 +623,68 @@
         (unless
             (memq 'test whale-line-segments)
           (cl-return-from whale-line-test--teardown))
-        (whale-line--log "Tearing down test (empty teardown)"))
+        (whale-line--log "Would tear down test (%s)" (whale-line--prop 'test :type)))
       (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
 
 (ert-deftest whale-line--setup--early-return ()
-  (bydi-match-expansion
-   (whale-line--setup test
-     :setup (lambda () t)
-     :teardown (lambda () t)
-     :hooks (first-hook second-hook)
-     :advice (:after . (one two))
-     :verify t)
-   '(progn
-     (cl-defun whale-line-test--setup (&rest _)
-       "Set up test segment."
-       (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
-         (cl-return-from whale-line-test--setup))
-       (whale-line--log "Setting up test")
-       (add-hook 'first-hook #'whale-line-test--action)
-       (add-hook 'second-hook #'whale-line-test--action)
-       (advice-add 'one :after #'whale-line-test--action)
-       (advice-add 'two :after #'whale-line-test--action)
-       (funcall (lambda nil t)))
+  (let ((whale-line--props '((test :type stateless))))
+    (bydi-match-expansion
+     (whale-line--setup test
+       :setup (lambda () t)
+       :teardown (lambda () t)
+       :hooks (first-hook second-hook)
+       :advice (:after . (one two))
+       :verify t)
+     '(progn
+       (cl-defun whale-line-test--setup (&rest _)
+         "Set up test segment."
+         (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
+           (cl-return-from whale-line-test--setup))
+         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (add-hook 'first-hook #'whale-line-test--action)
+         (add-hook 'second-hook #'whale-line-test--action)
+         (advice-add 'one :after #'whale-line-test--action)
+         (advice-add 'two :after #'whale-line-test--action)
+         (funcall (lambda nil t)))
 
-     (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+       (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
 
-     (cl-defun whale-line-test--teardown (&rest _)
-       "Tear down test segment."
-       (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
-         (cl-return-from whale-line-test--teardown))
-       (whale-line--log "Tearing down test")
-       (remove-hook 'first-hook #'whale-line-test--action)
-       (remove-hook 'second-hook #'whale-line-test--action)
-       (advice-remove 'one #'whale-line-test--action)
-       (advice-remove 'two #'whale-line-test--action)
-       (funcall (lambda nil t)))
+       (cl-defun whale-line-test--teardown (&rest _)
+         "Tear down test segment."
+         (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
+           (cl-return-from whale-line-test--teardown))
+         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (remove-hook 'first-hook #'whale-line-test--action)
+         (remove-hook 'second-hook #'whale-line-test--action)
+         (advice-remove 'one #'whale-line-test--action)
+         (advice-remove 'two #'whale-line-test--action)
+         (funcall (lambda nil t)))
 
-     (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
+       (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
 
 (ert-deftest whale-line--setup--using-symbols ()
-  (bydi-match-expansion
-   (whale-line--setup test
-     :setup one
-     :teardown two)
-   '(progn
-     (cl-defun whale-line-test--setup (&rest _)
-       "Set up test segment."
-       (unless (memq 'test whale-line-segments)
-         (cl-return-from whale-line-test--setup))
-       (whale-line--log "Setting up test")
-       (funcall 'one))
+  (let ((whale-line--props '((test :type augment))))
+    (bydi-match-expansion
+     (whale-line--setup test
+       :setup one
+       :teardown two)
+     '(progn
+       (cl-defun whale-line-test--setup (&rest _)
+         "Set up test segment."
+         (unless (memq 'test whale-line-segments)
+           (cl-return-from whale-line-test--setup))
+         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (funcall 'one))
 
-     (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
+       (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
 
-     (cl-defun whale-line-test--teardown (&rest _)
-       "Tear down test segment."
-       (unless (memq 'test whale-line-segments)
-         (cl-return-from whale-line-test--teardown))
-       (whale-line--log "Tearing down test")
-       (funcall 'two))
-     (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
+       (cl-defun whale-line-test--teardown (&rest _)
+         "Tear down test segment."
+         (unless (memq 'test whale-line-segments)
+           (cl-return-from whale-line-test--teardown))
+         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (funcall 'two))
+       (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
 
 (ert-deftest whale-line--build-segments ()
   (let ((whale-line--props '((one :priority low) (two :priority high)))

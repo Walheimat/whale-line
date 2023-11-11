@@ -387,24 +387,28 @@ return early."
                       `(and (not whale-line--rebuilding) (,verify-sym))
                     `(memq ',name whale-line-segments))
            (cl-return-from ,setup-sym))
-         ,@(let ((setups (delq
-                          nil
-                          `(,@(mapcar (lambda (it)
-                                        `(add-hook ',it #',setter-sym))
-                                      hooks)
+         ,@(let* ((setups (delq
+                           nil
+                           `(,@(mapcar (lambda (it)
+                                         `(add-hook ',it #',setter-sym))
+                                       hooks)
 
-                            ,@(mapcar (lambda (it)
-                                        `(advice-add ',it ,(car advice) #',setter-sym))
-                                      (cdr advice))
+                             ,@(mapcar (lambda (it)
+                                         `(advice-add ',it ,(car advice) #',setter-sym))
+                                       (cdr advice))
 
-                            ,(when setup (if (symbolp setup)
-                                             `(funcall ',setup)
-                                           `(funcall ,setup)))))))
+                             ,(when setup (if (symbolp setup)
+                                              `(funcall ',setup)
+                                            `(funcall ,setup))))))
+
+                  (log (if setups `(whale-line--log ,(format "Setting up %s (%%s)" name)
+                                                    (whale-line--prop ',name :type))
+                         `(whale-line--log ,(format "Would set up %s (%%s)" name)
+                                           (whale-line--prop ',name :type)))))
 
              (if setups
-                 `((whale-line--log ,(format "Setting up %s" name))
-                   ,@setups)
-               `((whale-line--log ,(format "Setting up %s (empty setup)" name))))))
+                 `(,log ,@setups)
+               `(,log))))
 
        (add-hook 'whale-line-setup-hook #',setup-sym)
 
@@ -414,24 +418,27 @@ return early."
                       `(and (not whale-line--rebuilding) (,verify-sym))
                     `(memq ',name whale-line-segments))
            (cl-return-from ,teardown-sym))
-         ,@(let ((teardowns (delq
-                             nil
-                             `(,@(mapcar (lambda (it)
-                                           `(remove-hook ',it #',setter-sym))
-                                         hooks)
+         ,@(let* ((teardowns (delq
+                              nil
+                              `(,@(mapcar (lambda (it)
+                                            `(remove-hook ',it #',setter-sym))
+                                          hooks)
 
-                               ,@(mapcar (lambda (it)
-                                           `(advice-remove ',it #',setter-sym))
-                                         (cdr advice))
+                                ,@(mapcar (lambda (it)
+                                            `(advice-remove ',it #',setter-sym))
+                                          (cdr advice))
 
-                               ,(when teardown
-                                  (if (symbolp teardown)
-                                      `(funcall ',teardown)
-                                    `(funcall ,teardown)))))))
+                                ,(when teardown
+                                   (if (symbolp teardown)
+                                       `(funcall ',teardown)
+                                     `(funcall ,teardown))))))
+                  (log (if teardowns `(whale-line--log ,(format "Tearing down %s (%%s)" name)
+                                                       (whale-line--prop ',name :type))
+                         `(whale-line--log ,(format "Would tear down %s (%%s)" name)
+                                           (whale-line--prop ',name :type)))))
              (if teardowns
-                 `((whale-line--log ,(format "Tearing down %s" name))
-                   ,@teardowns)
-               `((whale-line--log ,(format "Tearing down %s (empty teardown)" name))))))
+                 `(,log ,@teardowns)
+               `(,log))))
 
        (add-hook 'whale-line-teardown-hook #',teardown-sym))))
 
@@ -517,6 +524,8 @@ the segment comes pre-padded on that or all sides."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
+           (whale-line--set-props ',name 'stateful ',prio ',dense ',padded)
+
            (defvar-local ,segment 'initial)
 
            (defun ,setter (&rest _)
@@ -530,9 +539,7 @@ the segment comes pre-padded on that or all sides."
               `((whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
                 (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))))
-
-           (whale-line--set-props ',name 'stateful ',prio ',dense ',padded))
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t)))))
       `(progn
          (whale-line--omit ,name stateful)))))
 
@@ -581,6 +588,7 @@ the segment comes pre-padded on that or all sides."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
+           (whale-line--set-props ',name 'stateless ',prio ',dense ',padded)
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
@@ -592,8 +600,7 @@ the segment comes pre-padded on that or all sides."
                    `(whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name)))
                 (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))))
-           (whale-line--set-props ',name 'stateless ',prio ',dense ',padded))
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t)))))
       `(progn
          (whale-line--omit ,name stateless)))))
 
@@ -615,14 +622,14 @@ If VERIFY is t, the setup will verify before being executed."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
+           (whale-line--set-props ',name 'augment)
            ,@(delq
               nil
               `(,(when action
                    `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
                 (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))))
-           (whale-line--set-props ',name 'augment))
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t)))))
       `(progn
          (whale-line--omit ,name augment)))))
 
