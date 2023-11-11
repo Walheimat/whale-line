@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   differently, they **need** a verify function that is called when the
   hooks are run. During rebuild, they are not setup/torn down (the
   same goes for segments that use `:verify`).
+- Command `whale-line-trigger-augments` to set up or tear down
+  augments.
 
 ### Changed
 

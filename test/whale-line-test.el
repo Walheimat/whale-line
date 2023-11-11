@@ -60,6 +60,12 @@
     (whale-line-rebuild)
     (bydi-was-called whale-line--build-segments)))
 
+(ert-deftest whale-line-trigger-augments ()
+  (bydi (whale-line--trigger-augments)
+
+    (whale-line-trigger-augments)
+    (bydi-was-called whale-line--trigger-augments)))
+
 (ert-deftest whale-line--pop-to-logs ()
   (bydi (pop-to-buffer)
     (whale-line--log "Make sure it exists")

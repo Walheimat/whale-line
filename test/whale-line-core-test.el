@@ -680,6 +680,21 @@
       (should (equal '(:left (one) :right (two))
                      whale-line--segments)))))
 
+(ert-deftest whale-line--trigger-augments ()
+  (let ((whale-line--props '((one :type stateful) (two :type augment) (three :type augment))))
+
+    (bydi ((:watch whale-line-segments)
+           run-hooks)
+
+      (whale-line--trigger-augments)
+
+      (bydi-was-set-to whale-line-segments '(two three))
+      (bydi-was-called-with run-hooks 'whale-line-setup-hook t)
+
+      (whale-line--trigger-augments t)
+
+      (bydi-was-called-with run-hooks 'whale-line-teardown-hook))))
+
 (ert-deftest whale-line--log--formats ()
   (let ((whale-line-log nil))
 

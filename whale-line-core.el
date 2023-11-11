@@ -297,6 +297,16 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
     (setq whale-line--segments props)))
 
+(defun whale-line--trigger-augments (&optional arg)
+  "Trigger augments.
+
+Sets up augments. If ARG is t tears them down instead."
+  (let ((whale-line-segments (whale-line--segments-by-type 'augment)))
+
+    (if arg
+        (run-hooks 'whale-line-teardown-hook)
+      (run-hooks 'whale-line-setup-hook))))
+
 (defun whale-line--valid-segment-p (segment)
   "Check that SEGMENT can be included."
   (let ((verify-sym (whale-line-symbol--verify segment)))
@@ -796,11 +806,17 @@ This will refresh stateful segments."
 
 This will call the respective segment's action."
   (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
-         (actions (cl-loop for (a . b) in whale-line--props
-                           if (eq 'stateful (plist-get b :type))
-                           collect (funcall interner a))))
+         (actions (mapcar interner (whale-line--segments-by-type 'stateful))))
 
     (mapc #'funcall actions)))
+
+;;; -- Helpers
+
+(defun whale-line--segments-by-type (type)
+  "Get all segments matching TYPE."
+  (cl-loop for (a . b) in whale-line--props
+           if (eq type (plist-get b :type))
+           collect a))
 
 ;;; -- Logging
 

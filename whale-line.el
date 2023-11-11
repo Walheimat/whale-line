@@ -73,6 +73,14 @@ Only necessary if you have changed `whale-line-segments'."
 
   (whale-line--build-segments))
 
+(defun whale-line-trigger-augments (&optional arg)
+  "Trigger augments.
+
+Sets up augments (again). If ARG is t, tears them down instead."
+  (interactive "P")
+
+  (whale-line--trigger-augments arg))
+
 (defun whale-line-pop-to-logs ()
   "Switch to the log buffer."
   (interactive)
