@@ -60,6 +60,17 @@
     (whale-line-rebuild)
     (bydi-was-called whale-line--build-segments)))
 
+(ert-deftest whale-line--pop-to-logs ()
+  (bydi (pop-to-buffer)
+    (whale-line--log "Make sure it exists")
+
+    (whale-line-pop-to-logs)
+    (bydi-was-called pop-to-buffer)
+
+    (kill-buffer whale-line--log-buffer-name)
+
+    (should-error (whale-line-pop-to-logs))))
+
 ;;; whale-line-test.el ends here
 
 ;; Local Variables:

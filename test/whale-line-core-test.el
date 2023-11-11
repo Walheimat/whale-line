@@ -662,6 +662,23 @@
       (should (equal '(:left (one) :right (two))
                      whale-line--segments)))))
 
+(ert-deftest whale-line--log--formats ()
+  (let ((whale-line-log nil))
+
+    (whale-line--log "This is a %s" "test")
+
+    (should-not (get-buffer whale-line--log-buffer-name))
+
+    (setq whale-line-log t)
+
+    (whale-line--log "This is the %s message" "first")
+    (whale-line--log "This %s the %s message" "will be" "second")
+
+    (with-current-buffer (get-buffer whale-line--log-buffer-name)
+      (should (string= (buffer-string)
+                       "This is the first message\nThis will be the second message\n")))))
+
+
 ;;; whale-line-core-test.el ends here
 
 ;; Local Variables:

@@ -73,6 +73,17 @@ Only necessary if you have changed `whale-line-segments'."
 
   (whale-line--build-segments))
 
+(defun whale-line-pop-to-logs ()
+  "Switch to the log buffer."
+  (interactive)
+
+  (let ((buffer (get-buffer whale-line--log-buffer-name)))
+
+    (unless buffer
+      (user-error "You need to set `harpoon-log' to t first"))
+
+    (pop-to-buffer (get-buffer whale-line--log-buffer-name))))
+
 ;;;###autoload
 (define-minor-mode whale-line-mode
   "Toggle `whale-line' on or off."

@@ -74,6 +74,11 @@ constraints."
                  (const elide)
                  (const ignore)))
 
+(defcustom whale-line-log nil
+  "Whether to log."
+  :group 'whale-line
+  :type 'boolean)
+
 ;;; -- Faces
 
 (defface whale-line-neutral
@@ -755,6 +760,26 @@ This will call the respective segment's action."
                            collect (funcall interner a))))
 
     (mapc #'funcall actions)))
+
+;;; -- Logging
+
+(defvar whale-line--log-buffer-name " *whale-line*")
+
+(defun whale-line--log (fmt &rest args)
+  "Format FMT with ARGS."
+  (when whale-line-log
+    (let ((buffer (get-buffer whale-line--log-buffer-name))
+          (inhibit-read-only t))
+
+      (unless buffer
+        (setq buffer (get-buffer-create whale-line--log-buffer-name))
+        (with-current-buffer buffer
+          (view-mode)))
+
+      (with-current-buffer buffer
+        (goto-char (point-max))
+        (insert (apply #'format fmt args))
+        (insert "\n")))))
 
 ;;; -- API
 
