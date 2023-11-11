@@ -254,8 +254,26 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
 ;;; -- Building segments
 
+(defvar whale-line--last-build nil)
+
+(defun whale-line--handle-build-difference ()
+  "Handle the difference between the last two builds."
+  (when whale-line--last-build
+    (let ((added (cl-set-difference whale-line-segments whale-line--last-build))
+          (removed (cl-set-difference whale-line--last-build whale-line-segments)))
+
+      (when added
+        (whale-line--log "Added segment(s) %s since last build" added))
+
+      (when removed
+        (whale-line--log "Removed segment(s) %s since last build" removed))))
+
+  (setq whale-line--last-build whale-line-segments))
+
 (defun whale-line--build-segments ()
   "Build the segments."
+  (whale-line--handle-build-difference)
+
   (whale-line--clear-caches)
 
   (and-let* (((memq '| whale-line-segments))

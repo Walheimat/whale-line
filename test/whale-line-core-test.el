@@ -678,6 +678,29 @@
       (should (string= (buffer-string)
                        "This is the first message\nThis will be the second message\n")))))
 
+(ert-deftest whale-line--handle-build-difference ()
+  (let ((whale-line-segments '(one two three))
+        (whale-line--last-build nil))
+
+    (shut-up
+      (bydi (whale-line--log)
+
+        (ert-with-message-capture messages
+
+          (whale-line--handle-build-difference)
+
+          (bydi-was-not-called whale-line--log)
+
+          (whale-line--handle-build-difference)
+
+          (bydi-was-not-called whale-line--log)
+
+          (setq whale-line-segments '(two four))
+
+          (whale-line--handle-build-difference)
+
+          (bydi-was-called-nth-with whale-line--log '("Added segment(s) %s since last build" (four)) 0)
+          (bydi-was-called-nth-with whale-line--log '("Removed segment(s) %s since last build" (one three)) 1))))))
 
 ;;; whale-line-core-test.el ends here
 
