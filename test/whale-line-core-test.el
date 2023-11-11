@@ -46,7 +46,6 @@
          :teardown
          (lambda nil t)
          :verify nil)
-       nil
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--simple ()
@@ -68,7 +67,6 @@
          (lambda nil t)
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
-       nil
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateful-segment--using-symbols ()
@@ -134,9 +132,7 @@
        (defun whale-line-test--segment ()
          "Render `test' segment."
          (or (when t test-variable-segment) ""))
-       nil
        (whale-line--setup test :setup nil :teardown nil :verify nil)
-       nil
        (whale-line--set-props 'test 'stateless 't 'nil 'nil)))))
 
 (ert-deftest whale-line--create-stateless-segment--using-symbol ()
@@ -155,7 +151,6 @@
           ""))
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
-       nil
        (whale-line--set-props 'test 'stateless 't 't 'nil)))))
 
 (ert-deftest whale-line--create-augment ()
@@ -175,7 +170,6 @@
          :setup (lambda nil t)
          :teardown (lambda nil t)
          :verify nil)
-       nil
        (whale-line--set-props 'test 'augment)))))
 
 (ert-deftest whale-line--create-augment--using-symbol ()

@@ -522,10 +522,12 @@ the segment comes pre-padded on that or all sides."
                  (setq ,segment str)
                (setq ,segment nil)))
 
-           (whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
-           (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
-           ,(when verify
-              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
+           ,@(delq
+              nil
+              `((whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
+                (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
+                ,(when verify
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))))
 
            (whale-line--set-props ',name 'stateful ',prio ',dense ',padded))
       `(progn
@@ -581,12 +583,13 @@ the segment comes pre-padded on that or all sides."
              (or (when ,con
                    ,(if var `,var `(,getter-sym)))
                  ""))
-
-           ,(unless var
-              `(whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name)))
-           (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
-           ,(when verify
-              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
+           ,@(delq
+              nil
+              `(,(unless var
+                   `(whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name)))
+                (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
+                ,(when verify
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))))
            (whale-line--set-props ',name 'stateless ',prio ',dense ',padded))
       `(progn
          (whale-line--omit ,name stateless)))))
@@ -609,11 +612,13 @@ If VERIFY is t, the setup will verify before being executed."
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
-           ,(when action
-              `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
-           (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
-           ,(when verify
-              `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))
+           ,@(delq
+              nil
+              `(,(when action
+                   `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
+                (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
+                ,(when verify
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' augment." name) t))))
            (whale-line--set-props ',name 'augment))
       `(progn
          (whale-line--omit ,name augment)))))
