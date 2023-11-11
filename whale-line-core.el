@@ -362,40 +362,52 @@ return early."
     `(progn
        (cl-defun ,setup-sym (&rest _)
          ,(format "Set up %s segment." name)
+         ,@(delq
+            nil
+            `((unless ,(if verify
+                           `(,verify-sym)
+                         `(memq ',name whale-line-segments))
+                (cl-return-from ,setup-sym))
 
-         ,(when verify
-            `(unless (,verify-sym)
-               (cl-return-from ,setup-sym)))
+              (whale-line--log ,(format "Setting up %s" name))
 
-         ,@(mapcar (lambda (it)
-                     `(add-hook ',it #',setter-sym))
-                   hooks)
+              ,@(mapcar (lambda (it)
+                          `(add-hook ',it #',setter-sym))
+                        hooks)
 
-         ,@(mapcar (lambda (it)
-                     `(advice-add ',it ,(car advice) #',setter-sym))
-                   (cdr advice))
+              ,@(mapcar (lambda (it)
+                          `(advice-add ',it ,(car advice) #',setter-sym))
+                        (cdr advice))
 
-         ,(when setup (if (symbolp setup)
-                          `(funcall ',setup)
-                        `(funcall ,setup))))
+              ,(when setup (if (symbolp setup)
+                               `(funcall ',setup)
+                             `(funcall ,setup))))))
 
        (add-hook 'whale-line-setup-hook #',setup-sym)
 
-       (defun ,teardown-sym (&rest _)
+       (cl-defun ,teardown-sym (&rest _)
          ,(format "Tear down %s segment." name)
+         ,@(delq
+            nil
+            `((unless ,(if verify
+                           `(,verify-sym)
+                         `(memq ',name whale-line-segments))
+                (cl-return-from ,teardown-sym))
 
-         ,@(mapcar (lambda (it)
-                     `(remove-hook ',it #',setter-sym))
-                   hooks)
+              (whale-line--log ,(format "Tearing down %s" name))
 
-         ,@(mapcar (lambda (it)
-                     `(advice-remove ',it #',setter-sym))
-                   (cdr advice))
+              ,@(mapcar (lambda (it)
+                          `(remove-hook ',it #',setter-sym))
+                        hooks)
 
-         ,(when teardown
-            (if (symbolp teardown)
-                `(funcall ',teardown)
-              `(funcall ,teardown))))
+              ,@(mapcar (lambda (it)
+                          `(advice-remove ',it #',setter-sym))
+                        (cdr advice))
+
+              ,(when teardown
+                 (if (symbolp teardown)
+                     `(funcall ',teardown)
+                   `(funcall ,teardown))))))
 
        (add-hook 'whale-line-teardown-hook #',teardown-sym))))
 
