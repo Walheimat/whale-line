@@ -192,7 +192,7 @@
 
       (whale-line-segments--flycheck 'status)
 
-      (bydi-was-called-with run-hooks 'whale-line-segments-flycheck-hook)
+      (bydi-was-called-with run-hooks 'whale-line-segments-syntax-hook)
 
       (should (string= "face" whale-line-segments--buffer-identification--additional-face))
       (should (string= "help" whale-line-segments--buffer-identification--additional-help)))))
@@ -276,7 +276,9 @@
            whale-line-segments--flymake--count-types
 
            (:mock whale-line-segments--flymake--face :return "face")
-           (:mock whale-line-segments--flymake--help :return "help"))
+           (:mock whale-line-segments--flymake--help :return "help")
+
+           run-hooks)
 
       ;; No running backends.
       (whale-line-segments--flymake)
@@ -311,7 +313,9 @@
       (bydi-was-called whale-line-segments--flymake--count-types)
 
       (should (string= "face" whale-line-segments--buffer-identification--additional-face))
-      (should (string= "help" whale-line-segments--buffer-identification--additional-help)))))
+      (should (string= "help" whale-line-segments--buffer-identification--additional-help))
+
+      (bydi-was-called-with run-hooks 'whale-line-segments-syntax-hook))))
 
 ;;; -- LSP mode
 

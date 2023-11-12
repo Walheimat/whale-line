@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - `flymake` segment shows the default help text.
+- `flymake` segment now calls hook to update hook to update
+  `buffer-identification` like `flycheck` does.
 
 ## [v0.7.4]
 
