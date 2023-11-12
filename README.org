@@ -9,20 +9,54 @@
 </a>
 #+END_HTML
 
-This package provides a highly modular mode-line. The =whale-line=
-mode-line comprises a set of segments. Each of them can be freely
-positioned or disabled by setting =whale-line-segments= (segments
-belong either to the left or the right side). Many are customizable.
+This package provides a highly modular mode-line. The =whale-line= is
+a list of segments divided into two halves (left and right). Each
+segment is positioned and enabled by its inclusion and positioning in
+=whale-line-segments= (wherein =|= symbolizes the dividing line).
 
-You can also create augments to change the behavior or look of an
-existing segment.
+The package ships with a wide array of segments and some augments to
+enhance those segments.
 
 You may also create your own segments and augments using the
-=whale-line-create-*= macros.
+=whale-line-create-*= macros. In fact, you could disregard the
+pre-shipped segments entirely and just use this package as a library
+to build your own mode-line.
 
 This package takes inspiration from two other great custom mode-lines:
 =mood-line= and =doom-modeline=.
 
+** Example Screenshot
+
+Modeline in a split frame (theme is =doom-vibrant=).
+
+[[file:assets/mode-line.png]]
+
+On the left window, the segment son the left are
+
+- =major-mode= (using =all-the-icons=)
+- =buffer-identification=
+- =flycheck= augmenting the prior to indicate errors and warnings (an
+  equivalent =flymake= augment exists)
+- =org= segment to show the current top heading and its parent
+- =buffer-status= segment to indicate the buffer is edited
+
+Not shown are segments for LSP and debug sessions, as well as
+=window-status= that each show an icon when they're active. Also not
+shown is =process= that shows =mode-line-process=
+
+On the right you can see
+
+- =minor-mode-alist= segment augmented by =minions=
+- =project= segment
+- =vc= segment
+- =tab-bar= segment
+- =animation= segment
+
+Not shown is the =misc-info= segment that shows =mode-line-misc-info=.
+
+The right window shows fewer segments. That's because many segments
+are defined to only show on the current window or if space isn't
+tight.
 ** Installation
 
 If you use =straight= or =quelpa=, you know what to do.
@@ -38,8 +72,9 @@ The position and order of the segments can be controlled by
 customizing =whale-line-segments=. You can freely re-arrange them,
 leave some out, add your custom ones.
 
-If you move, add or remove a segment after loading the package, you
-will need to call =whale-line-rebuild=.
+If you move, add or remove a segment after loading the package and
+enabling the mode, you will need to call =whale-line-rebuild= to see
+the change.
 
 #+BEGIN_SRC emacs-lisp
 (use-package whale-line
@@ -104,16 +139,17 @@ will need to call =whale-line-rebuild=.
 
 ** Customizing Priorities
 
-All segments are created with a priority that determines whether it is
-shown. The possible values are:
+All segments are created with a priority that determines on what
+condition the segment is shown. The possible values are:
 
 - =t= to always show
 - =current= to always show for the selected window
 - =current-low= to show for current window if space allows it
 - =low= to show if space allows it
 
-If you're unhappy with these settings, you can use
-=whale-line-with-priorities= to change them in bulk.
+If you're unhappy with the default settings, you can use
+=whale-line-with-priorities= to change them in bulk after loading the
+package.
 
 #+begin_src emacs-lisp
 (whale-line-with-priorities
@@ -138,10 +174,8 @@ You may create your own segments and augments using macros
 =whale-line-create-stateless-segment=,
 =whale-line-create-stateful-segment= and =whale-line-create-augment=.
 /Note/ however that their signature is not finalized and may change at
-any time.
-
-Be sure to add your segment to =whale-line-segments= at the desired
-position.
+any time. (Be sure to add your segment to =whale-line-segments= at the
+desired position.)
 
 As the macro names suggest, there are three things you can create:
 
@@ -173,8 +207,8 @@ This would create segment =stateless= that would render "hello"
 propertized with face =success= on every mode-line update.
 
 This is fine in most cases but if the construction of your segment is
-a bit more involved than a mode-line construct allows, you might need
-a getter function.
+a bit more involved than a mode-line construct allows, you might want
+a function.
 
 #+begin_src emacs-lisp
 (defun my-stateless-getter ()
@@ -191,18 +225,24 @@ Stateless segments accept =:condition= which should be a form that is
 evaluated before the getter. If it returns =nil= an empty string is
 returned instead.
 
+#+begin_src emacs-lisp
+(whale-line-create-stateless-segment conditional
+  :var my-stateless-segment
+  :condition (derived-mode-p 'text-mode))
+#+end_src
+
 *** Stateful segments
 
 A stateful segment is a segment with a state. This means that it will
-return its state on every mode-line update and only re-calculate that
-state when it's necessary.
+return its state unchanged on every mode-line update and only
+re-calculate that state when it's necessary.
 
-This type makes sense when processing the segment takes a lot of
-resources even though the result of the processing itself only changes
-at certain known junctures.
+This type makes sense when processing the segment takes a lot of time
+or resources even though the result of the processing itself only
+changes at certain known junctures.
 
-There are two ways to tell such a segment to re-calculate: provide a
-list of hooks or a list functions to advise (or both).
+There are two ways to tell such a segment to re-calculate: by
+providing a list of hooks, a list functions to advise or both.
 
 The recalculation is defined as the segment's *getter*.
 
@@ -226,7 +266,7 @@ update and then store it. On each subsequent update the stored value
 is returned. The value is updated whenever =change-major-mode-hook= is
 run.
 
-You may also want to =:after= to advise a list of functions after
+You may also want to use =:after= to advise a list of functions after
 which the state should be updated.
 
 #+begin_src emacs-lisp
@@ -294,7 +334,8 @@ The function =whale-line-stateful--get-segment= is created by previous
 declaration for segment =stateful=. It is called when the state is
 updated so our augment advises it to return an augmented value.
 
-If the segment provides a port, you can also use =:plugs-into=.
+If the segment provides a port (see below), you can also use
+=:plugs-into=.
 
 #+begin_src emacs-lisp
 (defvar slot-var nil)
@@ -374,17 +415,18 @@ rendering for augmentation.
 
 *** The nitty gritty
 
-If you want to build something complicated, you might need to know
-what functions and variables are created during macro expansion. So
-here's a summary.
+If you want to build something more complicated, you might need to
+know what functions and variables are created during macro expansion.
+So here's a summary.
 
 Stateless segments define a function =whale-line-<name>--segment=.
 This function is called to get the segment. If they use =:var= this
 function will just return that variable's value. If they use =:getter=
 this function will call additionally created
 =whale-line-<name>--get-segment= that in turn will finally call the
-passed function. The reason for this nesting is that you may pass
-either a function symbol or an anonymous function to =:getter=.
+passed function. The reason for this nesting and indirection is that
+you may pass either a function symbol or an anonymous function to
+=:getter=.
 
 Stateful segments hold their state in local variable (not function!)
 =whale-line-<name>--segment=. This variable is set to symbol =initial=
@@ -399,36 +441,3 @@ If you're using =:port= and =:plugs-into=, the segment with =:port=
 will create function =whale-line-<name>--port= that will be called
 with the result of the augment's action. That means the return value
 of the action should match the arity of the port function.
-
-** Example Screenshot
-
-Modeline in a split frame (theme is =doom-vibrant=).
-
-[[file:assets/mode-line.png]]
-
-On the left window, the segment son the left are
-
-- =major-mode= (using =all-the-icons=)
-- =buffer-identification=
-- =flycheck= augmenting the prior to indicate errors and warnings (an
-  equivalent =flymake= augment exists)
-- =org= segment to show the current top heading and its parent
-- =buffer-status= segment to indicate the buffer is edited
-
-Not shown are segments for LSP and debug sessions, as well as
-=window-status= that each show an icon when they're active. Also not
-shown is =process= that shows =mode-line-process=
-
-On the right you can see
-
-- =minor-mode-alist= segment augmented by =minions=
-- =project= segment
-- =vc= segment
-- =tab-bar= segment
-- =animation= segment
-
-Not shown is the =misc-info= segment that shows =mode-line-misc-info=.
-
-The right window shows fewer segments. That's because many segments
-are defined to only show on the current window or if space isn't
-tight.
