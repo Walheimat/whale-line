@@ -119,6 +119,69 @@
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        (whale-line--function whale-line-test--port test-port "Plug into `test-port'" t)))))
 
+(ert-deftest whale-line--create-with-single-item-hook ()
+  (whale-line-do-expand
+    (bydi-match-expansion
+     (whale-line--create-stateful-segment test
+       :hooks change-major-mode-hook)
+     '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (defvar-local whale-line-test--segment 'initial)
+       (defun whale-line-test--action
+           (&rest _)
+         "Set test segment."
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
+       (whale-line--function whale-line-test--get-segment nil "Get the test segment.")
+       (whale-line--setup test :setup nil :advice nil :hooks
+         (change-major-mode-hook)
+         :teardown nil :verify nil)))))
+
+(ert-deftest whale-line--create-stateful--advised ()
+  (whale-line-do-expand
+    (bydi-match-expansion
+     (whale-line--create-stateful-segment test
+       :getter test-getter
+       :after (some-fun))
+     '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (defvar-local whale-line-test--segment 'initial)
+       (defun whale-line-test--action
+           (&rest _)
+         "Set test segment."
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
+       (whale-line--function whale-line-test--get-segment test-getter "Get the test segment.")
+       (whale-line--setup test :setup nil :advice
+         (:after some-fun)
+         :hooks nil :teardown nil :verify nil)))
+
+    (bydi-match-expansion
+     (whale-line--create-stateful-segment test
+       :getter test-getter
+       :advice (:after . (some-fun other-fun)))
+     '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (defvar-local whale-line-test--segment 'initial)
+       (defun whale-line-test--action
+           (&rest _)
+         "Set test segment."
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
+       (whale-line--function whale-line-test--get-segment test-getter "Get the test segment.")
+       (whale-line--setup test :setup nil :advice
+         (:after some-fun other-fun)
+         :hooks nil :teardown nil :verify nil)))))
+
 (ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
@@ -230,7 +293,21 @@
          :verify t)
        (whale-line--function whale-line-test--verify
          (lambda nil t)
-         "Verify `test' augment." t)))))
+         "Verify `test' augment." t)))
+
+    (bydi-match-expansion
+     (whale-line--create-augment test
+       :action (lambda () t)
+       :after (kill-line))
+     '(progn
+       (whale-line--set-props 'test 'augment)
+       (whale-line--function whale-line-test--action
+         (lambda nil t)
+         "Augment function for `test'." t)
+       (whale-line--setup test :hooks nil :advice
+         (:after kill-line)
+         :setup nil :teardown nil :verify t)
+       (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))))
 
 (ert-deftest whale-line--create-augment--with-plug ()
   (whale-line-do-expand
@@ -806,6 +883,10 @@
 
           (bydi-was-called-nth-with whale-line--log '("Added segment(s) %s since last build" (four)) 0)
           (bydi-was-called-nth-with whale-line--log '("Removed segment(s) %s since last build" (one three)) 1))))))
+
+(ert-deftest whale-line--normalize-list ()
+  (should (equal (whale-line--normalize-list '(test))
+                 (whale-line--normalize-list 'test))))
 
 ;;; whale-line-core-test.el ends here
 

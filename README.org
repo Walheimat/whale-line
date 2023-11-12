@@ -226,16 +226,24 @@ update and then store it. On each subsequent update the stored value
 is returned. The value is updated whenever =change-major-mode-hook= is
 run.
 
-It works the same for advised functions.
+You may also want to =:after= to advise a list of functions after
+which the state should be updated.
 
 #+begin_src emacs-lisp
 (whale-line-create-stateful-segment advised
   :getter my-stateful-fun
-  :advice (:after . (undo redo)))
+  :after (undo redo))
 #+end_src
 
 Whenever =undo= or =redo= are called, =my-stateful-fun= would be
-called to updated the state.
+called afterwards (with the same arguments) to updated the state.
+
+You can also specify your own advice combinator.
+
+#+begin_src emacs-lisp
+(whale-line-create-stateful-segment before-advised
+  :advice (:before . (undo redo)))
+#+end_src
 
 *** Augments
 
@@ -252,8 +260,8 @@ The relationship between a segment and its augment is therefore
 somewhat tenuous in that /you/ need to define /how/ exactly the
 augmentation is to take place.
 
-The easiest way here is using advice in combination with a stateful
-segment or a stateless getter-based segment.
+The easiest way here is using =:after-while= in combination with a
+stateful segment or a stateless getter-based segment.
 
 #+begin_src emacs-lisp
 (defun my-augment-fun (calculated)
@@ -267,7 +275,15 @@ segment or a stateless getter-based segment.
 (whale-line-create-augment my-augment
   :verify my-augment-should-augment-p
   :action my-augment-fun
-  :advice (:after-while . (whale-line-stateful--get-segment)))
+  ;; You may also provide a list.
+  :after-while whale-line-stateful--get-segment)
+#+end_src
+
+You can also use =:after= or specify your own advice combinator.
+
+#+begin_src emacs-lisp
+(whale-line-create-augment before-augment
+  :advice (:before-while . (whale-line-stateful--get-segment)))
 #+end_src
 
 If the segment provides a port, you can also use =:plugs-into=.

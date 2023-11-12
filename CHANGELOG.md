@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This for augments using new key `:plugs-into <segment-name>`.
   The actions of augments using this key will call the port function
   with their result.
+- Stateful segments can now use new key `:after` instead of
+  constructing with `:advice`.
+- Augments now can use `:after` and `:after-while` in the same way.
+- Passing single item values to keys that expect a list now normalize
+  to a list.
 
 ### Changed
 

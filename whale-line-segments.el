@@ -102,7 +102,7 @@ to 2, only the 3rd level is elided."
 (whale-line-create-stateful-segment buffer-identification
   :getter wls--buffer-identification
   :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook wls-buffer-identification-hook)
-  :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo))
+  :after (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)
   :port wls--buffer-identification--set-additional)
 
 ;;;; -- Buffer status
@@ -409,7 +409,7 @@ Returns nil if not checking or if no errors were found."
 (whale-line-create-augment flymake
   :action wls--flymake
   :plugs-into buffer-identification
-  :advice (:after . (flymake--mode-line-exception)))
+  :after flymake--mode-line-exception)
 
 ;;;; -- Major mode
 
@@ -559,7 +559,7 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment minions
   :action whale-line-minions--list
-  :advice (:after-while . (whale-line-minor-modes--segment)))
+  :after-while whale-line-minor-modes--segment)
 
 ;;; -- Org
 
@@ -784,7 +784,7 @@ This is either an explicit name or its index."
 (whale-line-create-stateful-segment vc
   :getter wls--vc
   :hooks (find-file-hook after-save-hook)
-  :advice (:after . (vc-refresh-state))
+  :after vc-refresh-state
   :priority current)
 
 (provide 'whale-line-segments)

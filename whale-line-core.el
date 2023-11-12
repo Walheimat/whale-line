@@ -488,6 +488,7 @@ nothing for augments."
      getter
      hooks
      advice
+     after
      verify
      setup
      teardown
@@ -506,7 +507,8 @@ constructed by the macro).
 HOOKS is a list of functions that will call the setter.
 
 ADVICE is a cons cell of the form (COMBINATOR .
-FUNCTIONS-TO-ADVISE) that will also call the setter.
+FUNCTIONS-TO-ADVISE) that will also call the setter. You're
+likely best served using AFTER instead.
 
 VERIFY is a function called before the segments are built. If it
 returns nil, the segment will not be included.
@@ -529,7 +531,11 @@ segment."
          (getter-sym (whale-line-symbol--get-segment name))
          (verify-sym (whale-line-symbol--verify name))
          (port-sym (whale-line-symbol--port name))
-         (prio (or priority t)))
+         (prio (or priority t))
+         (advice (cond
+                  ((not (null after))
+                   `(:after . (,@(whale-line--normalize-list after))))
+                  (t advice))))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -546,7 +552,7 @@ segment."
            ,@(delq
               nil
               `((whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
-                (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
+                (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,(whale-line--normalize-list hooks) :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
                    `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
                 ,(when port
@@ -627,6 +633,8 @@ segment."
      action
      hooks
      advice
+     after
+     after-while
      setup
      teardown
      verify
@@ -635,8 +643,11 @@ segment."
 
 ACTION is the function to call for HOOKS.
 
-ADVICE is an cons cell of the form combinator .
-functions-to-advise to call ACTION.
+ADVICE is an cons cell of the form (ADVICE-COMBINATOR .
+FUNC-LIST). Each function in FUNC-LIST will be advised using
+ADIVCE-COMBINATOR to call ACTION. You are probably best served
+just using AFTER or AFTER-WHILE instead to create that kind of
+advice directly.
 
 Additional SETUP and TEARDOWN function can be added for more control.
 
@@ -648,7 +659,13 @@ segment is assumed to have defined a port function."
 
   (let ((augment (whale-line-symbol--action name))
         (verify-sym (whale-line-symbol--verify name))
-        (port-sym (whale-line-symbol--port plugs-into)))
+        (port-sym (whale-line-symbol--port plugs-into))
+        (advice (cond
+                 ((not (null after))
+                  `(:after . (,@(whale-line--normalize-list after))))
+                 ((not (null after-while))
+                  `(:after-while . (,@(whale-line--normalize-list after-while))))
+                 (t advice))))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -663,7 +680,7 @@ segment is assumed to have defined a port function."
                                                             (apply ',action r)))
                                                       action)
                       ,(format "Augment function for `%s'." name) t))
-                (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify t)
+                (whale-line--setup ,name :hooks ,(whale-line--normalize-list hooks) :advice ,advice :setup ,setup :teardown ,teardown :verify t)
                 (whale-line--function ,verify-sym ,(or verify 'always) ,(format "Verify `%s' augment." name) t))))
       `(progn
          (whale-line--omit ,name augment)))))
@@ -867,6 +884,12 @@ This will call the respective segment's action."
   (cl-loop for (a . b) in whale-line--props
            if (eq type (plist-get b :type))
            collect a))
+
+(defun whale-line--normalize-list (obj)
+  "If OBJ is not a list, return a list with it as the only element."
+  (if (listp obj)
+      obj
+    (list obj)))
 
 ;;; -- Logging
 
