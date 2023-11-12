@@ -204,7 +204,7 @@ at certain known junctures.
 There are two ways to tell such a segment to re-calculate: provide a
 list of hooks or a list functions to advise (or both).
 
-The recalculation is defined as the segment's **getter**.
+The recalculation is defined as the segment's *getter*.
 
 Let's have a look.
 
@@ -221,7 +221,7 @@ Let's have a look.
   :hooks (change-major-mode-hook))
 #+end_src
 
-This would call =my-stateless-getter= only on the first mode-line
+This would call =my-stateless-fun= only on the first mode-line
 update and then store it. On each subsequent update the stored value
 is returned. The value is updated whenever =change-major-mode-hook= is
 run.
@@ -254,7 +254,7 @@ augments come into play.
 The definition of augments is similar to that of stateful segments.
 You define either hooks or functions to advise. Other than stateful
 segments, these hooks being run (or functions being called) do not
-update another segment directly, instead they just call an **action**.
+update another segment directly, instead they just call an *action*.
 
 The relationship between a segment and its augment is therefore
 somewhat tenuous in that /you/ need to define /how/ exactly the
@@ -279,12 +279,20 @@ stateful segment or a stateless getter-based segment.
   :after-while whale-line-stateful--get-segment)
 #+end_src
 
+If you don't set =:verify= =always= will be used for augments. More on
+this below.
+
 You can also use =:after= or specify your own advice combinator.
 
 #+begin_src emacs-lisp
 (whale-line-create-augment before-augment
+  ;; :after (whale-line-staetful--get-segment)
   :advice (:before-while . (whale-line-stateful--get-segment)))
 #+end_src
+
+The function =whale-line-stateful--get-segment= is created by previous
+declaration for segment =stateful=. It is called when the state is
+updated so our augment advises it to return an augmented value.
 
 If the segment provides a port, you can also use =:plugs-into=.
 
@@ -316,13 +324,6 @@ called and its result passed to =slot-port= (with some indirection),
 setting =slot-var= to "malefemale". The segment would now show
 "femalefemale".
 
-The function =whale-line-stateful--get-segment= is created by previous
-declaration for segment =stateful=. It is called when the state is
-updated so our augment advises it to return an augmented value.
-
-If you don't set =:verify= =always= will be used for augments. More on
-this below.
-
 *** Optional shared properties of all types
 
 **** =setup= and =teardown=
@@ -350,7 +351,7 @@ default check of =(memq '<segment> whale-line-segments)=.
 
 **** =priority=
 
-The default priority of your segment (see section [[*Customizing Priorities][Customizing Priorities]]).
+The default priority of your segment (see section [[file:README.org::*Customizing Priorities][Customizing Priorities]]).
 
 **** =dense=
 
@@ -359,11 +360,11 @@ on its position, the segment will have padding to its left/right.
 
 **** =padded=
 
-If you segment comes pre-padded (for example if you use an external
+If your segment comes pre-padded (for example if you use an external
 construct that already adds whitespace on the left or right), you can
 pass =left=, =right= or =all= here. This will ensure that the segment
 won't get superfluous padding on that side or both sides, no matter
-where it's positioned.
+how it's positioned.
 
 **** =port=
 
@@ -393,6 +394,11 @@ at first to make sure the the value is set at least once during
 variable.
 
 Augments also create =whale-line-<name>--action=.
+
+If you're using =:port= and =:plugs-into=, the segment with =:port=
+will create function =whale-line-<name>--port= that will be called
+with the result of the augment's action. That means the return value
+of the action should match the arity of the port function.
 
 ** Example Screenshot
 
