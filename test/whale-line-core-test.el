@@ -99,6 +99,26 @@
 
        (whale-line--function whale-line-test--verify (lambda () t) "Verify `test' segment." t)))))
 
+(ert-deftest whale-line--create-stateful--with-port ()
+  (whale-line-do-expand
+    (bydi-match-expansion
+     (whale-line--create-stateful-segment test
+       :port test-port)
+     '(progn
+       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (defvar-local whale-line-test--segment 'initial)
+       (defun whale-line-test--action
+           (&rest _)
+         "Set test segment."
+         (if-let
+             ((str
+               (whale-line-test--get-segment)))
+             (setq whale-line-test--segment str)
+           (setq whale-line-test--segment nil)))
+       (whale-line--function whale-line-test--get-segment nil "Get the test segment.")
+       (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
+       (whale-line--function whale-line-test--port test-port "Plug into `test-port'" t)))))
+
 (ert-deftest whale-line--create-stateless-segment ()
   (whale-line-do-expand
     (bydi-match-expansion
@@ -152,6 +172,22 @@
        (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)))))
 
+(ert-deftest whale-line--create-stateless-segment--with-port ()
+  (whale-line-do-expand
+    (bydi-match-expansion
+     (whale-line--create-stateless-segment test
+       :port test-port)
+     '(progn
+       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
+       (defun whale-line-test--segment nil "Render `test' segment."
+              (or
+               (when t
+                 (whale-line-test--get-segment))
+               ""))
+       (whale-line--function whale-line-test--get-segment nil "Get the `test' segment.")
+       (whale-line--setup test :setup nil :teardown nil :verify nil)
+       (whale-line--function whale-line-test--port test-port "Plug into `test-port'." t)))))
+
 (ert-deftest whale-line--create-augment ()
   (whale-line-do-expand
     (bydi-match-expansion
@@ -195,6 +231,23 @@
        (whale-line--function whale-line-test--verify
          (lambda nil t)
          "Verify `test' augment." t)))))
+
+(ert-deftest whale-line--create-augment--with-plug ()
+  (whale-line-do-expand
+    (bydi-match-expansion
+     (whale-line--create-augment test
+       :action test-action
+       :plugs-into slot)
+     '(progn
+       (whale-line--set-props 'test 'augment)
+       (whale-line--function whale-line-test--action
+         (lambda
+           (&rest r)
+           (apply 'whale-line-slot--port
+                  (apply 'test-action r)))
+         "Augment function for `test'." t)
+       (whale-line--setup test :hooks nil :advice nil :setup nil :teardown nil :verify t)
+       (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))))
 
 ;;; -- Priorities
 

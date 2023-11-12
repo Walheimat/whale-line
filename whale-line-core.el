@@ -357,6 +357,10 @@ and/or PADDED."
   "Get the symbol for getting segment NAME."
   (intern (format "whale-line-%s--get-segment" (symbol-name name))))
 
+(defun whale-line-symbol--port (name)
+  "Get the symbol for getting port for NAME."
+  (intern (format "whale-line-%s--port" (symbol-name name))))
+
 ;;; -- Macros
 
 (cl-defmacro whale-line--setup (name &key setup teardown hooks advice verify)
@@ -489,7 +493,8 @@ nothing for augments."
      teardown
      priority
      dense
-     padded)
+     padded
+     port)
   "Create a stateful segment named NAME.
 
 Stateful segments are represented by a variable that is updated
@@ -513,13 +518,17 @@ This will also add the segment with PRIORITY or t.
 If DENSE is t, the segment will not be padded.
 
 PADDED can be either `left', `right' or `all' to document that
-the segment comes pre-padded on that or all sides."
+the segment comes pre-padded on that or all sides.
+
+PORT is a function adapters can call to interact with the
+segment."
   (declare (indent defun))
 
   (let* ((segment (whale-line-symbol--segment name))
          (setter (whale-line-symbol--action name))
          (getter-sym (whale-line-symbol--get-segment name))
          (verify-sym (whale-line-symbol--verify name))
+         (port-sym (whale-line-symbol--port name))
          (prio (or priority t)))
 
     (if (not (bound-and-true-p whale-line--testing))
@@ -539,7 +548,9 @@ the segment comes pre-padded on that or all sides."
               `((whale-line--function ,getter-sym ,getter ,(format "Get the %s segment." name))
                 (whale-line--setup ,name :setup ,setup :advice ,advice :hooks ,hooks :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t)))))
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
+                ,(when port
+                   `(whale-line--function ,port-sym ,port ,(format "Plug into `%s'" port) t)))))
       `(progn
          (whale-line--omit ,name stateful)))))
 
@@ -554,7 +565,8 @@ the segment comes pre-padded on that or all sides."
      teardown
      priority
      dense
-     padded)
+     padded
+     port)
   "Create a stateless segment name NAME.
 
 A stateless segment is represented by a function that is called
@@ -576,12 +588,16 @@ The segment will be added with PRIORITY or t.
 If DENSE is t, the segment will not be padded.
 
 PADDED can be either `left', `right' or `all' to document that
-the segment comes pre-padded on that or all sides."
+the segment comes pre-padded on that or all sides.
+
+PORT is a function adapters can call to interact with the
+segment."
   (declare (indent defun))
 
   (let ((segment (whale-line-symbol--segment name))
         (getter-sym (whale-line-symbol--get-segment name))
         (verify-sym (whale-line-symbol--verify name))
+        (port-sym (whale-line-symbol--port name))
         (prio (or priority t))
         (con (or condition t)))
 
@@ -599,11 +615,22 @@ the segment comes pre-padded on that or all sides."
                    `(whale-line--function ,getter-sym ,getter ,(format "Get the `%s' segment." name)))
                 (whale-line--setup ,name :setup ,setup :teardown ,teardown :verify ,(not (null verify)))
                 ,(when verify
-                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t)))))
+                   `(whale-line--function ,verify-sym ,verify ,(format "Verify `%s' segment." name) t))
+                ,(when port
+                   `(whale-line--function ,port-sym ,port ,(format "Plug into `%s'." port) t)))))
       `(progn
          (whale-line--omit ,name stateless)))))
 
-(cl-defmacro whale-line--create-augment (name &key action hooks advice setup teardown verify)
+(cl-defmacro whale-line--create-augment
+    (name
+     &key
+     action
+     hooks
+     advice
+     setup
+     teardown
+     verify
+     plugs-into)
   "Create augment(-or) named NAME.
 
 ACTION is the function to call for HOOKS.
@@ -613,11 +640,15 @@ functions-to-advise to call ACTION.
 
 Additional SETUP and TEARDOWN function can be added for more control.
 
-If VERIFY is t, the setup will verify before being executed."
+If VERIFY is t, the setup will verify before being executed.
+
+Alternatively you may pass a segment name to PLUGS-INTO. That
+segment is assumed to have defined a port function."
   (declare (indent defun))
 
   (let ((augment (whale-line-symbol--action name))
-        (verify-sym (whale-line-symbol--verify name)))
+        (verify-sym (whale-line-symbol--verify name))
+        (port-sym (whale-line-symbol--port plugs-into)))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -625,7 +656,13 @@ If VERIFY is t, the setup will verify before being executed."
            ,@(delq
               nil
               `(,(when action
-                   `(whale-line--function ,augment ,action ,(format "Augment function for `%s'." name) t))
+                   `(whale-line--function ,augment ,(if plugs-into
+                                                        `(lambda (&rest r)
+                                                           (apply
+                                                            ',port-sym
+                                                            (apply ',action r)))
+                                                      action)
+                      ,(format "Augment function for `%s'." name) t))
                 (whale-line--setup ,name :hooks ,hooks :advice ,advice :setup ,setup :teardown ,teardown :verify t)
                 (whale-line--function ,verify-sym ,(or verify 'always) ,(format "Verify `%s' augment." name) t))))
       `(progn

@@ -10,6 +10,22 @@
 
 (defvar rectangle (ert-resource-file "rectangle.txt"))
 
+(ert-deftest buffer-identification--set-additional ()
+  (let ((whale-line-segments--buffer-identification--additional-face nil)
+        (whale-line-segments--buffer-identification--additional-help nil)
+        (whale-line-segments-buffer-identification-hook nil))
+
+    (bydi ((:watch whale-line-segments--buffer-identification--additional-face)
+           (:watch whale-line-segments--buffer-identification--additional-help)
+           (:spy run-hooks))
+
+      (whale-line-segments--buffer-identification--set-additional "face" "help")
+
+      (bydi-was-set-to whale-line-segments--buffer-identification--additional-face "face")
+      (bydi-was-set-to whale-line-segments--buffer-identification--additional-help "help")
+
+      (bydi-was-called-with run-hooks 'whale-line-segments-buffer-identification-hook))))
+
 (ert-deftest buffer-identification ()
   (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
                                 face (mode-line-buffer-id nil)))
@@ -182,20 +198,12 @@
       (bydi ((:mock flycheck-count-errors :with bydi-rf))
         (should (string= "\n\nFlycheck: 1 error(s), 2 warning(s), 3 info(s)" (whale-line-segments--flycheck--help 'finished)))))))
 
-(ert-deftest flycheck--underline ()
-  (let ((whale-line-segments--buffer-identification--additional-face nil)
-        (whale-line-segments--buffer-identification--additional-help nil))
+(ert-deftest flycheck ()
+  (bydi ((:mock whale-line-segments--flycheck--face :return "face")
+         (:mock whale-line-segments--flycheck--help :return "help"))
 
-    (bydi ((:mock whale-line-segments--flycheck--face :return "face")
-           (:mock whale-line-segments--flycheck--help :return "help")
-           (:spy run-hooks))
-
-      (whale-line-segments--flycheck 'status)
-
-      (bydi-was-called-with run-hooks 'whale-line-segments-syntax-hook)
-
-      (should (string= "face" whale-line-segments--buffer-identification--additional-face))
-      (should (string= "help" whale-line-segments--buffer-identification--additional-help)))))
+    (should (equal (list "face" "help")
+                   (whale-line-segments--flycheck 'status)))))
 
 ;;; -- Major mode
 
@@ -261,9 +269,7 @@
                      (whale-line-segments--flymake--help counts)))))
 
 (ert-deftest flymake ()
-  (let ((whale-line-segments--buffer-identification--additional-face nil)
-        (whale-line-segments--buffer-identification--additional-help nil)
-        (flymake--state (make-hash-table))
+  (let ((flymake--state (make-hash-table))
         (count 0)
         (running nil)
         (reporting nil))
@@ -276,46 +282,35 @@
            whale-line-segments--flymake--count-types
 
            (:mock whale-line-segments--flymake--face :return "face")
-           (:mock whale-line-segments--flymake--help :return "help")
-
-           run-hooks)
+           (:mock whale-line-segments--flymake--help :return "help"))
 
       ;; No running backends.
-      (whale-line-segments--flymake)
-
+      (should (equal (list nil (concat whale-line-segments--flymake--default-help "\n\nFlymake: No backends"))
+                     (whale-line-segments--flymake)))
       (bydi-was-not-called flymake-diagnostics)
       (bydi-was-not-called whale-line-segments--flymake--count-types)
-
-      (should-not whale-line-segments--buffer-identification--additional-face)
-      (should (string-suffix-p "No backends" whale-line-segments--buffer-identification--additional-help))
 
       ;; Waiting on reports.
       (setq count 1
             running '(a b)
             reported '(a))
 
-      (whale-line-segments--flymake)
+      (should (equal (list 'whale-line-segments--syntax-checker-running
+                           (concat whale-line-segments--flymake--default-help "\n\nFlymake: Running"))
+                     (whale-line-segments--flymake)))
 
       (bydi-was-not-called flymake-diagnostics)
       (bydi-was-not-called whale-line-segments--flymake--count-types)
-
-      (should (equal 'whale-line-segments--syntax-checker-running
-                     whale-line-segments--buffer-identification--additional-face))
-      (should (string-suffix-p "Running" whale-line-segments--buffer-identification--additional-help))
 
       ;; Reports are in.
       (setq running nil
             reported nil)
 
-      (whale-line-segments--flymake)
+      (should (equal (list "face" "help")
+               (whale-line-segments--flymake)))
 
       (bydi-was-called flymake-diagnostics)
-      (bydi-was-called whale-line-segments--flymake--count-types)
-
-      (should (string= "face" whale-line-segments--buffer-identification--additional-face))
-      (should (string= "help" whale-line-segments--buffer-identification--additional-help))
-
-      (bydi-was-called-with run-hooks 'whale-line-segments-syntax-hook))))
+      (bydi-was-called whale-line-segments--flymake--count-types))))
 
 ;;; -- LSP mode
 

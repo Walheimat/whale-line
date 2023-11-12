@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   same goes for segments that use `:verify`).
 - Command `whale-line-trigger-augments` to set up or tear down
   augments.
+- Stateful and stateless segments can now define a "port" function.
+  This for augments using new key `:plugs-into <segment-name>`.
+  The actions of augments using this key will call the port function
+  with their result.
 
 ### Changed
 

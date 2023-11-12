@@ -270,6 +270,36 @@ segment or a stateless getter-based segment.
   :advice (:after-while . (whale-line-stateful--get-segment)))
 #+end_src
 
+If the segment provides a port, you can also use =:plugs-into=.
+
+#+begin_src emacs-lisp
+(defvar slot-var nil)
+
+(defvar slot-construct '(("fe" slot-var)))
+
+(defun slot-port (a b)
+  "Concat A and B."
+  (setq slot-var (concat a b))
+
+(whale-line-create-stateless-segment slot
+  :var slot-construct
+  :port slot-port)
+
+(defun plug-action ()
+  "Return values to concatenate."
+  (list "male" "female"))
+
+(whale-line-create-augment plug
+  :action plug-action
+  :plugs-into slot
+  :hooks (change-major-mode-hook))
+#+end_src
+
+Whenever =change-major-mode-hook= is run, =plug-action= would be
+called and its result passed to =slot-port= (with some indirection),
+setting =slot-var= to "malefemale". The segment would now show
+"femalefemale".
+
 The function =whale-line-stateful--get-segment= is created by previous
 declaration for segment =stateful=. It is called when the state is
 updated so our augment advises it to return an augmented value.
@@ -277,7 +307,7 @@ updated so our augment advises it to return an augmented value.
 If you don't set =:verify= =always= will be used for augments. More on
 this below.
 
-*** Shared properties of all types
+*** Optional shared properties of all types
 
 **** =setup= and =teardown=
 
@@ -300,7 +330,7 @@ setup or teardown happens. If it yields =nil=, no setup/teardown will
 take place. Note that for segments this function will replace the
 default check of =(memq '<segment> whale-line-segments)=.
 
-*** Shared properties of segments
+*** Optional shared properties of segments
 
 **** =priority=
 
@@ -318,6 +348,12 @@ construct that already adds whitespace on the left or right), you can
 pass =left=, =right= or =all= here. This will ensure that the segment
 won't get superfluous padding on that side or both sides, no matter
 where it's positioned.
+
+**** =port=
+
+This is a function that augments using =:plug-into= call with their
+result. This function should set some variable used during internal
+rendering for augmentation.
 
 *** The nitty gritty
 

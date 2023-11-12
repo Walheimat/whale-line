@@ -79,8 +79,18 @@ to 2, only the 3rd level is elided."
 
 ;;;; -- Buffer identification
 
+(defvar wls-buffer-identification-hook nil
+  "Hook run to make `buffer-identification' segment react.")
+
 (defvar-local wls--buffer-identification--additional-face nil)
 (defvar-local wls--buffer-identification--additional-help nil)
+
+(defun wls--buffer-identification--set-additional (face help &rest _)
+  "Set additional HELP and FACE."
+  (setq wls--buffer-identification--additional-face face
+        wls--buffer-identification--additional-help help)
+
+  (run-hooks 'wls-buffer-identification-hook))
 
 (defun wls--buffer-identification ()
   "Get the buffer identification."
@@ -91,8 +101,9 @@ to 2, only the 3rd level is elided."
 
 (whale-line-create-stateful-segment buffer-identification
   :getter wls--buffer-identification
-  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook wls-syntax-hook)
-  :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)))
+  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook wls-buffer-identification-hook)
+  :advice (:after . (not-modified rename-buffer set-visited-file-name pop-to-buffer undo))
+  :port wls--buffer-identification--set-additional)
 
 ;;;; -- Buffer status
 
@@ -277,13 +288,12 @@ Afterwards a mode-line update is forced to display the new frame."
                    :inherit (shadow))))
   "Face used to indicate running state.")
 
-(defvar wls-syntax-hook nil
-  "Hook run after syntax check segments have completed.")
-
 (defvar flycheck-current-errors)
+
 (defun wls--flycheck--face (status)
   "Get the face to use for STATUS."
   (pcase status
+    ('not-checked 'wls--syntax-checker-running)
     ('running 'wls--syntax-checker-running)
     ('finished
      (when flycheck-current-errors
@@ -312,10 +322,7 @@ Returns nil if not checking or if no errors were found."
 
 (defun wls--flycheck (status)
   "Set face and help based on STATUS."
-  (setq wls--buffer-identification--additional-face (wls--flycheck--face status)
-        wls--buffer-identification--additional-help (wls--flycheck--help status))
-
-  (run-hooks 'wls-syntax-hook))
+  (list (wls--flycheck--face status) (wls--flycheck--help status)))
 
 (defun wls--flycheck--can-use-flycheck-p ()
   "Verify that flycheck augment can be used."
@@ -324,6 +331,7 @@ Returns nil if not checking or if no errors were found."
 (whale-line-create-augment flycheck
   :verify wls--flycheck--can-use-flycheck-p
   :action wls--flycheck
+  :plugs-into buffer-identification
   :hooks (flycheck-status-changed-functions))
 
 ;;;; -- Flymake segment
@@ -396,16 +404,11 @@ Returns nil if not checking or if no errors were found."
                     (list (wls--flymake--face counts)
                           (wls--flymake--help counts)))))))
 
-    (setq wls--buffer-identification--additional-face face
-          wls--buffer-identification--additional-help help)
-
-    (run-hooks 'wls-syntax-hook)))
+    (list face help)))
 
 (whale-line-create-augment flymake
   :action wls--flymake
-
-  ;; TODO: This is not ideal and will leave the segment in "running"
-  ;; state.
+  :plugs-into buffer-identification
   :advice (:after . (flymake--mode-line-exception)))
 
 ;;;; -- Major mode
