@@ -52,12 +52,52 @@
         (insert "test")
         (should-not (whale-line-segments--buffer-status--dense-p))))))
 
-(ert-deftest buffer-status ()
-  (bydi ((:always buffer-modified-p))
-    (should (string= "*" (whale-line-segments--buffer-status--modified))))
+(ert-deftest buffer-status--using-icons ()
+  (let ((modified nil)
+        (buffer-file-name "some-name"))
 
-  (should (string= "@" (whale-line-segments--buffer-status--read-only)))
-  (should (string= "&" (whale-line-segments--buffer-status--no-file))))
+    (bydi ((:always whale-line-iconify--use-for-p)
+           (:mock whale-line-iconify :return "!")
+           (:mock buffer-modified-p :return modified))
+
+      (should-not (whale-line-segments--buffer-status--writable))
+
+      (setq buffer-file-name nil)
+
+      (should (string= "!" (whale-line-segments--buffer-status--writable)))
+
+      (setq modified t)
+
+      (should (string= "!" (whale-line-segments--buffer-status--writable)))
+      (bydi-was-called-last-with whale-line-iconify '(buffer-modified whale-line-shadow))
+
+      (setq buffer-file-name "some-name")
+      (should (string= "!" (whale-line-segments--buffer-status--writable)))
+      (bydi-was-called-last-with whale-line-iconify '(buffer-modified whale-line-emphasis)))))
+
+(ert-deftest buffer-status--not-using-icons ()
+  (let ((modified nil)
+        (buffer-file-name "some-name"))
+
+    (bydi ((:ignore whale-line-iconify--use-for-p)
+           (:mock whale-line-iconify :return "!")
+           (:mock buffer-modified-p :return modified))
+
+      (should (string= "" (whale-line-segments--buffer-status--writable)))
+
+      (setq buffer-file-name nil)
+
+      (should (string= "!" (whale-line-segments--buffer-status--writable)))
+
+      (setq modified t)
+
+      (should (string= "!!" (whale-line-segments--buffer-status--writable))))))
+
+(ert-deftest buffer-status--read-only ()
+  (bydi (whale-line-iconify)
+    (whale-line-segments--buffer-status--read-only)
+
+    (bydi-was-called-with whale-line-iconify 'buffer-read-only)))
 
 ;;; -- Window status
 

@@ -110,22 +110,26 @@ to 2, only the 3rd level is elided."
 (defvar wls--buffer-status
   '((buffer-read-only
      (:eval (wls--buffer-status--read-only))
-     (buffer-file-name
-      (:eval (wls--buffer-status--modified))
-      (:eval (wls--buffer-status--no-file))))))
+     (:eval (wls--buffer-status--writable)))))
 
-(defun wls--buffer-status--modified ()
-  "Buffer status for a modified buffer."
-  (when (buffer-modified-p)
-    (whale-line-iconify 'buffer-modified)))
+(defun wls--buffer-status--writable ()
+  "Buffer status for a writable buffer."
+  (if (whale-line-iconify--use-for-p 'buffer-status)
+      (if (buffer-modified-p)
+          (whale-line-iconify 'buffer-modified (if buffer-file-name
+                                                   'whale-line-emphasis
+                                                 'whale-line-shadow))
+        (unless buffer-file-name
+          (whale-line-iconify 'buffer-file-name)))
+    (concat
+     (unless buffer-file-name
+       (whale-line-iconify 'buffer-file-name))
+     (when (buffer-modified-p)
+       (whale-line-iconify 'buffer-modified)))))
 
 (defun wls--buffer-status--read-only ()
   "Buffer status for a read-only buffer."
   (whale-line-iconify 'buffer-read-only))
-
-(defun wls--buffer-status--no-file ()
-  "Buffer status for non-file buffers."
-  (whale-line-iconify 'buffer-file-name))
 
 (defun wls--buffer-status--dense-p ()
   "Check whether the segment should be dense."
