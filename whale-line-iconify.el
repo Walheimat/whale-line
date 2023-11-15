@@ -134,7 +134,7 @@ the value in the retrieved specs.
 
 If icon can't or shouldn't be displayed, any existing fallback is
 returned."
-  (if-let* ((specs (cdr-safe (assoc name wli-specs)))
+  (if-let* ((specs (copy-tree (cdr-safe (assoc name wli-specs))))
             (specs (if face (plist-put specs :face face) specs))
             (parent (or (plist-get specs :parent) name))
             ((wli--use-for-p parent)))
