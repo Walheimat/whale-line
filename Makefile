@@ -6,6 +6,7 @@ UPDATE_VERSION_FILES=Cask \
 					 whale-line.el \
 					 whale-line-core.el \
 					 whale-line-segments.el \
-					 whale-line-iconify.el
+					 whale-line-iconify.el \
+					 whale-line-edit.el
 
 include dinghy/emacs-package.mk

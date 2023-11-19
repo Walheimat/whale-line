@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Module `whale-line-edit`. It provides a command of the same name to
+  edit buffer segment positioning (and inclusion) in a separate
+  buffer. The resulting edit can be applied or persisted (by saving
+  the customization). The user may also revert or abort. The changes
+      are validated before they are applied.
+
 ### Changed
 
 - Segment `buffer-status` now differentiates between writable and

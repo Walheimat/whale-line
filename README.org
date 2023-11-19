@@ -57,6 +57,7 @@ Not shown is the =misc-info= segment that shows =mode-line-misc-info=.
 The right window shows fewer segments. That's because many segments
 are defined to only show on the current window or if space isn't
 tight.
+
 ** Installation
 
 If you use =straight= or =quelpa=, you know what to do.
@@ -167,6 +168,15 @@ package.
   lsp
   t)
 #+end_src
+
+** Re-ordering of Segments
+
+You can use =whale-line-edit= to edit segment positioning and
+inclusion. It will pop to a buffer where you can move, add and delete
+segments. The empty line represents the divider. If your reordering is
+valid (single divider, only including known segments), you can apply
+the change with =C-c C-c=. To persist the change you need to use =C-c
+C-w=.
 
 ** Custom Segments
 
