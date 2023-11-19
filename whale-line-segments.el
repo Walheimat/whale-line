@@ -239,7 +239,8 @@ to 2, only the 3rd level is elided."
 
 (whale-line-create-stateless-segment selection
   :var wls--selection
-  :priority current)
+  :priority current
+  :dense (lambda () (not mark-active)))
 
 ;;;; -- Animation
 
