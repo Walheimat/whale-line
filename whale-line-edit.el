@@ -17,6 +17,15 @@
 (defvar whale-line-edit--buffer "*whale-line-edit-segments*")
 (defvar whale-line-edit--initial nil)
 
+(defvar whale-line-edit-mode-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map "\C-c\C-c" #'whale-line-edit--apply)
+    (define-key map "\C-c\C-w" #'whale-line-edit--persist)
+    (define-key map "\C-c\C-k" #'whale-line-edit--abort)
+    (define-key map "\C-c\C-r" #'whale-line-edit--revert)
+    map))
+
 (define-minor-mode whale-line-edit-mode
   "Minor mode to edit segments."
   :lighter " wle"
@@ -27,15 +36,6 @@
 `\\[whale-line-edit--persist]' persists, \
 `\\[whale-line-edit--abort]' aborts, \
 `\\[whale-line-edit--revert]' reverts.")))
-
-(defvar whale-line-edit-mode-map
-  (let ((map (make-sparse-keymap)))
-
-    (define-key map "\C-c\C-c" #'whale-line-edit--apply)
-    (define-key map "\C-c\C-w" #'whale-line-edit--persist)
-    (define-key map "\C-c\C-k" #'whale-line-edit--abort)
-    (define-key map "\C-c\C-r" #'whale-line-edit--revert)
-    map))
 
 (defun whale-line-edit--edit ()
   "Show the segment editor."
@@ -54,7 +54,8 @@
              (insert "\n"))))
        whale-line-segments)
 
-      (whale-line-edit-mode))
+      (unless whale-line-edit-mode
+        (whale-line-edit-mode)))
 
     (pop-to-buffer buffer nil t)))
 
