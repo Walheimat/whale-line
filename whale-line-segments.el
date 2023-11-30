@@ -1,9 +1,9 @@
-;;; whale-line-segments.el -- Built-in segments -*- lexical-binding: t; -*-
+;;; whale-line-segments.el --- Built-in segments -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
 ;; Version: 0.8.0
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: faces mode-line
 
 ;;; Commentary:
@@ -79,40 +79,40 @@ to 2, only the 3rd level is elided."
 
 ;;;; -- Buffer identification
 
-(defvar wls-buffer-identification-hook nil
+(defvar whale-line-segments-buffer-identification-hook nil
   "Hook run to make `buffer-identification' segment react.")
 
-(defvar-local wls--buffer-identification--additional-face nil)
-(defvar-local wls--buffer-identification--additional-help nil)
+(defvar-local whale-line-segments--buffer-identification--additional-face nil)
+(defvar-local whale-line-segments--buffer-identification--additional-help nil)
 
-(defun wls--buffer-identification--set-additional (face help &rest _)
+(defun whale-line-segments--buffer-identification--set-additional (face help &rest _)
   "Set additional HELP and FACE."
-  (setq wls--buffer-identification--additional-face face
-        wls--buffer-identification--additional-help help)
+  (setq whale-line-segments--buffer-identification--additional-face face
+        whale-line-segments--buffer-identification--additional-help help)
 
-  (run-hooks 'wls-buffer-identification-hook))
+  (run-hooks 'whale-line-segments-buffer-identification-hook))
 
-(defun wls--buffer-identification ()
+(defun whale-line-segments--buffer-identification ()
   "Get the buffer identification."
   `((:propertize (:eval (propertized-buffer-identification "%b"))
-                 face ,(list 'mode-line-buffer-id wls--buffer-identification--additional-face)
-                 ,@(and wls--buffer-identification--additional-help
-                        (list 'help-echo wls--buffer-identification--additional-help)))))
+                 face ,(list 'mode-line-buffer-id whale-line-segments--buffer-identification--additional-face)
+                 ,@(and whale-line-segments--buffer-identification--additional-help
+                        (list 'help-echo whale-line-segments--buffer-identification--additional-help)))))
 
 (whale-line-create-stateful-segment buffer-identification
-  :getter wls--buffer-identification
-  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook wls-buffer-identification-hook)
+  :getter whale-line-segments--buffer-identification
+  :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook whale-line-segments-buffer-identification-hook)
   :after (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)
-  :port wls--buffer-identification--set-additional)
+  :port whale-line-segments--buffer-identification--set-additional)
 
 ;;;; -- Buffer status
 
-(defvar wls--buffer-status
+(defvar whale-line-segments--buffer-status
   '((buffer-read-only
-     (:eval (wls--buffer-status--read-only))
-     (:eval (wls--buffer-status--writable)))))
+     (:eval (whale-line-segments--buffer-status--read-only))
+     (:eval (whale-line-segments--buffer-status--writable)))))
 
-(defun wls--buffer-status--writable ()
+(defun whale-line-segments--buffer-status--writable ()
   "Buffer status for a writable buffer."
   (if (whale-line-iconify--use-for-p 'buffer-status)
       (if (buffer-modified-p)
@@ -127,23 +127,23 @@ to 2, only the 3rd level is elided."
      (when (buffer-modified-p)
        (whale-line-iconify 'buffer-modified)))))
 
-(defun wls--buffer-status--read-only ()
+(defun whale-line-segments--buffer-status--read-only ()
   "Buffer status for a read-only buffer."
   (whale-line-iconify 'buffer-read-only))
 
-(defun wls--buffer-status--dense-p ()
+(defun whale-line-segments--buffer-status--dense-p ()
   "Check whether the segment should be dense."
   (or (not (whale-line-iconify--use-for-p 'buffer-status))
       (and buffer-file-name
            (not (buffer-modified-p)))))
 
 (whale-line-create-stateless-segment buffer-status
-  :var wls--buffer-status
-  :dense wls--buffer-status--dense-p)
+  :var whale-line-segments--buffer-status
+  :dense whale-line-segments--buffer-status--dense-p)
 
 ;;;; -- Window status
 
-(defun wls--window-status ()
+(defun whale-line-segments--window-status ()
   "Render window status segment."
   (let* ((icons (delq nil
                       (list
@@ -155,28 +155,28 @@ to 2, only the 3rd level is elided."
       combined)))
 
 (whale-line-create-stateless-segment window-status
-  :getter wls--window-status)
+  :getter whale-line-segments--window-status)
 
 ;;;; -- Position
 
-(defvar wls--position
+(defvar whale-line-segments--position
   '((pdf-view--server-file-name
-     ((:propertize (:eval (wls--position--default))
+     ((:propertize (:eval (whale-line-segments--position--default))
                    face whale-line-shadow))
      (doc-view--buffer-file-name
-      ((:propertize (:eval (wls--position--default))
+      ((:propertize (:eval (whale-line-segments--position--default))
                     face whale-line-shadow))
       ((:propertize ("" mode-line-percent-position)
                     face whale-line-shadow)
        (:eval (whale-line--spacer))
-       (:propertize (:eval (wls--position--line-and-column)) face whale-line-shadow))))))
+       (:propertize (:eval (whale-line-segments--position--line-and-column)) face whale-line-shadow))))))
 
-(defun wls--position--line-and-column ()
+(defun whale-line-segments--position--line-and-column ()
   "Get the line and column."
   (when-let* ((format (car-safe mode-line-position-column-line-format)))
     (string-trim format)))
 
-(defun wls--position--default ()
+(defun whale-line-segments--position--default ()
   "Format the default `mode-line-position' construct."
   (string-trim
    (string-replace
@@ -184,7 +184,7 @@ to 2, only the 3rd level is elided."
     (format-mode-line mode-line-position))))
 
 (whale-line-create-stateless-segment position
-  :var wls--position
+  :var whale-line-segments--position
   :priority current)
 
 ;;;; -- Misc info
@@ -208,19 +208,19 @@ to 2, only the 3rd level is elided."
 
 ;;;; -- Selection
 
-(defvar wls--selection
+(defvar whale-line-segments--selection
   '((mark-active
      (:propertize
       ((:eval (whale-line--spacer))
        (multiple-cursors-mode
         "mc"
         (rectangle-mark-mode
-         ((:eval (wls--selection--rows)) "×" (:eval (wls--selection--columns)))
-         (:eval (wls--selection--rows))))
+         ((:eval (whale-line-segments--selection--rows)) "×" (:eval (whale-line-segments--selection--columns)))
+         (:eval (whale-line-segments--selection--rows))))
        (:eval (whale-line--spacer)))
       face region))))
 
-(defun wls--selection--columns ()
+(defun whale-line-segments--selection--columns ()
   "Get the columns for the region."
   (let ((beg (region-beginning))
         (end (region-end)))
@@ -230,7 +230,7 @@ to 2, only the 3rd level is elided."
                               (save-excursion (goto-char beg)
                                               (current-column)))))))
 
-(defun wls--selection--rows ()
+(defun whale-line-segments--selection--rows ()
   "Get the rows for the region.."
   (let ((beg (region-beginning))
         (end (region-end)))
@@ -238,68 +238,68 @@ to 2, only the 3rd level is elided."
     (number-to-string (count-lines beg (min end (point-max))))))
 
 (whale-line-create-stateless-segment selection
-  :var wls--selection
+  :var whale-line-segments--selection
   :priority current
   :dense (lambda () (not mark-active)))
 
 ;;;; -- Animation
 
-(defvar wls--animation-frame-index 0)
-(defvar wls--animation-timer nil)
-(defvar wls--animation-frame nil)
+(defvar whale-line-segments--animation-frame-index 0)
+(defvar whale-line-segments--animation-timer nil)
+(defvar whale-line-segments--animation-frame nil)
 
-(defvar wls--animation
-  `((wls--animation-frame
-     (:propertize wls--animation-frame face whale-line-emphasis))))
+(defvar whale-line-segments--animation
+  `((whale-line-segments--animation-frame
+     (:propertize whale-line-segments--animation-frame face whale-line-emphasis))))
 
-(defun wls--animation-animate ()
+(defun whale-line-segments--animation-animate ()
   "Animate.
 
 This will increase the frame index and set the current frame.
 Afterwards a mode-line update is forced to display the new frame."
-  (let* ((frame (aref wls-animation-key-frames wls--animation-frame-index)))
+  (let* ((frame (aref whale-line-segments-animation-key-frames whale-line-segments--animation-frame-index)))
 
-    (setq wls--animation-frame-index
+    (setq whale-line-segments--animation-frame-index
           (mod
-           (1+ wls--animation-frame-index)
-           (length wls-animation-key-frames))
-          wls--animation-frame frame)
+           (1+ whale-line-segments--animation-frame-index)
+           (length whale-line-segments-animation-key-frames))
+          whale-line-segments--animation-frame frame)
 
     (force-mode-line-update)))
 
-(defun wls--animation-start-timer ()
+(defun whale-line-segments--animation-start-timer ()
   "Set up the animation timer."
-  (unless wls--animation-timer
-    (setq wls--animation-timer (run-with-timer 0 wls-animation-speed #'wls--animation-animate))))
+  (unless whale-line-segments--animation-timer
+    (setq whale-line-segments--animation-timer (run-with-timer 0 whale-line-segments-animation-speed #'whale-line-segments--animation-animate))))
 
-(defun wls--animation-stop-timer ()
+(defun whale-line-segments--animation-stop-timer ()
   "Stop the animation timer."
-  (when wls--animation-timer
-    (cancel-timer wls--animation-timer)
-    (setq wls--animation-timer nil)))
+  (when whale-line-segments--animation-timer
+    (cancel-timer whale-line-segments--animation-timer)
+    (setq whale-line-segments--animation-timer nil)))
 
 (whale-line-create-stateless-segment animation
-  :var wls--animation
-  :setup wls--animation-start-timer
-  :teardown wls--animation-stop-timer
+  :var whale-line-segments--animation
+  :setup whale-line-segments--animation-start-timer
+  :teardown whale-line-segments--animation-stop-timer
   :priority current-low)
 
 ;;;; -- Flycheck
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
 
-(defface wls--syntax-checker-running
+(defface whale-line-segments--syntax-checker-running
   '((t (:underline (:style wave)
                    :inherit (shadow))))
   "Face used to indicate running state.")
 
 (defvar flycheck-current-errors)
 
-(defun wls--flycheck--face (status)
+(defun whale-line-segments--flycheck--face (status)
   "Get the face to use for STATUS."
   (pcase status
-    ('not-checked 'wls--syntax-checker-running)
-    ('running 'wls--syntax-checker-running)
+    ('not-checked 'whale-line-segments--syntax-checker-running)
+    ('running 'whale-line-segments--syntax-checker-running)
     ('finished
      (when flycheck-current-errors
        (let-alist (flycheck-count-errors flycheck-current-errors)
@@ -309,14 +309,14 @@ Afterwards a mode-line update is forced to display the new frame."
           (.info 'flycheck-info)))))
     (_ nil)))
 
-(defvar wls--flycheck--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
+(defvar whale-line-segments--flycheck--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
 
-(defun wls--flycheck--help (status)
+(defun whale-line-segments--flycheck--help (status)
   "Get the error count for STATUS.
 
 Returns nil if not checking or if no errors were found."
   (concat
-   wls--flycheck--default-help
+   whale-line-segments--flycheck--default-help
    (pcase status
      ('running "\n\nFlycheck: Still checking")
      ('finished
@@ -325,17 +325,17 @@ Returns nil if not checking or if no errors were found."
           (format "\n\nFlycheck: %d error(s), %d warning(s), %d info(s)" (or .error 0) (or .warning 0) (or .info 0)))))
      (_ nil))))
 
-(defun wls--flycheck (status)
+(defun whale-line-segments--flycheck (status)
   "Set face and help based on STATUS."
-  (list (wls--flycheck--face status) (wls--flycheck--help status)))
+  (list (whale-line-segments--flycheck--face status) (whale-line-segments--flycheck--help status)))
 
-(defun wls--flycheck--can-use-flycheck-p ()
+(defun whale-line-segments--flycheck--can-use-flycheck-p ()
   "Verify that flycheck augment can be used."
   (require 'flycheck nil t))
 
 (whale-line-create-augment flycheck
-  :verify wls--flycheck--can-use-flycheck-p
-  :action wls--flycheck
+  :verify whale-line-segments--flycheck--can-use-flycheck-p
+  :action whale-line-segments--flycheck
   :plugs-into buffer-identification
   :hooks (flycheck-status-changed-functions))
 
@@ -347,7 +347,7 @@ Returns nil if not checking or if no errors were found."
 
 (defvar flymake--state)
 
-(defun wls--flymake--count-types (diagnostics)
+(defun whale-line-segments--flymake--count-types (diagnostics)
   "Count all types found in DIAGNOSTICS."
   (let ((errors 0)
         (warnings 0)
@@ -364,7 +364,7 @@ Returns nil if not checking or if no errors were found."
 
     (list :errors errors :warnings warnings :notes notes)))
 
-(defun wls--flymake--face (counts)
+(defun whale-line-segments--flymake--face (counts)
   "Get the appropriate face for COUNTS."
   (cond
    ((> (plist-get counts :errors) 0)
@@ -375,50 +375,50 @@ Returns nil if not checking or if no errors were found."
     'flymake-note)
    (t nil)))
 
-(defvar wls--flymake--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
+(defvar whale-line-segments--flymake--default-help "Buffer name\nmouse-1: Previous buffer\nmouse-3: Next buffer")
 
-(defun wls--flymake--help (counts)
+(defun whale-line-segments--flymake--help (counts)
   "Get the help text for COUNTS."
   (concat
-   wls--flymake--default-help
+   whale-line-segments--flymake--default-help
    (format "\n\nFlymake: %d error(s), %d warning(s), %d note(s)"
            (plist-get counts :errors)
            (plist-get counts :warnings)
            (plist-get counts :notes))))
 
-(defun wls--flymake (&rest _r)
+(defun whale-line-segments--flymake (&rest _r)
   "Augment the buffer identification."
   (pcase-let* ((`(,face ,help)
                 (cond
                  ((zerop (hash-table-count flymake--state))
 
-                  `(nil ,(concat wls--flymake--default-help
+                  `(nil ,(concat whale-line-segments--flymake--default-help
                                  "\n\nFlymake: No backends")))
 
                  ((cl-set-difference
                    (flymake-running-backends)
                    (flymake-reporting-backends))
 
-                  `(wls--syntax-checker-running ,(concat wls--flymake--default-help
+                  `(whale-line-segments--syntax-checker-running ,(concat whale-line-segments--flymake--default-help
                                                          "\n\nFlymake: Running")))
 
                  (t
                   (let* ((diagnostics (flymake-diagnostics))
-                         (counts (wls--flymake--count-types diagnostics)))
+                         (counts (whale-line-segments--flymake--count-types diagnostics)))
 
-                    (list (wls--flymake--face counts)
-                          (wls--flymake--help counts)))))))
+                    (list (whale-line-segments--flymake--face counts)
+                          (whale-line-segments--flymake--help counts)))))))
 
     (list face help)))
 
 (whale-line-create-augment flymake
-  :action wls--flymake
+  :action whale-line-segments--flymake
   :plugs-into buffer-identification
   :after flymake--mode-line-exception)
 
 ;;;; -- Major mode
 
-(defun wls--major-mode--icon ()
+(defun whale-line-segments--major-mode--icon ()
   "Get the icon for the `major-mode'."
   (and-let* (((whale-line-iconify--use-for-p 'major-mode))
              (icon (all-the-icons-icon-for-buffer))
@@ -430,18 +430,18 @@ Returns nil if not checking or if no errors were found."
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
-(defun wls--major-mode--text ()
+(defun whale-line-segments--major-mode--text ()
     "Get the text for the `major-mode'."
     `((:propertize (" " mode-name " ") face whale-line-highlight)))
 
-(defun wls--major-mode ()
+(defun whale-line-segments--major-mode ()
   "Get the `major-mode' segment."
-  (or (wls--major-mode--icon) (wls--major-mode--text)))
+  (or (whale-line-segments--major-mode--icon) (whale-line-segments--major-mode--text)))
 
 (whale-line-create-stateful-segment major-mode
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
-  :getter wls--major-mode)
+  :getter whale-line-segments--major-mode)
 
 ;;; -- LSP
 
@@ -451,30 +451,30 @@ Returns nil if not checking or if no errors were found."
 (declare-function eglot-project-nickname "ext:eglot.el")
 (declare-function eglot--language-id "ext:eglot.el")
 
-(defun wls--lsp--uses-lsp-mode-p ()
+(defun whale-line-segments--lsp--uses-lsp-mode-p ()
   "Check if buffer is manged by `lsp-mode'."
   (and (featurep 'lsp-mode)
        (bound-and-true-p lsp-mode)
        (lsp-workspaces)))
 
-(defun wls--lsp--uses-eglot-p ()
+(defun whale-line-segments--lsp--uses-eglot-p ()
   "Check if buffer is manged by `eglot'."
   (and (featurep 'eglot)
        (bound-and-true-p eglot--managed-mode)))
 
-(defun wls--lsp--active-p ()
+(defun whale-line-segments--lsp--active-p ()
   "Check if an LSP mode is active."
-  (or (wls--lsp--uses-lsp-mode-p)
-      (wls--lsp--uses-eglot-p)))
+  (or (whale-line-segments--lsp--uses-lsp-mode-p)
+      (whale-line-segments--lsp--uses-eglot-p)))
 
-(defun wls--lsp--help ()
+(defun whale-line-segments--lsp--help ()
   "Get the appropriate help text."
   (cond
-   ((wls--lsp--uses-lsp-mode-p)
+   ((whale-line-segments--lsp--uses-lsp-mode-p)
     (concat
      "Connected to "
      (mapconcat #'lsp--workspace-print (lsp-workspaces) "|")))
-   ((wls--lsp--uses-eglot-p)
+   ((whale-line-segments--lsp--uses-eglot-p)
     (let ((server (eglot-current-server)))
       (concat
        "Connected to "
@@ -482,10 +482,10 @@ Returns nil if not checking or if no errors were found."
        "::"
        (eglot-project-nickname server))))))
 
-(defun wls--lsp--with-count ()
+(defun whale-line-segments--lsp--with-count ()
   "Get the count of connected servers."
   (if-let* ((icon (whale-line-iconify 'lsp))
-            ((wls--lsp--uses-lsp-mode-p))
+            ((whale-line-segments--lsp--uses-lsp-mode-p))
             (count (length (lsp-workspaces)))
             ((> count 1)))
 
@@ -494,15 +494,15 @@ Returns nil if not checking or if no errors were found."
             (propertize (number-to-string count) 'face 'whale-line-shadow))
     icon))
 
-(defun wls--lsp (&rest _args)
+(defun whale-line-segments--lsp (&rest _args)
   "Indicate an active LSP session."
-  (and-let* (((wls--lsp--active-p))
-             (help (wls--lsp--help)))
+  (and-let* (((whale-line-segments--lsp--active-p))
+             (help (whale-line-segments--lsp--help)))
 
-    `((:propertize (:eval (wls--lsp--with-count)) help-echo ,help))))
+    `((:propertize (:eval (whale-line-segments--lsp--with-count)) help-echo ,help))))
 
 (whale-line-create-stateful-segment lsp
-  :getter wls--lsp
+  :getter whale-line-segments--lsp
   :hooks
   (lsp-after-initialize-hook
    lsp-after-uninitialized-functions
@@ -516,27 +516,27 @@ Returns nil if not checking or if no errors were found."
 (declare-function dap--debug-session-name "ext:dap-mode.el")
 (declare-function dap--session-running "ext:dap-mode.el")
 
-(defun wls--debug--active-p ()
+(defun whale-line-segments--debug--active-p ()
   "Check whether debugging is in process."
   (and-let* (((featurep 'dap-mode))
              ((bound-and-true-p dap-mode))
              (session (dap--cur-session))
              ((dap--session-running session)))))
 
-(defun wls--debug--name ()
+(defun whale-line-segments--debug--name ()
   "Get the name of the session."
   (dap--debug-session-name (dap--cur-session)))
 
-(defun wls--debug ()
+(defun whale-line-segments--debug ()
   "Indicate an active debugging session."
-  (when-let* (((wls--debug--active-p))
-              (name (wls--debug--name))
+  (when-let* (((whale-line-segments--debug--active-p))
+              (name (whale-line-segments--debug--name))
               (help (format "Debugging %s" name)))
 
     `((:propertize ,(whale-line-iconify 'debug) help-echo ,help))))
 
 (whale-line-create-stateful-segment debug
-  :getter wls--debug
+  :getter whale-line-segments--debug
   :hooks
   (dap-session-created-hook
    dap-session-changed-hook
@@ -550,7 +550,7 @@ Returns nil if not checking or if no errors were found."
 (defvar minions-mode-line-minor-modes-map)
 (defvar minions-mode-line-lighter)
 
-(defun whale-line-minions--list (&rest _args)
+(defun whale-line-segments--minions--list (&rest _args)
   "Get the appropriate mode list."
   (if (bound-and-true-p minions-mode)
       `((:propertize (:eval (minions--prominent-modes))
@@ -563,7 +563,7 @@ Returns nil if not checking or if no errors were found."
     minor-mode-alist))
 
 (whale-line-create-augment minions
-  :action whale-line-minions--list
+  :action whale-line-segments--minions--list
   :after-while whale-line-minor-modes--segment)
 
 ;;; -- Org
@@ -577,22 +577,22 @@ Returns nil if not checking or if no errors were found."
 (declare-function org-link-display-format "ext:org.el")
 (declare-function org-up-heading-safe "ext:org.el")
 
-(defvar wls--org--min-length 4)
-(defvar wls--org--max-length 24)
+(defvar whale-line-segments--org--min-length 4)
+(defvar whale-line-segments--org--max-length 24)
 
-(defun wls--org--maybe-truncate (heading face max-len)
+(defun whale-line-segments--org--maybe-truncate (heading face max-len)
   "Maybe truncate HEADING depending on MAX-LEN.
 
 Use FACE for the ellipsis glyph."
   (let ((len (string-width heading))
-        (ellipsis-len (string-width wls-org-ellipsis)))
+        (ellipsis-len (string-width whale-line-segments-org-ellipsis)))
 
     (if (> len max-len)
         (concat (substring heading 0 (max (- max-len ellipsis-len) 1))
-                (propertize wls-org-ellipsis 'face face))
+                (propertize whale-line-segments-org-ellipsis 'face face))
       heading)))
 
-(defun wls--org--get-next-heading ()
+(defun whale-line-segments--org--get-next-heading ()
   "Get the next heading going backwards."
   (org-back-to-heading)
   (let* ((components (org-heading-components))
@@ -601,32 +601,32 @@ Use FACE for the ellipsis glyph."
          (heading (org-link-display-format (nth 4 components))))
     (propertize heading 'face face)))
 
-(defun wls--org--max-length ()
+(defun whale-line-segments--org--max-length ()
   "Check if we're in a low space environment."
   (let* ((space (max 1 (whale-line--space)))
          (width (/ space (window-font-width))))
 
-    (if (> width (* wls-org-max-count wls--org--max-length))
-        wls--org--max-length
-      (min wls--org--max-length
-           (max wls--org--min-length (/ width wls-org-max-count))))))
+    (if (> width (* whale-line-segments-org-max-count whale-line-segments--org--max-length))
+        whale-line-segments--org--max-length
+      (min whale-line-segments--org--max-length
+           (max whale-line-segments--org--min-length (/ width whale-line-segments-org-max-count))))))
 
-(defun wls--org--collect-headings ()
+(defun whale-line-segments--org--collect-headings ()
   "Collect headings until it's no longer safe."
   (save-excursion
-    (cl-loop collect (wls--org--get-next-heading)
+    (cl-loop collect (whale-line-segments--org--get-next-heading)
              while (org-up-heading-safe))))
 
-(defun wls--org ()
+(defun whale-line-segments--org ()
   "Build the segment from included segments."
   (org-with-wide-buffer
 
    (goto-char (window-start))
 
    (and-let* (((not (org-before-first-heading-p)))
-              (headings (wls--org--collect-headings))
+              (headings (whale-line-segments--org--collect-headings))
               (count 0)
-              (max-len (wls--org--max-length)))
+              (max-len (whale-line-segments--org--max-length)))
 
      (mapconcat
       #'identity
@@ -636,15 +636,15 @@ Use FACE for the ellipsis glyph."
              (progn
                (setq count (1+ count))
                it)
-           (if (>= count wls-org-max-count)
-               (propertize wls-org-elision 'face (nth i org-level-faces))
+           (if (>= count whale-line-segments-org-max-count)
+               (propertize whale-line-segments-org-elision 'face (nth i org-level-faces))
              (setq count (1+ count))
-             (wls--org--maybe-truncate it (nth i org-level-faces) max-len))))
+             (whale-line-segments--org--maybe-truncate it (nth i org-level-faces) max-len))))
        (reverse headings))
-      (propertize wls-org-separator 'face 'whale-line-shadow)))))
+      (propertize whale-line-segments-org-separator 'face 'whale-line-shadow)))))
 
 (whale-line-create-stateless-segment org
-  :getter wls--org
+  :getter whale-line-segments--org
   :condition (derived-mode-p 'org-mode)
   :priority current)
 
@@ -653,7 +653,7 @@ Use FACE for the ellipsis glyph."
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
 
-(defun wls--project--display-for-buffer-p ()
+(defun whale-line-segments--project--display-for-buffer-p ()
   "Check if current buffer should show project information.
 
 Only consider Dired buffers and file buffers."
@@ -661,28 +661,28 @@ Only consider Dired buffers and file buffers."
     (or (derived-mode-p 'dired-mode)
         (buffer-file-name))))
 
-(defvar wls--project--regexp ".+\\(\\/.+\\)\\/$")
+(defvar whale-line-segments--project--regexp ".+\\(\\/.+\\)\\/$")
 
-(defvar wls--project--map
+(defvar whale-line-segments--project--map
   (let ((map (make-sparse-keymap)))
 
     (define-key map [mode-line mouse-1] 'project-dired)
 
     map))
 
-(defun wls--project--help ()
+(defun whale-line-segments--project--help ()
   "Get the help text for the project."
   (when-let* ((project (project-current))
               (root (project-root project)))
 
     (format "Project (%s)\nmouse-1: Open root" root)))
 
-(defun wls--project ()
+(defun whale-line-segments--project ()
   "Get the project segment."
-  (when-let* ((candidate (wls--project--display-for-buffer-p))
+  (when-let* ((candidate (whale-line-segments--project--display-for-buffer-p))
               (project (project-current))
               (name (project-name project))
-              (help (wls--project--help)))
+              (help (whale-line-segments--project--help)))
 
     `(,@(when-let ((icon (whale-line-iconify 'project)))
           (list icon (whale-line--spacer)))
@@ -690,16 +690,16 @@ Only consider Dired buffers and file buffers."
                    face whale-line-emphasis
                    mouse-face whale-line-highlight
                    help-echo ,help
-                   local-map ,wls--project--map))))
+                   local-map ,whale-line-segments--project--map))))
 
 (whale-line-create-stateful-segment project
-  :getter wls--project
+  :getter whale-line-segments--project
   :hooks (find-file-hook)
   :priority low)
 
 ;;; --- Tab bar
 
-(defun wls--tab-bar--identifier ()
+(defun whale-line-segments--tab-bar--identifier ()
   "Get the identifier of the current tab.
 
 This is either an explicit name or its index."
@@ -709,15 +709,15 @@ This is either an explicit name or its index."
       name
     (number-to-string (tab-bar--current-tab-index))))
 
-(defun wls--tab-bar ()
+(defun whale-line-segments--tab-bar ()
   "Get the name or number of the tab."
   (and-let* (((bound-and-true-p tab-bar-mode))
-             (id (wls--tab-bar--identifier)))
+             (id (whale-line-segments--tab-bar--identifier)))
 
     `((:propertize ,(format " %s " id) face whale-line-highlight))))
 
 (whale-line-create-stateful-segment tab-bar
-  :getter wls--tab-bar
+  :getter whale-line-segments--tab-bar
   :hooks (window-configuration-change-hook)
   :priority current)
 
@@ -725,9 +725,9 @@ This is either an explicit name or its index."
 
 (declare-function vc-git-root "ext:vc-git.el")
 
-(defvar wls--vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
+(defvar whale-line-segments--vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 
-(defvar wls--vc--states '((up-to-date . whale-line-neutral)
+(defvar whale-line-segments--vc--states '((up-to-date . whale-line-neutral)
                           (edited . whale-line-indicate)
                           (needs-update . whale-line-contrast)
                           (needs-merge . whale-line-urgent)
@@ -739,14 +739,14 @@ This is either an explicit name or its index."
                           (ignored . whale-line-shadow)
                           (unregistered . whale-line-shadow)))
 
-(defun wls--vc--face-for-state (state)
+(defun whale-line-segments--vc--face-for-state (state)
   "Get the correct face for the STATE."
-  (alist-get state wls--vc--states 'whale-line-neutral))
+  (alist-get state whale-line-segments--vc--states 'whale-line-neutral))
 
-(defun wls--vc ()
+(defun whale-line-segments--vc ()
   "Get version control info."
   (and-let* (((buffer-file-name))
-             (info (or (wls--vc-registered--info) (wls--vc-unregistered--info))))
+             (info (or (whale-line-segments--vc-registered--info) (whale-line-segments--vc-unregistered--info))))
 
     `(,@(when-let ((icon (whale-line-iconify 'vc)))
           (list icon (whale-line--spacer)))
@@ -754,7 +754,7 @@ This is either an explicit name or its index."
 
 ;;;; -- Registered
 
-(defun wls--vc-registered--info ()
+(defun whale-line-segments--vc-registered--info ()
   "Get info for registered files."
   (and-let* (((and vc-mode buffer-file-name))
              (backend (vc-backend buffer-file-name))
@@ -762,32 +762,32 @@ This is either an explicit name or its index."
                           (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))))
              (state (vc-state buffer-file-name backend)))
 
-    `(:propertize ,(replace-regexp-in-string wls--vc--scope-regexp "" status)
+    `(:propertize ,(replace-regexp-in-string whale-line-segments--vc--scope-regexp "" status)
                   mouse-face whale-line-highlight
-                  face ,(wls--vc--face-for-state state))))
+                  face ,(whale-line-segments--vc--face-for-state state))))
 
 ;;;; -- Unregistered
 
-(defun wls--vc-unregistered--git-p (file)
+(defun whale-line-segments--vc-unregistered--git-p (file)
   "Check whether the unregistered FILE is in a git repository."
   (require 'vc-git)
   (vc-git-root file))
 
-(defun wls--vc-unregistered--info ()
+(defun whale-line-segments--vc-unregistered--info ()
   "Get info for unregistered files."
   (when-let ((file (buffer-file-name)))
 
     (cond
-     ((wls--vc-unregistered--git-p file)
+     ((whale-line-segments--vc-unregistered--git-p file)
       (when-let* ((state (vc-state file 'Git))
                   (help (format "File state: %s" state)))
 
         `(:propertize "Git"
-                      face ,(wls--vc--face-for-state state)
+                      face ,(whale-line-segments--vc--face-for-state state)
                       help-echo ,help))))))
 
 (whale-line-create-stateful-segment vc
-  :getter wls--vc
+  :getter whale-line-segments--vc
   :hooks (find-file-hook after-save-hook)
   :after vc-refresh-state
   :priority current)
@@ -795,7 +795,3 @@ This is either an explicit name or its index."
 (provide 'whale-line-segments)
 
 ;;; whale-line-segments.el ends here
-
-;; Local Variables:
-;; read-symbol-shorthands: (("wls-" . "whale-line-segments-"))
-;; End:

@@ -474,7 +474,7 @@
         (minions-mode-line-lighter " min")
         (minions-mode-line-minor-modes-map nil))
 
-    (should (equal '(test rest) (whale-line-minions--list)))
+    (should (equal '(test rest) (whale-line-segments--minions--list)))
 
     (bydi ((:mock minions--prominent-modes :with (lambda () '((prominent " prm")))))
       (with-temp-buffer
@@ -487,7 +487,7 @@
                                       face whale-line-shadow
                                       local-map nil
                                       mouse-face whale-line-highlight))
-                       (whale-line-minions--list)))))))
+                       (whale-line-segments--minions--list)))))))
 
 (ert-deftest org--maybe-truncate--truncates ()
   (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing" 'success 5))))
