@@ -18,7 +18,7 @@
 
 ;;; Code:
 
-(require 'whale-line-core)
+(require 'whale-line)
 (require 'whale-line-iconify)
 
 (declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")

@@ -4,7 +4,6 @@ PACKAGE_SUFFIX=tar
 CURRENT_PACKAGE_VERSION=0.8.0
 UPDATE_VERSION_FILES=Cask \
 					 whale-line.el \
-					 whale-line-core.el \
 					 whale-line-segments.el \
 					 whale-line-iconify.el \
 					 whale-line-edit.el

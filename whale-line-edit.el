@@ -12,7 +12,7 @@
 
 ;;; Code:
 
-(require 'whale-line-core)
+(require 'whale-line)
 
 (defvar whale-line-edit--buffer "*whale-line-edit-segments*")
 (defvar whale-line-edit--initial nil)

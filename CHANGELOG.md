@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   file name will indicate this through icon color. When not using
   icons, states are concatenated, meaning if the icon is both modified
   and doesn't belong to a file both fallback strings are shown.
+- Package `whale-line-core` was folded into `whale-line`. Package
+  `whale-line-segments` is now required during
+  `whale-line--build-segments`.
 
 ## [v0.8.0]
 
