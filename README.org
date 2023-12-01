@@ -193,6 +193,8 @@ As the macro names suggest, there are three things you can create:
 2. Stateful segments
 3. Augments for either segment type
 
+Be sure to create your segments *before* activating =whale-line-mode=.
+
 *** Stateless segments
 
 A stateless segment is just that: a segment without a state. This
