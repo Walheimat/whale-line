@@ -12,16 +12,12 @@
 ;; (also cf. custom variable `whale-line-segments' for their default
 ;; positioning) as well as their private logic.
 ;;
-;; Some of these segments may be customized. See also
-;; `whale-line-iconify-disabled' if you want to disable icons for a
-;; segment that would otherwise use them.
+;; Some segments are decorated, using `whale-line-iconify' by default.
 
 ;;; Code:
 
 (require 'whale-line)
-(require 'whale-line-iconify)
 
-(declare-function all-the-icons-icon-for-buffer "ext:all-the-icons.el")
 (declare-function whale-line-iconify "whale-line-iconify.el")
 
 ;;; -- Customization
@@ -30,6 +26,13 @@
   "Settings for individual segments."
   :group 'whale-line
   :tag "Segments")
+
+(defcustom whale-line-segments-decorator #'whale-line-iconify
+  "The function to use to decorate segments (or their parts).
+
+This function should return a mode-line construct or string."
+  :group 'whale-line-segments
+  :type 'function)
 
 (defcustom whale-line-segments-animation-key-frames ["(__.- >{"
                                                      "(__.' >{"
@@ -72,10 +75,16 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
-;;; -- Segments
+;;; -- Utility
 
-(declare-function image-mode-window-get "ext:image-mode.el")
-(declare-function doc-view-last-page-number "ext:doc-view.el")
+(defun whale-line-segments--decorate (symbol &rest args)
+  "Get the decoration for SYMBOL passing ARGS.
+
+See `whale-line-segments-decorator'."
+  (when (fboundp whale-line-segments-decorator)
+    (apply whale-line-segments-decorator (append (list symbol) args))))
+
+;;; -- Segments
 
 ;;;; -- Buffer identification
 
@@ -114,26 +123,27 @@ to 2, only the 3rd level is elided."
 
 (defun whale-line-segments--buffer-status--writable ()
   "Buffer status for a writable buffer."
-  (if (whale-line-iconify--use-for-p 'buffer-status)
+  (if (whale-line-segments--decorate 'buffer-status)
       (if (buffer-modified-p)
-          (whale-line-iconify 'buffer-modified (if buffer-file-name
-                                                   'whale-line-emphasis
-                                                 'whale-line-shadow))
+          (whale-line-segments--decorate 'buffer-modified (if buffer-file-name
+                                                              'whale-line-emphasis
+                                                            'whale-line-shadow))
         (unless buffer-file-name
-          (whale-line-iconify 'buffer-file-name)))
+          (whale-line-segments--decorate 'buffer-file-name)))
     (concat
      (unless buffer-file-name
-       (whale-line-iconify 'buffer-file-name))
+       (propertize "&" 'face 'whale-line-shadow))
      (when (buffer-modified-p)
-       (whale-line-iconify 'buffer-modified)))))
+       (propertize "*" 'face 'whale-line-emphasis)))))
 
 (defun whale-line-segments--buffer-status--read-only ()
   "Buffer status for a read-only buffer."
-  (whale-line-iconify 'buffer-read-only))
+  (or (whale-line-segments--decorate 'buffer-read-only)
+      (propertize "@" 'face 'whale-line-contrast)))
 
 (defun whale-line-segments--buffer-status--dense-p ()
   "Check whether the segment should be dense."
-  (or (not (whale-line-iconify--use-for-p 'buffer-status))
+  (or (not (whale-line-segments--decorate 'buffer-status))
       (and buffer-file-name
            (not (buffer-modified-p)))))
 
@@ -145,14 +155,14 @@ to 2, only the 3rd level is elided."
 
 (defun whale-line-segments--window-status ()
   "Render window status segment."
-  (let* ((icons (delq nil
-                      (list
-                       (and (window-parameter (selected-window) 'no-other-window) 'window-no-other)
-                       (and (window-dedicated-p) 'window-dedicated))))
-         (combined (mapconcat #'whale-line-iconify icons (whale-line--spacer))))
-
-    (unless (string-empty-p combined)
-      combined)))
+  (delq nil
+        (list
+         (and (window-parameter (selected-window) 'no-other-window)
+              (or (whale-line-segments--decorate 'window-no-other)
+                  (propertize "~" 'face 'whale-line-shadow)))
+         (and (window-dedicated-p)
+              (or (whale-line-segments--decorate 'window-dedicated)
+                  (propertize "^" 'face 'whale-line-shadow))))))
 
 (whale-line-create-stateless-segment window-status
   :getter whale-line-segments--window-status)
@@ -400,7 +410,7 @@ Returns nil if not checking or if no errors were found."
                    (flymake-reporting-backends))
 
                   `(whale-line-segments--syntax-checker-running ,(concat whale-line-segments--flymake--default-help
-                                                         "\n\nFlymake: Running")))
+                                                                         "\n\nFlymake: Running")))
 
                  (t
                   (let* ((diagnostics (flymake-diagnostics))
@@ -418,25 +428,24 @@ Returns nil if not checking or if no errors were found."
 
 ;;;; -- Major mode
 
-(defun whale-line-segments--major-mode--icon ()
-  "Get the icon for the `major-mode'."
-  (and-let* (((whale-line-iconify--use-for-p 'major-mode))
-             (icon (all-the-icons-icon-for-buffer))
-             (icon (if (or (null icon) (symbolp icon))
-                       '(:eval (whale-line-iconify 'buffer-fallback))
-                     icon)))
+(defun whale-line-segments--major-mode--decorated ()
+  "Get the decoration for the `major-mode'."
+  (and-let* ((decorated (whale-line-segments--decorate 'major-mode))
+             (decorated (if (or (null decorated) (symbolp decorated))
+                            '(:eval (whale-line-segments--decorate 'buffer-fallback))
+                          decorated)))
 
-    `((:propertize ,icon
+    `((:propertize ,decorated
                    help-echo ,(format "%s" (format-mode-line mode-name))
                    display (raise -0.135)))))
 
 (defun whale-line-segments--major-mode--text ()
-    "Get the text for the `major-mode'."
-    `((:propertize (" " mode-name " ") face whale-line-highlight)))
+  "Get the text for the `major-mode'."
+  `((:propertize (" " mode-name " ") face whale-line-highlight)))
 
 (defun whale-line-segments--major-mode ()
   "Get the `major-mode' segment."
-  (or (whale-line-segments--major-mode--icon) (whale-line-segments--major-mode--text)))
+  (or (whale-line-segments--major-mode--decorated) (whale-line-segments--major-mode--text)))
 
 (whale-line-create-stateful-segment major-mode
   :hooks
@@ -484,15 +493,16 @@ Returns nil if not checking or if no errors were found."
 
 (defun whale-line-segments--lsp--with-count ()
   "Get the count of connected servers."
-  (if-let* ((icon (whale-line-iconify 'lsp))
+  (if-let* ((decorated (or (whale-line-segments--decorate 'lsp)
+                           "LSP"))
             ((whale-line-segments--lsp--uses-lsp-mode-p))
             (count (length (lsp-workspaces)))
             ((> count 1)))
 
-      (list icon
+      (list decorated
             (whale-line--spacer)
             (propertize (number-to-string count) 'face 'whale-line-shadow))
-    icon))
+    decorated))
 
 (defun whale-line-segments--lsp (&rest _args)
   "Indicate an active LSP session."
@@ -533,7 +543,7 @@ Returns nil if not checking or if no errors were found."
               (name (whale-line-segments--debug--name))
               (help (format "Debugging %s" name)))
 
-    `((:propertize ,(whale-line-iconify 'debug) help-echo ,help))))
+    `((:propertize ,(or (whale-line-segments--decorate 'debug) "BUG") help-echo ,help))))
 
 (whale-line-create-stateful-segment debug
   :getter whale-line-segments--debug
@@ -684,8 +694,8 @@ Only consider Dired buffers and file buffers."
               (name (project-name project))
               (help (whale-line-segments--project--help)))
 
-    `(,@(when-let ((icon (whale-line-iconify 'project)))
-          (list icon (whale-line--spacer)))
+    `(,@(when-let ((decorated (whale-line-segments--decorate 'project)))
+          (list decorated (whale-line--spacer)))
       (:propertize ,name
                    face whale-line-emphasis
                    mouse-face whale-line-highlight
@@ -728,16 +738,16 @@ This is either an explicit name or its index."
 (defvar whale-line-segments--vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 
 (defvar whale-line-segments--vc--states '((up-to-date . whale-line-neutral)
-                          (edited . whale-line-indicate)
-                          (needs-update . whale-line-contrast)
-                          (needs-merge . whale-line-urgent)
-                          (unlocked-changes . whale-line-urgent)
-                          (added . whale-line-emphasis)
-                          (removed . whale-line-emphasis)
-                          (conflict . whale-line-urgent)
-                          (missing . whale-line-contrast)
-                          (ignored . whale-line-shadow)
-                          (unregistered . whale-line-shadow)))
+                                          (edited . whale-line-indicate)
+                                          (needs-update . whale-line-contrast)
+                                          (needs-merge . whale-line-urgent)
+                                          (unlocked-changes . whale-line-urgent)
+                                          (added . whale-line-emphasis)
+                                          (removed . whale-line-emphasis)
+                                          (conflict . whale-line-urgent)
+                                          (missing . whale-line-contrast)
+                                          (ignored . whale-line-shadow)
+                                          (unregistered . whale-line-shadow)))
 
 (defun whale-line-segments--vc--face-for-state (state)
   "Get the correct face for the STATE."
@@ -748,8 +758,8 @@ This is either an explicit name or its index."
   (and-let* (((buffer-file-name))
              (info (or (whale-line-segments--vc-registered--info) (whale-line-segments--vc-unregistered--info))))
 
-    `(,@(when-let ((icon (whale-line-iconify 'vc)))
-          (list icon (whale-line--spacer)))
+    `(,@(when-let ((decorated (whale-line-segments--decorate 'vc)))
+          (list decorated (whale-line--spacer)))
       ,info)))
 
 ;;;; -- Registered

@@ -39,11 +39,11 @@
                    (whale-line-segments--buffer-identification)))))
 
 (ert-deftest buffer-status--dense-p ()
-  (bydi ((:always whale-line-iconify--can-use-p))
+  (bydi ((:othertimes whale-line-segments--decorate))
 
-    (let ((whale-line-iconify-disabled '(buffer-status)))
+    (should (whale-line-segments--buffer-status--dense-p))
 
-      (should (whale-line-segments--buffer-status--dense-p)))
+    (bydi-toggle-sometimes)
 
     (ert-with-temp-file status
       :buffer b
@@ -56,8 +56,8 @@
   (let ((modified nil)
         (buffer-file-name "some-name"))
 
-    (bydi ((:always whale-line-iconify--use-for-p)
-           (:mock whale-line-iconify :return "!")
+    (bydi ((:always whale-line-segments--decorate)
+           (:mock whale-line-segments--decorate :return "!")
            (:mock buffer-modified-p :return modified))
 
       (should-not (whale-line-segments--buffer-status--writable))
@@ -69,35 +69,34 @@
       (setq modified t)
 
       (should (string= "!" (whale-line-segments--buffer-status--writable)))
-      (bydi-was-called-last-with whale-line-iconify '(buffer-modified whale-line-shadow))
+      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified whale-line-shadow))
 
       (setq buffer-file-name "some-name")
       (should (string= "!" (whale-line-segments--buffer-status--writable)))
-      (bydi-was-called-last-with whale-line-iconify '(buffer-modified whale-line-emphasis)))))
+      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified whale-line-emphasis)))))
 
 (ert-deftest buffer-status--not-using-icons ()
   (let ((modified nil)
         (buffer-file-name "some-name"))
 
-    (bydi ((:ignore whale-line-iconify--use-for-p)
-           (:mock whale-line-iconify :return "!")
+    (bydi ((:ignore whale-line-segments--decorate)
            (:mock buffer-modified-p :return modified))
 
       (should (string= "" (whale-line-segments--buffer-status--writable)))
 
       (setq buffer-file-name nil)
 
-      (should (string= "!" (whale-line-segments--buffer-status--writable)))
+      (should (string= "&" (whale-line-segments--buffer-status--writable)))
 
       (setq modified t)
 
-      (should (string= "!!" (whale-line-segments--buffer-status--writable))))))
+      (should (string= "&*" (whale-line-segments--buffer-status--writable))))))
 
 (ert-deftest buffer-status--read-only ()
-  (bydi (whale-line-iconify)
+  (bydi (whale-line-segments--decorate)
     (whale-line-segments--buffer-status--read-only)
 
-    (bydi-was-called-with whale-line-iconify 'buffer-read-only)))
+    (bydi-was-called-with whale-line-segments--decorate 'buffer-read-only)))
 
 ;;; -- Window status
 
@@ -106,15 +105,15 @@
 
   (set-window-dedicated-p (selected-window) t)
 
-  (should (string= "^" (whale-line-segments--window-status)))
+  (should (equal '("^") (whale-line-segments--window-status)))
 
   (set-window-parameter (selected-window) 'no-other-window t)
 
-  (should (string= "~ ^" (whale-line-segments--window-status)))
+  (should (equal '("~" "^") (whale-line-segments--window-status)))
 
   (set-window-dedicated-p (selected-window) nil)
 
-  (should (string= "~" (whale-line-segments--window-status)))
+  (should (equal '("~") (whale-line-segments--window-status)))
 
   (set-window-parameter (selected-window) 'no-other-window nil))
 
@@ -248,23 +247,22 @@
 ;;; -- Major mode
 
 (ert-deftest major-mode--icon ()
-  (bydi ((:always whale-line-iconify--use-for-p)
-         (:mock all-the-icons-icon-for-buffer :return "?")
+  (bydi ((:mock whale-line-segments--decorate :return "?")
          (:mock format-mode-line :return "echo"))
 
     (should (equal '((:propertize "?" help-echo "echo" display (raise -0.135)))
-                   (whale-line-segments--major-mode--icon)))))
+                   (whale-line-segments--major-mode--decorated)))))
 
 (ert-deftest major-mode--text ()
   (should (equal '((:propertize (" " mode-name " ") face whale-line-highlight))
                  (whale-line-segments--major-mode--text))))
 
 (ert-deftest major-mode ()
-  (bydi ((:sometimes whale-line-segments--major-mode--icon)
+  (bydi ((:sometimes whale-line-segments--major-mode--decorated)
          (:always whale-line-segments--major-mode--text))
 
     (should (whale-line-segments--major-mode))
-    (bydi-was-called whale-line-segments--major-mode--icon)
+    (bydi-was-called whale-line-segments--major-mode--decorated)
     (bydi-was-not-called whale-line-segments--major-mode--text)
     (bydi-toggle-sometimes)
     (whale-line-segments--major-mode)
@@ -415,7 +413,7 @@
       (should (string= "Connected to test::testing" (whale-line-segments--lsp--help))))))
 
 (ert-deftest lsp--with-count ()
-  (bydi ((:mock whale-line-iconify :return "LSP")
+  (bydi ((:mock whale-line-segments--decorate :return "LSP")
          (:sometimes whale-line-segments--lsp--uses-lsp-mode-p)
          (:mock lsp-workspaces :return '(a b c)))
 
@@ -456,7 +454,7 @@
         (should-not (whale-line-segments--debug--active-p))))))
 
 (ert-deftest dap-segment ()
-  (bydi ((:mock whale-line-iconify :return "*")
+  (bydi ((:mock whale-line-segments--decorate :return "*")
          (:always whale-line-segments--debug--active-p)
          dap--cur-session
          (:mock dap--debug-session-name :return "Test"))
@@ -595,7 +593,7 @@
     (bydi ((:always whale-line-segments--project--display-for-buffer-p)
            (:always project-current)
            (:mock whale-line-segments--project--help :return "help")
-           (:mock whale-line-iconify :return "*")
+           (:mock whale-line-segments--decorate :return "*")
            (:mock project-root :return "/home/test/project/")
            (:mock project-name :return "project"))
 
@@ -634,7 +632,7 @@
   (bydi ((:always buffer-file-name)
          (:ignore whale-line-segments--vc-registered--info)
          (:mock whale-line-segments--vc-unregistered--info :return "test")
-         (:mock whale-line-iconify :return "*"))
+         (:mock whale-line-segments--decorate :return "*"))
 
     (should (equal '("*" " " "test")
                    (whale-line-segments--vc)))))
@@ -650,7 +648,7 @@
 
     (bydi ((:mock vc-backend :return "none")
            (:mock vc-state :return 'testing)
-           (:mock whale-line-iconify :return "*")
+           (:mock whale-line-segments--decorate :return "*")
            (:mock whale-line-segments--vc--face-for-state :return 'test-face))
 
       (should (equal '(:propertize "tests" mouse-face whale-line-highlight face test-face)

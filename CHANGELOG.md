@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   edit buffer segment positioning (and inclusion) in a separate
   buffer. The resulting edit can be applied or persisted (by saving
   the customization). The user may also revert or abort. The changes
-      are validated before they are applied.
+  are validated before they are applied.
+- `whale-line-iconify` is now set as the default value for new custom
+  variable `whale-line-segments-decorator`, decoupling
+  `whale-line-segments` from it.
 
 ### Changed
 
@@ -25,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Package `whale-line-core` was folded into `whale-line`. Package
   `whale-line-segments` is now required during
   `whale-line--build-segments`.
+- `whale-line-iconify` no longer defaults, it's the responsibility of
+  the segment.
 
 ## [v0.8.0]
 

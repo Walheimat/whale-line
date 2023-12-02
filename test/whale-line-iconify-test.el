@@ -10,15 +10,22 @@
 
 (defvar rectangle (ert-resource-file "rectangle.txt"))
 
-(defvar test-specs '((test . (:name "test" :font test :face test-face :fallback "?"))
-                     (no-def . (:name "test" :font test :face test-face :fallback "?" :no-defaults t))
-                     (merge . (:name "test" :font test :face test-face :fallback "?" :height 0.5))))
+(defvar test-specs '((test . (:name "test" :font test :face test-face))
+                     (no-def . (:name "test" :font test :face test-face :no-defaults t))
+                     (merge . (:name "test" :font test :face test-face :height 0.5))
+                     (fun . (:function specs-fun))
+                     (args . (:function specs-fun :pass-args t :height 0.5))))
+
+(defun specs-fun (&rest _args)
+  "Just a specs fun."
+  nil)
 
 (ert-deftest from-specs ()
   (let ((whale-line-iconify-specs test-specs)
         (whale-line-iconify--default-specs '(:height 0.8 :v-adjust -1.1)))
 
-    (bydi (all-the-icons-test)
+    (bydi (all-the-icons-test
+           specs-fun)
 
       (whale-line-iconify--from-specs (cdr-safe (assoc 'test whale-line-iconify-specs)))
       (bydi-was-called-with all-the-icons-test '("test" :face test-face :height 0.8 :v-adjust -1.1))
@@ -29,7 +36,15 @@
 
       (bydi-clear-mocks)
       (whale-line-iconify--from-specs (cdr-safe (assoc 'merge whale-line-iconify-specs)))
-      (bydi-was-called-with all-the-icons-test '("test" :face test-face :height 0.5 :v-adjust -1.1)))))
+      (bydi-was-called-with all-the-icons-test '("test" :face test-face :height 0.5 :v-adjust -1.1))
+
+      (whale-line-iconify--from-specs (cdr-safe (assoc 'fun whale-line-iconify-specs)))
+
+      (bydi-was-called specs-fun t)
+
+      (whale-line-iconify--from-specs (cdr-safe (assoc 'args whale-line-iconify-specs)))
+
+      (bydi-was-called-with specs-fun '(:height 0.5)))))
 
 (ert-deftest use-icons-for-p ()
   (let ((whale-line-iconify-disabled nil))
@@ -79,17 +94,17 @@
       (whale-line-iconify 'test)
 
       (bydi-was-called-with whale-line-iconify--from-specs
-        '((:name "test" :font test :face test-face :fallback "?")))
+        '((:name "test" :font test :face test-face)))
 
       (bydi-clear-mocks)
       (whale-line-iconify 'test 'other-face)
 
       (bydi-was-called-with whale-line-iconify--from-specs
-        '((:name "test" :font test :face other-face :fallback "?")))
+        '((:name "test" :font test :face other-face)))
 
       (bydi-toggle-sometimes)
 
-      (should (string= "?" (whale-line-iconify 'test)))
+      (should-not (whale-line-iconify 'test))
 
       (bydi-was-not-called whale-line-iconify--from-specs))))
 
