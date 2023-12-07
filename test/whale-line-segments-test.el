@@ -82,6 +82,8 @@
     (bydi ((:ignore whale-line-segments--decorate)
            (:mock buffer-modified-p :return modified))
 
+      (should (string= "@" (whale-line-segments--buffer-status--read-only)))
+
       (should (string= "" (whale-line-segments--buffer-status--writable)))
 
       (setq buffer-file-name nil)
