@@ -308,7 +308,7 @@ Afterwards a mode-line update is forced to display the new frame."
 (defun whale-line-segments--flycheck--face (status)
   "Get the face to use for STATUS."
   (pcase status
-    ('not-checked 'whale-line-segments--syntax-checker-running)
+    ('not-checked nil)
     ('running 'whale-line-segments--syntax-checker-running)
     ('finished
      (when flycheck-current-errors
