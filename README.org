@@ -60,7 +60,13 @@ tight.
 
 *** GIF
 
+**** Showing segments
+
 [[./assets/whaleline.gif]]
+
+**** Hiding low priority segments
+
+[[./assets/strategy.gif]]
 
 ** Installation
 
@@ -126,17 +132,18 @@ the change.
   (whale-line-segments-org-max-count 2)
 
   ;; Specs for used icons.
-  (whale-line-iconify-specs '((project . (:name "package" :font octicon :face whale-line-emphasis))
-                              (vc . (:name "code-fork"))
-                              (debug . (:name "bug"))
-                              (buffer-read-only . (:name "lock" :face whale-line-contrast :fallback "@"))
-                              (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :fallback "&"))
-                              (buffer-modified . (:name "pencil" :face whale-line-emphasis :fallback "*"))
-                              (window-dedicated . (:name "link" :face whale-line-shadow :fallback "^"))
-                              (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
-                              (lsp . (:name "server" :face whale-line-contrast))
-                              (partial-recall . (:name "tag" :face whale-line-contrast))))
-
+  (whale-line-iconify-specs
+   '((project . (:name "package" :font octicon :face whale-line-emphasis))
+     (vc . (:name "code-fork" :face whale-line-contrast))
+     (major-mode . (:function all-the-icons-icon-for-buffer))
+     (buffer-read-only . (:name "lock" :face whale-line-contrast :parent buffer-status))
+     (buffer-file-name . (:name "sticky-note-o" :face whale-line-shadow :parent buffer-status))
+     (buffer-modified . (:name "pencil" :face whale-line-emphasis :parent buffer-status))
+     (window-dedicated . (:name "link" :face whale-line-shadow :parent window-status))
+     (window-no-other . (:name "low-vision" :face whale-line-shadow :parent window-status))
+     (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
+     (lsp . (:name "plug" :face whale-line-contrast))
+     (debug . (:name "bug" :face whale-line-urgent)))
 
   ;; List of icons to disable.
   (whale-line-iconify-disabled nil))
