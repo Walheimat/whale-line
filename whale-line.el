@@ -26,7 +26,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'cl-extra)
 
 ;;; -- Customization
 
