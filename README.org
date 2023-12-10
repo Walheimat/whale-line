@@ -25,7 +25,7 @@ to build your own mode-line.
 This package takes inspiration from two other great custom mode-lines:
 =mood-line= and =doom-modeline=.
 
-** Example Screenshot
+** Preview
 
 Modeline in a split frame (theme is =doom-vibrant=).
 
@@ -57,6 +57,10 @@ Not shown is the =misc-info= segment that shows =mode-line-misc-info=.
 The right window shows fewer segments. That's because many segments
 are defined to only show on the current window or if space isn't
 tight.
+
+*** GIF
+
+[[./assets/whaleline.gif]]
 
 ** Installation
 
