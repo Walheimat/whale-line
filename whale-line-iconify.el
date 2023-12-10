@@ -141,6 +141,11 @@ the value in the retrieved specs."
 
     (whale-line-iconify--from-specs specs)))
 
+;;;###autoload
+(defun whale-line-iconify-decorates-p (name)
+  "Check if NAME is decorated."
+  (whale-line-iconify--use-for-p name))
+
 (provide 'whale-line-iconify)
 
 ;;; whale-line-iconify.el ends here

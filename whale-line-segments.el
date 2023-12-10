@@ -19,6 +19,7 @@
 (require 'whale-line)
 
 (declare-function whale-line-iconify "whale-line-iconify.el")
+(declare-function whale-line-iconify-decorates-p "whale-line-iconify.el")
 
 ;;; -- Customization
 
@@ -31,6 +32,11 @@
   "The function to use to decorate segments (or their parts).
 
 This function should return a mode-line construct or string."
+  :group 'whale-line-segments
+  :type 'function)
+
+(defcustom whale-line-segments-decorates #'whale-line-iconify-decorates-p
+  "The function used to check whether a named segment is decorated."
   :group 'whale-line-segments
   :type 'function)
 
@@ -84,6 +90,11 @@ See `whale-line-segments-decorator'."
   (when (fboundp whale-line-segments-decorator)
     (apply whale-line-segments-decorator (append (list symbol) args))))
 
+(defun whale-line-segments--decorates-p (symbol)
+  "Check if SYMBOL is decorated."
+  (when (fboundp whale-line-segments-decorates)
+    (funcall whale-line-segments-decorates symbol)))
+
 ;;; -- Segments
 
 ;;;; -- Buffer identification
@@ -123,7 +134,7 @@ See `whale-line-segments-decorator'."
 
 (defun whale-line-segments--buffer-status--writable ()
   "Buffer status for a writable buffer."
-  (if (whale-line-segments--decorate 'buffer-status)
+  (if (whale-line-segments--decorates-p 'buffer-status)
       (if (buffer-modified-p)
           (whale-line-segments--decorate 'buffer-modified (if buffer-file-name
                                                               'whale-line-emphasis
@@ -143,7 +154,7 @@ See `whale-line-segments-decorator'."
 
 (defun whale-line-segments--buffer-status--dense-p ()
   "Check whether the segment should be dense."
-  (or (not (whale-line-segments--decorate 'buffer-status))
+  (or (not (whale-line-segments--decorates-p 'buffer-status))
       (and buffer-file-name
            (not (buffer-modified-p)))))
 

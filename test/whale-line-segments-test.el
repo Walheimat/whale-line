@@ -39,7 +39,7 @@
                    (whale-line-segments--buffer-identification)))))
 
 (ert-deftest buffer-status--dense-p ()
-  (bydi ((:othertimes whale-line-segments--decorate))
+  (bydi ((:othertimes whale-line-segments--decorates-p))
 
     (should (whale-line-segments--buffer-status--dense-p))
 
@@ -56,7 +56,7 @@
   (let ((modified nil)
         (buffer-file-name "some-name"))
 
-    (bydi ((:always whale-line-segments--decorate)
+    (bydi ((:always whale-line-segments--decorates-p)
            (:mock whale-line-segments--decorate :return "!")
            (:mock buffer-modified-p :return modified))
 
