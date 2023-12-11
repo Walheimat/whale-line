@@ -538,6 +538,8 @@
       (should (equal '("Heading" "Heading" "Heading" "Heading") (whale-line-segments--org--collect-headings))))))
 
 (ert-deftest org ()
+  :tags '(org)
+
   (defmacro org-with-wide-buffer (&rest body)
     "Mock implementation that just expands BODY."
     `(progn
@@ -551,7 +553,8 @@
 
     (bydi ((:mock org-before-first-heading-p :return first-heading)
            (:mock whale-line-segments--org--collect-headings :return headings)
-           (:mock whale-line-segments--org--maybe-truncate :with bydi-rf))
+           (:mock whale-line-segments--org--maybe-truncate :with bydi-rf)
+           (:mock whale-line-segments--org--max-length :return 12))
       (with-temp-buffer
         (should-not (whale-line-segments--org)))
 
@@ -575,7 +578,13 @@
             headings (list (propertize "One" 'face 'shadow)))
 
       (with-temp-buffer
-        (should (string= "One" (whale-line-segments--org)))))))
+        (should (string= "One" (whale-line-segments--org))))
+
+      (setq headings (list (propertize "Five million and a few more" 'face 'shadow)
+                           (propertize "One" 'face 'shadow)))
+
+      (with-temp-buffer
+        (should (string= "Five million and a few more" (whale-line-segments--org)))))))
 
 (ert-deftest project--display-for-buffer-p--no-show-for-non-file-non-dired ()
   (with-temp-buffer

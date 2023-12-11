@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `whale-line--build-segments`.
 - `whale-line-iconify` no longer defaults, it's the responsibility of
   the segment.
+- `org` segment now shows only the deepest segment if its title
+  exceeds the combined max length of the remaining segments.
 
 ## [v0.8.0]
 

@@ -649,20 +649,22 @@ Use FACE for the ellipsis glyph."
               (count 0)
               (max-len (whale-line-segments--org--max-length)))
 
-     (mapconcat
-      #'identity
-      (seq-map-indexed
-       (lambda (it i)
-         (if (eq (1- (length headings)) i)
-             (progn
+     (if (> (length (nth 0 headings)) (* max-len (length headings)))
+         (nth 0 headings)
+       (mapconcat
+        #'identity
+        (seq-map-indexed
+         (lambda (it i)
+           (if (eq (1- (length headings)) i)
+               (progn
+                 (setq count (1+ count))
+                 it)
+             (if (>= count whale-line-segments-org-max-count)
+                 (propertize whale-line-segments-org-elision 'face (nth i org-level-faces))
                (setq count (1+ count))
-               it)
-           (if (>= count whale-line-segments-org-max-count)
-               (propertize whale-line-segments-org-elision 'face (nth i org-level-faces))
-             (setq count (1+ count))
-             (whale-line-segments--org--maybe-truncate it (nth i org-level-faces) max-len))))
-       (reverse headings))
-      (propertize whale-line-segments-org-separator 'face 'whale-line-shadow)))))
+               (whale-line-segments--org--maybe-truncate it (nth i org-level-faces) max-len))))
+         (reverse headings))
+        (propertize whale-line-segments-org-separator 'face 'whale-line-shadow))))))
 
 (whale-line-create-stateless-segment org
   :getter whale-line-segments--org
