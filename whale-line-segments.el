@@ -127,10 +127,11 @@ See `whale-line-segments-decorator'."
 
 ;;;; -- Buffer status
 
-(defvar whale-line-segments--buffer-status
-  '((buffer-read-only
-     (:eval (whale-line-segments--buffer-status--read-only))
-     (:eval (whale-line-segments--buffer-status--writable)))))
+(defun whale-line-segments--buffer-status ()
+  "Render buffer status."
+  (if buffer-read-only
+      (whale-line-segments--buffer-status--read-only)
+    (whale-line-segments--buffer-status--writable)))
 
 (defun whale-line-segments--buffer-status--writable ()
   "Buffer status for a writable buffer."
@@ -152,15 +153,8 @@ See `whale-line-segments-decorator'."
   (or (whale-line-segments--decorate 'buffer-read-only)
       (propertize "@" 'face 'whale-line-contrast)))
 
-(defun whale-line-segments--buffer-status--dense-p ()
-  "Check whether the segment should be dense."
-  (or (not (whale-line-segments--decorates-p 'buffer-status))
-      (and buffer-file-name
-           (not (buffer-modified-p)))))
-
 (whale-line-create-stateless-segment buffer-status
-  :var whale-line-segments--buffer-status
-  :dense whale-line-segments--buffer-status--dense-p)
+  :getter whale-line-segments--buffer-status)
 
 ;;;; -- Window status
 

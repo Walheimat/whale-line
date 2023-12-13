@@ -33,6 +33,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `org` segment now shows only the deepest segment if its title
   exceeds the combined max length of the remaining segments.
 
+## Fixed
+
+- Padding for `buffer-status`.
+
 ## [v0.8.0]
 
 ### Added

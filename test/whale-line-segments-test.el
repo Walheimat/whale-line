@@ -38,20 +38,6 @@
                                   help-echo "help"))
                    (whale-line-segments--buffer-identification)))))
 
-(ert-deftest buffer-status--dense-p ()
-  (bydi ((:othertimes whale-line-segments--decorates-p))
-
-    (should (whale-line-segments--buffer-status--dense-p))
-
-    (bydi-toggle-sometimes)
-
-    (ert-with-temp-file status
-      :buffer b
-      (with-current-buffer b
-        (should (whale-line-segments--buffer-status--dense-p))
-        (insert "test")
-        (should-not (whale-line-segments--buffer-status--dense-p))))))
-
 (ert-deftest buffer-status--using-icons ()
   (let ((modified nil)
         (buffer-file-name "some-name"))
@@ -99,6 +85,22 @@
     (whale-line-segments--buffer-status--read-only)
 
     (bydi-was-called-with whale-line-segments--decorate 'buffer-read-only)))
+
+(ert-deftest whale-line-segments--buffer-status ()
+  (bydi (whale-line-segments--buffer-status--read-only
+         whale-line-segments--buffer-status--writable)
+
+    (let ((buffer-read-only t))
+
+      (whale-line-segments--buffer-status)
+
+      (bydi-was-called whale-line-segments--buffer-status--read-only t)
+
+      (setq buffer-read-only nil)
+
+      (whale-line-segments--buffer-status)
+
+      (bydi-was-called whale-line-segments--buffer-status--writable))))
 
 ;;; -- Window status
 
