@@ -7,8 +7,7 @@
 ;;; Code:
 
 (require 'bydi)
-(require 'bydi-report)
-(require 'bydi-ci)
+(require 'dinghy-rope)
 
 ;; Setup
 
@@ -22,9 +21,10 @@
 
          (string= (nth 1 (car arg)) str))))
 
-(bydi-ci-setup-paths)
-(bydi-report-setup-undercover (list "*.el"))
-(bydi-report-setup-ert-runner)
+(dinghy-rope-setup-paths)
+(dinghy-rope-setup-undercover (list "*.el"))
+(dinghy-rope-setup-ert-runner)
+(dinghy-rope-setup-ert :increase-print-depth t)
 
 ;;; test-helper.el ends here
 

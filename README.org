@@ -58,7 +58,7 @@ The right window shows fewer segments. That's because many segments
 are defined to only show on the current window or if space isn't
 tight.
 
-*** GIF
+*** GIFs
 
 **** Showing segments
 
@@ -76,7 +76,7 @@ If you're on Emacs >29, I recommend using =package-vc-install=.
 
 Alternatively, provided you have Cask, you can install the package
 with =make package-install=.
-
+v
 ** Configuration
 
 The position and order of the segments can be controlled by
