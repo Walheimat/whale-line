@@ -922,6 +922,36 @@ This will call the respective segment's action."
         (insert (apply #'format fmt args))
         (insert "\n")))))
 
+;;; -- Setup
+
+(defun whale-line-mode--setup ()
+  "Set up `whale-line-mode'."
+  (unless (whale-line--build-segments)
+    (user-error "Failed to build segments"))
+
+  ;; Save a copy of the previous mode-line.
+  (setq whale-line--default-mode-line mode-line-format)
+
+  ;; Make setups do their thing.
+  (run-hooks 'whale-line-setup-hook)
+  (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+  (add-hook 'window-configuration-change-hook #'whale-line--calculate-space)
+  (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
+
+  ;; Set the new mode-line-format
+  (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
+
+(defun whale-line-mode--teardown ()
+  "Tear down `whale-line-mode'."
+  ;; Tear down everything.
+  (run-hooks 'whale-line-teardown-hook)
+  (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
+  (remove-hook 'window-configuration-change-hook #'whale-line--calculate-space)
+  (remove-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
+
+  ;; Restore the original mode-line format
+  (setq-default mode-line-format whale-line--default-mode-line))
+
 ;;; -- API
 
 ;;;###autoload
@@ -962,38 +992,6 @@ See underlying macro for the usage of ARGS."
 
 
 (defvar whale-line--default-mode-line nil)
-
-;;; -- Setup
-
-(defun whale-line-mode--setup ()
-  "Set up `whale-line-mode'."
-  (unless (whale-line--build-segments)
-    (user-error "Failed to build segments"))
-
-  ;; Save a copy of the previous mode-line.
-  (setq whale-line--default-mode-line mode-line-format)
-
-  ;; Make setups do their thing.
-  (run-hooks 'whale-line-setup-hook)
-  (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
-  (add-hook 'window-configuration-change-hook #'whale-line--calculate-space)
-  (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
-
-  ;; Set the new mode-line-format
-  (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
-
-(defun whale-line-mode--teardown ()
-  "Tear down `whale-line-mode'."
-  ;; Tear down everything.
-  (run-hooks 'whale-line-teardown-hook)
-  (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
-  (remove-hook 'window-configuration-change-hook #'whale-line--calculate-space)
-  (remove-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
-
-  ;; Restore the original mode-line format
-  (setq-default mode-line-format whale-line--default-mode-line))
-
-;;; -- API
 
 (defun whale-line-rebuild ()
   "Rebuild the segments.
