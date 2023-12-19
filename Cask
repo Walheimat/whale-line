@@ -8,7 +8,7 @@
  (depends-on "compat")
  (depends-on "shut-up"))
 
-(package "whale-line" "0.8.1" "A whale-based mode-line")
+(package "whale-line" "0.8.2" "A whale-based mode-line")
 
 (package-file "whale-line.el")
 
