@@ -8,11 +8,14 @@
 
 ;;; Commentary:
 
-;; This package includes the definitions of all built-in segments
-;; (also cf. custom variable `whale-line-segments' for their default
-;; positioning) as well as their private logic.
+;; This package includes the definitions of all built-in segments as
+;; well as their private logic. Note that their positioning is
+;; determined by `whale-line-segments' which you can freely customize.
 ;;
-;; Some segments are decorated, using `whale-line-iconify' by default.
+;; This package uses `whale-line-segments-decorator' and
+;; `whale-line-segments-decorates' to determine how to decorate
+;; certain segments. The default decorator is provided by package
+;; `whale-line-iconify' which uses icons.
 
 ;;; Code:
 
@@ -70,7 +73,7 @@ frame."
 (defcustom whale-line-segments-org-elision "*"
   "The string indicating elision of a heading."
   :group 'whale-line-segments
-  :type :string)
+  :type 'string)
 
 (defcustom whale-line-segments-org-max-count 2
   "The amount of headings to show.

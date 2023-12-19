@@ -8,17 +8,15 @@
 
 ;;; Commentary:
 
-;; This package provides a highly modular mode-line. The `whale-line'
-;; mode-line comprises a set of segments. Each of them can be freely
-;; positioned or disabled by setting `whale-line-segments' (segments
-;; belong either to the left or the right side). Many are
-;; customizable.
+;; This package provides a highly modular mode-line. Its segments can
+;; be freely positioned or disabled by setting `whale-line-segments'
+;; (segments belong either to the left or the right side). See the
+;; eponymous package for their definition and customization options.
 ;;
 ;; You can also create augments to change the behavior or look of an
-;; existing segment.
-;;
-;; You may also create your own segments and augments using the
-;; `whale-line-create-*' macros.
+;; existing segment or create your own segments and augments using the
+;; `whale-line-create-*' macros. So you could use this package simply
+;; as a library to create your own mode-line.
 ;;
 ;; This package takes inspiration from two other great custom
 ;; mode-lines: `mood-line' and `doom-modeline'.

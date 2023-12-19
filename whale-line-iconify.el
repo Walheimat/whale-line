@@ -7,10 +7,14 @@
 
 ;;; Commentary:
 
-;; Common logic for icon usage in segments. This package is built
-;; around external package `all-the-icons'. You may adjust or disable
-;; any icon. See the definitions of segments in `whale-line-segments'
-;; for the names of icons.
+;; Default decorator for `whale-line-segments' using icons provided by
+;; external package `all-the-icons'.
+;;
+;; Provides `whale-line-iconify' and `whale-line-iconify-decorates-p'.
+;; To use different icons you can customize
+;; `whale-line-iconify-specs'. You can disable individual segments (or
+;; sub-segments) by adding them to `whale-line-iconify-disabled'.
+
 
 ;;; Code:
 
