@@ -1,3 +1,5 @@
+#+STARTUP: noinlineimages
+
 * whale-line
 
 #+BEGIN_HTML
