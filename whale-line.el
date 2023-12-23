@@ -68,9 +68,14 @@ constraints."
                  (const ignore)))
 
 (defcustom whale-line-log nil
-  "Whether to log."
+  "Log level (or whether to log at all).
+
+This is either nil meaning on logs, or integers 1 or 0 for info
+and debug logging respectively."
   :group 'whale-line
-  :type 'boolean)
+  :type '(choice (const :tag "No logging" nil)
+                 (const :tag "Info logging" 1)
+                 (const :tag "Debug logging" 0)))
 
 ;;; -- Variables
 
@@ -273,7 +278,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
           (removed (cl-set-difference whale-line--last-build whale-line-segments)))
 
       (when added
-        (whale-line--log "Added segment(s) %s since last build" added)
+        (whale-line-log "Added segment(s) %s since last build" added)
 
         (let ((whale-line--rebuilding t)
               (whale-line-segments added))
@@ -281,7 +286,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
           (run-hooks 'whale-line-setup-hook)))
 
       (when removed
-        (whale-line--log "Removed segment(s) %s since last build" removed)
+        (whale-line-log "Removed segment(s) %s since last build" removed)
 
         (let ((whale-line--rebuilding t)
               (whale-line-segments removed))
@@ -313,6 +318,8 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 
 Sets up augments. If ARG is t tears them down instead."
   (let ((whale-line-segments (whale-line--segments-by-type 'augment)))
+
+    (whale-line-debug "Running %ss for augments" (if arg "teardown" "setup"))
 
     (if arg
         (run-hooks 'whale-line-teardown-hook)
@@ -416,9 +423,9 @@ return early."
                                               `(funcall ',setup)
                                             `(funcall ,setup))))))
 
-                  (log (if setups `(whale-line--log ,(format "Setting up %s (%%s)" name)
+                  (log (if setups `(whale-line-log ,(format "Setting up `%s' (%%s)" name)
                                                     (whale-line--prop ',name :type))
-                         `(whale-line--log ,(format "Would set up %s (%%s)" name)
+                         `(whale-line-log ,(format "Segment `%s' (%%s) requires no setup" name)
                                            (whale-line--prop ',name :type)))))
 
              (if setups
@@ -447,9 +454,9 @@ return early."
                                    (if (symbolp teardown)
                                        `(funcall ',teardown)
                                      `(funcall ,teardown))))))
-                  (log (if teardowns `(whale-line--log ,(format "Tearing down %s (%%s)" name)
+                  (log (if teardowns `(whale-line-log ,(format "Tearing down `%s' (%%s)" name)
                                                        (whale-line--prop ',name :type))
-                         `(whale-line--log ,(format "Would tear down %s (%%s)" name)
+                         `(whale-line-log ,(format "Segment `%s' (%%s) requires no teardown" name)
                                            (whale-line--prop ',name :type)))))
              (if teardowns
                  `(,log ,@teardowns)
@@ -886,6 +893,8 @@ This will call the respective segment's action."
   (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
          (actions (mapcar interner (whale-line--segments-by-type 'stateful))))
 
+    (whale-line-debug "Refreshing stateful segments (%s)" (format-time-string "%H:%M:%S"))
+
     (mapc #'funcall actions)))
 
 ;;; -- Helpers
@@ -904,23 +913,34 @@ This will call the respective segment's action."
 
 ;;; -- Logging
 
-(defvar whale-line--log-buffer-name " *whale-line*")
+(defvar whale-line-log--buffer-name " *whale-line*")
 
-(defun whale-line--log (fmt &rest args)
+(defun whale-line-log--write (fmt &rest args)
   "Format FMT with ARGS."
-  (when whale-line-log
-    (let ((buffer (get-buffer whale-line--log-buffer-name))
-          (inhibit-read-only t))
+  (let ((buffer (get-buffer whale-line-log--buffer-name))
+        (inhibit-read-only t))
 
-      (unless buffer
-        (setq buffer (get-buffer-create whale-line--log-buffer-name))
-        (with-current-buffer buffer
-          (view-mode)))
-
+    (unless buffer
+      (setq buffer (get-buffer-create whale-line-log--buffer-name))
       (with-current-buffer buffer
-        (goto-char (point-max))
-        (insert (apply #'format fmt args))
-        (insert "\n")))))
+        (view-mode)))
+
+    (with-current-buffer buffer
+      (goto-char (point-max))
+      (insert (apply #'format fmt args))
+      (insert "\n"))))
+
+(defun whale-line-log (fmt &rest args)
+  "Format FMT with ARGS."
+  (when (and (numberp whale-line-log)
+             (>= 1 whale-line-log))
+    (apply #'whale-line-log--write (append (list fmt) args))))
+
+(defun whale-line-debug (fmt &rest args)
+  "Format debug message FMT with ARGS."
+  (when (and (numberp whale-line-log)
+             (>= 0 whale-line-log))
+    (apply #'whale-line-log--write (append (list fmt) args))))
 
 ;;; -- Setup
 
@@ -1013,12 +1033,12 @@ Sets up augments (again). If ARG is t, tears them down instead."
   "Switch to the log buffer."
   (interactive)
 
-  (let ((buffer (get-buffer whale-line--log-buffer-name)))
+  (let ((buffer (get-buffer whale-line-log--buffer-name)))
 
     (unless buffer
-      (user-error "You need to set `harpoon-log' to t first"))
+      (user-error "You need to set `harpoon-log' to 0 or 1 first"))
 
-    (pop-to-buffer (get-buffer whale-line--log-buffer-name))))
+    (pop-to-buffer (get-buffer whale-line-log--buffer-name))))
 
 ;;;###autoload
 (define-minor-mode whale-line-mode

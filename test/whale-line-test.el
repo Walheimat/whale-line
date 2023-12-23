@@ -575,9 +575,12 @@
 
     (bydi ((:spy whale-line-a--action)
            (:spy whale-line-b--action)
-           (:spy whale-line-c--action))
+           (:spy whale-line-c--action)
+           whale-line-debug)
 
       (whale-line--refresh-stateful-segments)
+
+      (bydi-was-called whale-line-debug)
 
       (bydi-was-called whale-line-a--action)
       (bydi-was-not-called whale-line-b--action)
@@ -715,7 +718,7 @@
          "Set up test segment."
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--setup))
-         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Setting up `test' (%s)" (whale-line--prop 'test :type))
          (add-hook 'first-hook #'whale-line-test--action)
          (add-hook 'second-hook #'whale-line-test--action)
          (advice-add 'one :after #'whale-line-test--action)
@@ -728,7 +731,7 @@
          "Tear down test segment."
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--teardown))
-         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Tearing down `test' (%s)" (whale-line--prop 'test :type))
          (remove-hook 'first-hook #'whale-line-test--action)
          (remove-hook 'second-hook #'whale-line-test--action)
          (advice-remove 'one #'whale-line-test--action)
@@ -747,7 +750,7 @@
         (unless
             (memq 'test whale-line-segments)
           (cl-return-from whale-line-test--setup))
-        (whale-line--log "Would set up test (%s)" (whale-line--prop 'test :type)))
+        (whale-line-log "Segment `test' (%s) requires no setup" (whale-line--prop 'test :type)))
       (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
       (cl-defun whale-line-test--teardown
           (&rest _)
@@ -755,7 +758,7 @@
         (unless
             (memq 'test whale-line-segments)
           (cl-return-from whale-line-test--teardown))
-        (whale-line--log "Would tear down test (%s)" (whale-line--prop 'test :type)))
+        (whale-line-log "Segment `test' (%s) requires no teardown" (whale-line--prop 'test :type)))
       (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown))))
 
 (ert-deftest whale-line--setup--early-return ()
@@ -772,7 +775,7 @@
          "Set up test segment."
          (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
            (cl-return-from whale-line-test--setup))
-         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Setting up `test' (%s)" (whale-line--prop 'test :type))
          (add-hook 'first-hook #'whale-line-test--action)
          (add-hook 'second-hook #'whale-line-test--action)
          (advice-add 'one :after #'whale-line-test--action)
@@ -785,7 +788,7 @@
          "Tear down test segment."
          (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
            (cl-return-from whale-line-test--teardown))
-         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Tearing down `test' (%s)" (whale-line--prop 'test :type))
          (remove-hook 'first-hook #'whale-line-test--action)
          (remove-hook 'second-hook #'whale-line-test--action)
          (advice-remove 'one #'whale-line-test--action)
@@ -805,7 +808,7 @@
          "Set up test segment."
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--setup))
-         (whale-line--log "Setting up test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Setting up `test' (%s)" (whale-line--prop 'test :type))
          (funcall 'one))
 
        (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
@@ -814,7 +817,7 @@
          "Tear down test segment."
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--teardown))
-         (whale-line--log "Tearing down test (%s)" (whale-line--prop 'test :type))
+         (whale-line-log "Tearing down `test' (%s)" (whale-line--prop 'test :type))
          (funcall 'two))
        (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
 
@@ -844,19 +847,19 @@
 
       (bydi-was-called-with run-hooks 'whale-line-teardown-hook))))
 
-(ert-deftest whale-line--log--formats ()
+(ert-deftest whale-line-log--formats ()
   (let ((whale-line-log nil))
 
-    (whale-line--log "This is a %s" "test")
+    (whale-line-log "This is a %s" "test")
 
-    (should-not (get-buffer whale-line--log-buffer-name))
+    (should-not (get-buffer whale-line-log--buffer-name))
 
-    (setq whale-line-log t)
+    (setq whale-line-log 0)
 
-    (whale-line--log "This is the %s message" "first")
-    (whale-line--log "This %s the %s message" "will be" "second")
+    (whale-line-log "This is the %s message" "first")
+    (whale-line-debug "This %s the %s message" "will be" "second")
 
-    (with-current-buffer (get-buffer whale-line--log-buffer-name)
+    (with-current-buffer (get-buffer whale-line-log--buffer-name)
       (should (string= (buffer-string)
                        "This is the first message\nThis will be the second message\n")))))
 
@@ -865,24 +868,24 @@
         (whale-line--last-build nil))
 
     (shut-up
-      (bydi (whale-line--log)
+      (bydi (whale-line-log)
 
         (ert-with-message-capture messages
 
           (whale-line--handle-build-difference)
 
-          (bydi-was-not-called whale-line--log)
+          (bydi-was-not-called whale-line-log)
 
           (whale-line--handle-build-difference)
 
-          (bydi-was-not-called whale-line--log)
+          (bydi-was-not-called whale-line-log)
 
           (setq whale-line-segments '(two four))
 
           (whale-line--handle-build-difference)
 
-          (bydi-was-called-nth-with whale-line--log '("Added segment(s) %s since last build" (four)) 0)
-          (bydi-was-called-nth-with whale-line--log '("Removed segment(s) %s since last build" (one three)) 1))))))
+          (bydi-was-called-nth-with whale-line-log '("Added segment(s) %s since last build" (four)) 0)
+          (bydi-was-called-nth-with whale-line-log '("Removed segment(s) %s since last build" (one three)) 1))))))
 
 (ert-deftest whale-line--normalize-list ()
   (should (equal (whale-line--normalize-list '(test))
@@ -947,15 +950,16 @@
     (bydi-was-called whale-line--trigger-augments)))
 
 (ert-deftest whale-line--pop-to-logs ()
-  (bydi (pop-to-buffer)
-    (whale-line--log "Make sure it exists")
+  (let ((whale-line-log 0))
+    (bydi (pop-to-buffer)
+      (whale-line-log "Make sure it exists")
 
-    (whale-line-pop-to-logs)
-    (bydi-was-called pop-to-buffer)
+      (whale-line-pop-to-logs)
+      (bydi-was-called pop-to-buffer)
 
-    (kill-buffer whale-line--log-buffer-name)
+      (kill-buffer whale-line-log--buffer-name)
 
-    (should-error (whale-line-pop-to-logs))))
+      (should-error (whale-line-pop-to-logs)))))
 
 ;;; whale-line-test.el ends here
 
