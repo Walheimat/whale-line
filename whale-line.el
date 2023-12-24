@@ -71,10 +71,12 @@ constraints."
   "Log level (or whether to log at all).
 
 This is either nil meaning on logs, or integers 1 or 0 for info
-and debug logging respectively."
+and debug logging respectively. Any other symbol also means info
+logging."
   :group 'whale-line
   :type '(choice (const :tag "No logging" nil)
                  (const :tag "Info logging" 1)
+                 (symbol :tag "Info logging")
                  (const :tag "Debug logging" 0)))
 
 ;;; -- Variables
@@ -932,14 +934,13 @@ This will call the respective segment's action."
 
 (defun whale-line-log (fmt &rest args)
   "Format FMT with ARGS."
-  (when (and (numberp whale-line-log)
-             (>= 1 whale-line-log))
+  (when whale-line-log
     (apply #'whale-line-log--write (append (list fmt) args))))
 
 (defun whale-line-debug (fmt &rest args)
   "Format debug message FMT with ARGS."
   (when (and (numberp whale-line-log)
-             (>= 0 whale-line-log))
+             (< whale-line-log 1))
     (apply #'whale-line-log--write (append (list fmt) args))))
 
 ;;; -- Setup
