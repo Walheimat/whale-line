@@ -1,4 +1,4 @@
-;;; whale-line.el --- A whale-based mode-line -*- lexical-binding: t; -*-
+;;; whale-line.el --- A whale of a mode-line -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
@@ -15,8 +15,8 @@
 ;;
 ;; You can also create augments to change the behavior or look of an
 ;; existing segment or create your own segments and augments using the
-;; `whale-line-create-*' macros. So you could use this package simply
-;; as a library to create your own mode-line.
+;; `whale-line-create-*' macros. Inf fact could use this package
+;; simply as a library to create your own mode-line.
 ;;
 ;; This package takes inspiration from two other great custom
 ;; mode-lines: `mood-line' and `doom-modeline'.
@@ -28,7 +28,7 @@
 ;;; -- Customization
 
 (defgroup whale-line nil
-  "A minimal mode-line configuration inspired by doom-modeline."
+  "Configure behavior of `whale-line' and its segments."
   :group 'mode-line)
 
 (defcustom whale-line-segments '(major-mode
@@ -50,8 +50,9 @@
                                  animation)
   "Segments shown in the mode line.
 
-Note that all symbols before symbol `|' are shown on the left,
-others on the right."
+This list needs to include symbol `|'. It is a divider
+determining which segments are shown on the left and which on the
+right."
   :group 'whale-line
   :type '(repeat symbol))
 
@@ -75,8 +76,8 @@ and debug logging respectively. Any other symbol also means info
 logging."
   :group 'whale-line
   :type '(choice (const :tag "No logging" nil)
-                 (const :tag "Info logging" 1)
                  (symbol :tag "Info logging")
+                 (const :tag "Info logging" 1)
                  (const :tag "Debug logging" 0)))
 
 ;;; -- Variables
@@ -142,15 +143,24 @@ logging."
 (defun whale-line--format ()
   "Return a list of aligned left and right segments.
 
-If there's not enough space, only shows the left segments and an
-ellipsis."
+This uses `whale-line-segment-strategy' to determine which
+formatter to call."
   (pcase whale-line-segment-strategy
+    ('prioritize
+     (whale-line--format-prioritize))
     ('ignore
      (whale-line--format-ignore))
     ('elide
-     (whale-line--format-elide))
-    ('prioritize
-     (whale-line--format-prioritize))))
+     (whale-line--format-elide))))
+
+(defun whale-line--format-prioritize ()
+  "Format mode line, prioritizing certain segments if space is lacking."
+  (if (whale-line--enough-space-p)
+      (whale-line--format-ignore)
+    (let ((lhs (whale-line--render :left t))
+          (rhs (whale-line--render :right t))
+          (rlen (length (whale-line--format-side :right t))))
+      `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
 
 (defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
@@ -164,15 +174,6 @@ ellipsis."
             rhs
           '((:eval (propertize (concat (whale-line--spacer) "..." (whale-line--spacer))
                                'face 'whale-line-shadow)))))))
-
-(defun whale-line--format-prioritize ()
-  "Format mode line, prioritizing certain segments if space is lacking."
-  (if (whale-line--enough-space-p)
-      (whale-line--format-ignore)
-    (let ((lhs (whale-line--render :left t))
-          (rhs (whale-line--render :right t))
-          (rlen (length (whale-line--format-side :right t))))
-      `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
 
 (defun whale-line--format-ignore ()
   "Format mode line ignoring space constraints."
@@ -206,7 +207,7 @@ per window configuration change."
   "Calculate the width for SIDE.
 
 This uses `string-pixel-width' for Emacs 29+, otherwise
-`window-font-width.'"
+`window-font-width'."
   (let ((formatted (whale-line--format-side side 'none)))
 
     (if (fboundp 'string-pixel-width)
@@ -521,21 +522,24 @@ nothing for augments."
 Stateful segments are represented by a variable that is updated
 by hooks or advice.
 
-GETTER is the form to evaluate to get the string (the setter is
-constructed by the macro).
+GETTER is the form to evaluate to get the form to display. The
+setter is constructed by the macro.
 
 HOOKS is a list of functions that will call the setter.
 
-ADVICE is a cons cell of the form (COMBINATOR .
-FUNCTIONS-TO-ADVISE) that will also call the setter. You're
-likely best served using AFTER instead.
+You can pass a list of functions to AFTER. These functions are
+advised to call the setter after they have been called.
 
-VERIFY is a function called before the segments are built. If it
-returns nil, the segment will not be included.
+ADVICE is a cons cell of the form (COMBINATOR .
+FUNCTIONS-TO-ADVISE) that will also call the setter.
 
 SETUP is the function called on setup, TEARDOWN that during teardown.
 
-This will also add the segment with PRIORITY or t.
+VERIFY is a function called during setup and build. If it returns
+nil, the SETUP is not executed and the segment is filtered out of
+the build.
+
+The segment is added with PRIORITY or t.
 
 If DENSE is t, the segment will not be padded.
 
@@ -543,7 +547,8 @@ PADDED can be either `left', `right' or `all' to document that
 the segment comes pre-padded on that or all sides.
 
 PORT is a function adapters can call to interact with the
-segment."
+segment. See description of PLUGS-INTO of
+`whale-line--create-augment'."
   (declare (indent defun))
 
   (let* ((segment (whale-line-symbol--segment name))
@@ -593,7 +598,7 @@ segment."
      dense
      padded
      port)
-  "Create a stateless segment name NAME.
+  "Create a stateless segment named NAME.
 
 A stateless segment is represented by a function that is called
 on every mode-line update.
@@ -604,10 +609,12 @@ be used to return a variable.
 CONDITION is the condition to evaluate before calling the
 renderer.
 
-VERIFY is a function called before the segments are built. If it
-returns nil, the segment will not be included.
+SETUP is the function called on setup, TEARDOWN that during
+teardown.
 
-SETUP is the function called on setup, TEARDOWN that during teardown.
+VERIFY is a function called during setup and build. If it returns
+nil, the SETUP is not executed and the segment is filtered out of
+the build.
 
 The segment will be added with PRIORITY or t.
 
@@ -617,7 +624,8 @@ PADDED can be either `left', `right' or `all' to document that
 the segment comes pre-padded on that or all sides.
 
 PORT is a function adapters can call to interact with the
-segment."
+segment. See description of PLUGS-INTO for
+`whale-line--create-augment'."
   (declare (indent defun))
 
   (let ((segment (whale-line-symbol--segment name))
@@ -663,18 +671,23 @@ segment."
 
 ACTION is the function to call for HOOKS.
 
-ADVICE is an cons cell of the form (ADVICE-COMBINATOR .
-FUNC-LIST). Each function in FUNC-LIST will be advised using
-ADIVCE-COMBINATOR to call ACTION. You are probably best served
-just using AFTER or AFTER-WHILE instead to create that kind of
-advice directly.
+You can pass lists of functions to AFTER or AFTER-WHILE to advise
+them with the combinator of the same name. These functions will
+be advised to call ACTION.
 
-Additional SETUP and TEARDOWN function can be added for more control.
+Alternatively you can pass a cons cell of the
+form (ADVICE-COMBINATOR . FUNC-LIST) to ADVICE. Each function in
+FUNC-LIST will be advised using ADIVCE-COMBINATOR to call ACTION.
 
-If VERIFY is t, the setup will verify before being executed.
+Additional SETUP and TEARDOWN functions can be added for more
+control.
 
-Alternatively you may pass a segment name to PLUGS-INTO. That
-segment is assumed to have defined a port function."
+VERIFY is a function called during setup. If it returns nil, the
+SETUP is not executed.
+
+You may pass a segment symbol to PLUGS-INTO. That segment is
+assumed to have defined a port function which will be called with
+the result of ACTION."
   (declare (indent defun))
 
   (let ((augment (whale-line-symbol--action name))
@@ -1037,7 +1050,7 @@ Sets up augments (again). If ARG is t, tears them down instead."
   (let ((buffer (get-buffer whale-line-log--buffer-name)))
 
     (unless buffer
-      (user-error "You need to set `harpoon-log' to 0 or 1 first"))
+      (user-error "You need to set `whale-line-log' first"))
 
     (pop-to-buffer (get-buffer whale-line-log--buffer-name))))
 
