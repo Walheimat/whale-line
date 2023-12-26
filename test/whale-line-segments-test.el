@@ -482,8 +482,7 @@
       (with-temp-buffer
         (setq-local minions-mode t)
 
-        (should (equal '((:propertize (:eval (minions--prominent-modes))
-                                      face whale-line-shadow)
+        (should (equal '((:eval (minions--prominent-modes))
                          " "
                          (:propertize (:eval minions-mode-line-lighter)
                                       face whale-line-shadow

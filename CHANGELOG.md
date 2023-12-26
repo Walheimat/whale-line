@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `whale-line-log` is now either `nil`, `0`, or `1`. The numbers
   represent log levels.
+- `minions` segment no longer propertizes the prominent modes using
+  `whale-line-shadow`.
 
 ## [v0.8.1]
 

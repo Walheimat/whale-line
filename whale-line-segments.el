@@ -571,8 +571,7 @@ Returns nil if not checking or if no errors were found."
 (defun whale-line-segments--minions--list (&rest _args)
   "Get the appropriate mode list."
   (if (bound-and-true-p minions-mode)
-      `((:propertize (:eval (minions--prominent-modes))
-                     face whale-line-shadow)
+      `((:eval (minions--prominent-modes))
         ,(whale-line--spacer)
         (:propertize (:eval minions-mode-line-lighter)
                      face whale-line-shadow
