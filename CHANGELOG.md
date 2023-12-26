@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `vc` segment now has different indicators per state that are
+  propertized with faces instead of the branch name itself.
+
 ### Changed
 
 - `whale-line-log` is now either `nil`, `0`, or `1`. The numbers

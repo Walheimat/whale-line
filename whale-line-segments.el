@@ -746,21 +746,21 @@ This is either an explicit name or its index."
 
 (defvar whale-line-segments--vc--scope-regexp "\\(feature\\|\\(\\w+\\)?fix\\|improvement\\)\\/")
 
-(defvar whale-line-segments--vc--states '((up-to-date . whale-line-neutral)
-                                          (edited . whale-line-indicate)
-                                          (needs-update . whale-line-contrast)
-                                          (needs-merge . whale-line-urgent)
-                                          (unlocked-changes . whale-line-urgent)
-                                          (added . whale-line-emphasis)
-                                          (removed . whale-line-emphasis)
-                                          (conflict . whale-line-urgent)
-                                          (missing . whale-line-contrast)
-                                          (ignored . whale-line-shadow)
-                                          (unregistered . whale-line-shadow)))
+(defvar whale-line-segments--vc--state-specs '((up-to-date . (whale-line-shadow "."))
+                                               (edited . (whale-line-contrast "*"))
+                                               (needs-update . (whale-line-contrast "&"))
+                                               (needs-merge . (whale-line-urgent "&"))
+                                               (unlocked-changes . (whale-line-urgent "!"))
+                                               (added . (whale-line-emphasis "+"))
+                                               (removed . (whale-line-emphasis "-"))
+                                               (conflict . (whale-line-urgent "!"))
+                                               (missing . (whale-line-contrast "?"))
+                                               (ignored . (whale-line-shadow "!"))
+                                               (unregistered . (whale-line-shadow "?"))))
 
-(defun whale-line-segments--vc--face-for-state (state)
-  "Get the correct face for the STATE."
-  (alist-get state whale-line-segments--vc--states 'whale-line-neutral))
+(defun whale-line-segments--vc--specs-for-state (state)
+  "Get the correct specs for STATE."
+  (alist-get state whale-line-segments--vc--state-specs '(whale-line-shadow ".")))
 
 (defun whale-line-segments--vc ()
   "Get version control info."
@@ -779,11 +779,12 @@ This is either an explicit name or its index."
              (backend (vc-backend buffer-file-name))
              (status (and vc-display-status
                           (substring vc-mode (+ (if (eq backend 'Hg) 2 3) 2))))
-             (state (vc-state buffer-file-name backend)))
+             (state (vc-state buffer-file-name backend))
+             (specs (whale-line-segments--vc--specs-for-state state)))
 
-    `(:propertize ,(replace-regexp-in-string whale-line-segments--vc--scope-regexp "" status)
-                  mouse-face whale-line-highlight
-                  face ,(whale-line-segments--vc--face-for-state state))))
+    `((:propertize ,(replace-regexp-in-string whale-line-segments--vc--scope-regexp "" status)
+                   mouse-face whale-line-highlight)
+      (:propertize ,(nth 1 specs) face ,(nth 0 specs)))))
 
 ;;;; -- Unregistered
 
@@ -799,11 +800,11 @@ This is either an explicit name or its index."
     (cond
      ((whale-line-segments--vc-unregistered--git-p file)
       (when-let* ((state (vc-state file 'Git))
-                  (help (format "File state: %s" state)))
+                  (help (format "File state: %s" state))
+                  (specs (whale-line-segments--vc--specs-for-state state)))
 
-        `(:propertize "Git"
-                      face ,(whale-line-segments--vc--face-for-state state)
-                      help-echo ,help))))))
+        `((:propertize "Git" help-echo ,help)
+          (:propertize ,(nth 1 specs) face ,(nth 0 specs))))))))
 
 (whale-line-create-stateful-segment vc
   :getter whale-line-segments--vc

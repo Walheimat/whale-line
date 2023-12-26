@@ -633,12 +633,12 @@
 ;;; -- VC
 
 (ert-deftest vc--face-for-state ()
-  (let ((whale-line-segments--vc--states '((test . neutral)
-                                           (live . urgent))))
+  (let ((whale-line-segments--vc--state-specs '((test . (neutral))
+                                                (live . (urgent)))))
 
-    (should (eq 'neutral (whale-line-segments--vc--face-for-state 'test)))
-    (should (eq 'urgent (whale-line-segments--vc--face-for-state 'live)))
-    (should (eq 'whale-line-neutral (whale-line-segments--vc--face-for-state 'unknown)))))
+    (should (eq 'neutral (car (whale-line-segments--vc--specs-for-state 'test))))
+    (should (eq 'urgent (car (whale-line-segments--vc--specs-for-state 'live))))
+    (should (eq 'whale-line-shadow (car (whale-line-segments--vc--specs-for-state 'unknown))))))
 
 (ert-deftest vc ()
   (bydi ((:always buffer-file-name)
@@ -661,9 +661,10 @@
     (bydi ((:mock vc-backend :return "none")
            (:mock vc-state :return 'testing)
            (:mock whale-line-segments--decorate :return "*")
-           (:mock whale-line-segments--vc--face-for-state :return 'test-face))
+           (:mock whale-line-segments--vc--specs-for-state :return '(test-face "?")))
 
-      (should (equal '(:propertize "tests" mouse-face whale-line-highlight face test-face)
+      (should (equal '((:propertize "tests" mouse-face whale-line-highlight)
+                       (:propertize "?" face test-face))
                      (whale-line-segments--vc-registered--info))))))
 
 (ert-deftest vc-unregistered--git-p ()
@@ -682,12 +683,13 @@
   (let ((name nil))
     (bydi ((:mock buffer-file-name :return name)
            (:sometimes whale-line-segments--vc-unregistered--git-p)
-           (:mock whale-line-segments--vc--face-for-state :return 'test-face)
+           (:mock whale-line-segments--vc--specs-for-state :return '(test-face "?"))
            (:mock vc-state :return 'testing))
 
       (should-not (whale-line-segments--vc-unregistered--info))
       (setq name "/tmp/testing")
-      (should (equal '(:propertize "Git" face test-face help-echo "File state: testing")
+      (should (equal '((:propertize "Git" help-echo "File state: testing")
+                       (:propertize "?" face test-face))
                      (whale-line-segments--vc-unregistered--info)))
       (bydi-toggle-sometimes)
       (should-not (whale-line-segments--vc-unregistered--info)))))
