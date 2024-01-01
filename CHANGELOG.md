@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `vc` segment now has different indicators per state that are
   propertized with faces instead of the branch name itself.
+- Segment for `mode-line-client`.
 
 ### Changed
 

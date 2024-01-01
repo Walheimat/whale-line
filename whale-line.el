@@ -39,6 +39,7 @@
                                  lsp
                                  debug
                                  selection
+                                 client
                                  process
                                  window-status
                                  |

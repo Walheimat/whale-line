@@ -224,6 +224,19 @@ See `whale-line-segments-decorator'."
   :var mode-line-process
   :priority low)
 
+;;;; -- Client
+
+(defvar whale-line-segments--client
+  '((:eval (when (frame-parameter nil 'client)
+             (if (whale-line-segments--decorates-p 'client)
+                 (propertize (whale-line-segments--decorate 'client)'help-echo "Client frame")
+               mode-line-client))))
+  "Segment for client.")
+
+(whale-line-create-stateless-segment client
+  :var whale-line-segments--client
+  :priority low)
+
 ;;;; -- Selection
 
 (defvar whale-line-segments--selection
