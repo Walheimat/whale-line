@@ -36,12 +36,12 @@
                                  org
                                  buffer-status
                                  position
-                                 lsp
-                                 debug
                                  selection
                                  client
-                                 process
+                                 lsp
+                                 debug
                                  window-status
+                                 process
                                  |
                                  misc-info
                                  minor-modes
