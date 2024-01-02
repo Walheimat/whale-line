@@ -235,7 +235,7 @@ See `whale-line-segments-decorator'."
 
 (whale-line-create-stateless-segment client
   :var whale-line-segments--client
-  :priority low)
+  :priority current-low)
 
 ;;;; -- Selection
 
