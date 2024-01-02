@@ -44,7 +44,8 @@ On the left window, the segment son the left are
 
 Not shown are segments for LSP and debug sessions, as well as
 =window-status= that each show an icon when they're active. Also not
-shown is =process= that shows =mode-line-process=
+shown is =process= that shows =mode-line-process= as well as =client=
+showing =mode-line-client=.
 
 On the right you can see
 
@@ -100,11 +101,12 @@ the change.
                          org
                          buffer-status
                          position
+                         selection
+                         client
                          lsp
                          debug
-                         selection
-                         process
                          window-status
+                         process
                          | ;; Divides into left and right.
                          misc-info
                          minor-modes
