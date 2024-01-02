@@ -53,7 +53,7 @@ This has no effect if icons cannot be enabled. See
     (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
     (lsp . (:name "plug" :face whale-line-contrast))
     (debug . (:name "bug" :face whale-line-urgent))
-    (client . (:name "server" :face 'whale-line-shadow)))
+    (client . (:name "server" :face whale-line-shadow)))
   "Icon specifications.
 
 This is an alist of (ICON-SYMBOL . SPECS). The ICON-SYMBOL is the
