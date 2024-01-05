@@ -353,22 +353,6 @@ and/or PADDED."
   "Get PROP for SEGMENT."
   (plist-get (cdr-safe (assoc segment whale-line--props)) prop))
 
-;; -- Symbol creation
-
-(defun whale-line--symbol-for-type (name type &optional soft)
-  "Get the symbol of TYPE for NAME.
-
-If SOFT is t, uses `intern-soft'."
-  (unless (memq type '(getter setter render verify setup teardown port))
-    (user-error "Invalid type `%s'" type))
-
-  (let* ((fmt (format "whale-line-%%s--%s" type))
-         (sym-name (format fmt name)))
-
-    (if soft
-        (intern-soft sym-name)
-      (intern sym-name))))
-
 ;;; -- Macros
 
 (cl-defmacro whale-line--setup (name &key setup teardown hooks advice verify)
@@ -977,6 +961,20 @@ considerations."
           (setq current-length (+ current-length item-length))))
 
       (string-join (reverse newlist)))))
+
+(defun whale-line--symbol-for-type (name type &optional soft)
+  "Get the symbol of TYPE for NAME.
+
+If SOFT is t, uses `intern-soft'."
+  (unless (memq type '(getter setter render verify setup teardown port))
+    (user-error "Invalid type `%s'" type))
+
+  (let* ((fmt (format "whale-line-%%s--%s" type))
+         (sym-name (format fmt name)))
+
+    (if soft
+        (intern-soft sym-name)
+      (intern sym-name))))
 
 ;;; -- Logging
 
