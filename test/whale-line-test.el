@@ -31,7 +31,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment.\nTriggered by `test-mode-hook'."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -58,7 +58,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -83,7 +83,7 @@
        (whale-line--set-props 'test 'stateful 'low 'nil 'nil)
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action (&rest _)
-         "Set test segment."
+         "Set `test' segment."
          (if-let ((str (whale-line-test--get-segment)))
              (setq whale-line-test--segment str)
            (setq whale-line-test--segment nil)))
@@ -109,7 +109,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -129,7 +129,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment.\nTriggered by `change-major-mode-hook'."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -151,7 +151,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment.\nTriggered by `some-fun'."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -171,7 +171,7 @@
        (defvar-local whale-line-test--segment 'initial)
        (defun whale-line-test--action
            (&rest _)
-         "Set test segment."
+         "Set `test' segment."
          (if-let
              ((str
                (whale-line-test--get-segment)))
@@ -277,17 +277,16 @@
     (bydi-match-expansion
      (whale-line--create-augment test
        :action (lambda () t)
-       :hooks (emacs-start-up)
-       :advice (:after . (kill-line))
+       :hooks (emacs-startup-hook kill-emacs-hook)
        :verify (lambda () t))
      '(progn
        (whale-line--set-props 'test 'augment)
        (whale-line--function whale-line-test--action
          (lambda nil t)
-         "Augment function for `test'." t)
+         "Augment function for `test'.\nTriggered by `emacs-startup-hook' and `kill-emacs-hook'." t)
        (whale-line--setup test
-         :hooks (emacs-start-up)
-         :advice (:after kill-line)
+         :hooks (emacs-startup-hook kill-emacs-hook)
+         :advice nil
          :setup nil
          :teardown nil
          :verify t)
@@ -298,14 +297,28 @@
     (bydi-match-expansion
      (whale-line--create-augment test
        :action (lambda () t)
-       :after (kill-line))
+       :after kill-line)
      '(progn
        (whale-line--set-props 'test 'augment)
        (whale-line--function whale-line-test--action
          (lambda nil t)
-         "Augment function for `test'." t)
+         "Augment function for `test'.\nTriggered by `kill-line'." t)
        (whale-line--setup test :hooks nil :advice
          (:after kill-line)
+         :setup nil :teardown nil :verify t)
+       (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))
+
+    (bydi-match-expansion
+     (whale-line--create-augment test
+       :action (lambda () t)
+       :after-while (kill-line forward-line))
+     '(progn
+       (whale-line--set-props 'test 'augment)
+       (whale-line--function whale-line-test--action
+         (lambda nil t)
+         "Augment function for `test'.\nTriggered by `kill-line' and `forward-line'." t)
+       (whale-line--setup test :hooks nil :advice
+         (:after-while kill-line forward-line)
          :setup nil :teardown nil :verify t)
        (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))))
 
@@ -322,7 +335,7 @@
            (&rest r)
            (apply 'whale-line-slot--port
                   (apply 'test-action r)))
-         "Augment function for `test'." t)
+         "Augment function for `test'.\nPlugs into `whale-line-slot--port'." t)
        (whale-line--setup test :hooks nil :advice nil :setup nil :teardown nil :verify t)
        (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))))
 

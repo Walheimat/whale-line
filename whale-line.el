@@ -558,10 +558,20 @@ segment. See description of PLUGS-INTO of
          (verify-sym (whale-line-symbol--verify name))
          (port-sym (whale-line-symbol--port name))
          (prio (or priority t))
+         (normal-hooks (whale-line--normalize-list hooks))
+         (normal-after (whale-line--normalize-list after))
+         (triggers (append normal-hooks normal-after))
          (advice (cond
                   ((not (null after))
                    `(:after . (,@(whale-line--normalize-list after))))
-                  (t advice))))
+                  (t advice)))
+         (setter-docs (cond
+                       ((not (null triggers))
+                        (format "Set `%s' segment.\nTriggered by %s."
+                                name
+                                (whale-line--concat-for-docs triggers 13)))
+                       (t
+                        (format "Set `%s' segment." name)))))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -570,7 +580,7 @@ segment. See description of PLUGS-INTO of
            (defvar-local ,segment 'initial)
 
            (defun ,setter (&rest _)
-             ,(format "Set %s segment." name)
+             ,setter-docs
              (if-let ((str (,getter-sym)))
                  (setq ,segment str)
                (setq ,segment nil)))
@@ -691,15 +701,27 @@ assumed to have defined a port function which will be called with
 the result of ACTION."
   (declare (indent defun))
 
-  (let ((augment (whale-line-symbol--action name))
-        (verify-sym (whale-line-symbol--verify name))
-        (port-sym (whale-line-symbol--port plugs-into))
-        (advice (cond
-                 ((not (null after))
-                  `(:after . (,@(whale-line--normalize-list after))))
-                 ((not (null after-while))
-                  `(:after-while . (,@(whale-line--normalize-list after-while))))
-                 (t advice))))
+  (let* ((augment (whale-line-symbol--action name))
+         (verify-sym (whale-line-symbol--verify name))
+         (port-sym (whale-line-symbol--port plugs-into))
+         (normal-after (whale-line--normalize-list after))
+         (normal-after-while (whale-line--normalize-list after-while))
+         (advice (cond
+                  ((not (null after))
+                   `(:after . ,normal-after))
+                  ((not (null after-while))
+                   `(:after-while . ,normal-after-while))
+                  (t advice)))
+         (triggers (append hooks normal-after normal-after-while))
+         (docs (cond
+                (plugs-into
+                 (format "Augment function for `%s'.\nPlugs into `%s'." name port-sym))
+                ((not (null triggers))
+                 (format "Augment function for `%s'.\nTriggered by %s."
+                         name
+                         (whale-line--concat-for-docs triggers 13)))
+                (t
+                 (format "Augment function for `%s'." name)))))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
@@ -713,7 +735,7 @@ the result of ACTION."
                                                             ',port-sym
                                                             (apply ',action r)))
                                                       action)
-                      ,(format "Augment function for `%s'." name) t))
+                      ,docs t))
                 (whale-line--setup ,name :hooks ,(whale-line--normalize-list hooks) :advice ,advice :setup ,setup :teardown ,teardown :verify t)
                 (whale-line--function ,verify-sym ,(or verify 'always) ,(format "Verify `%s' augment." name) t))))
       `(progn
@@ -926,6 +948,49 @@ This will call the respective segment's action."
   (if (listp obj)
       obj
     (list obj)))
+
+(defun whale-line--concat-for-docs (list &optional prefix-length)
+  "Concat LIST for a docstring.
+
+If PREFIX-LENGTH is non-nil, consider it during length
+considerations."
+  (let* ((llen (length list))
+         (last (1- llen))
+         (newlist nil)
+         (fmt "`%s'")
+         (current-length (or prefix-length 0)))
+
+    (if (eq 1 llen)
+
+        (format fmt (car list))
+
+      (dotimes (i llen)
+
+        (let* ((item (nth i list))
+               (next-item (concat
+                           (when (eq last i)
+                             "and ")
+                           (format fmt item)))
+               (item-length (length next-item)))
+
+
+          (unless (or (zerop i) (eq i last))
+            (push "," newlist)
+            (cl-incf item-length))
+
+          (if (>= (+ current-length item-length) 80)
+              (progn
+                (push "\n" newlist)
+                (setq current-length 0))
+            (unless (zerop i)
+              (push " " newlist)
+              (cl-incf item-length)))
+
+          (push next-item newlist)
+
+          (setq current-length (+ current-length item-length))))
+
+      (string-join (reverse newlist)))))
 
 ;;; -- Logging
 
