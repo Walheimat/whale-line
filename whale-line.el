@@ -331,7 +331,7 @@ Sets up augments. If ARG is t tears them down instead."
 
 (defun whale-line--valid-segment-p (segment)
   "Check that SEGMENT can be included."
-  (let ((verify-sym (whale-line-symbol--verify segment)))
+  (let ((verify-sym (whale-line--symbol-for-type segment 'verify)))
 
     (if (fboundp verify-sym)
         (funcall verify-sym)
@@ -355,33 +355,19 @@ and/or PADDED."
 
 ;; -- Symbol creation
 
-(defun whale-line-symbol--action (name)
-  "Get the symbol for action NAME."
-  (intern (format "whale-line-%s--action" (symbol-name name))))
+(defun whale-line--symbol-for-type (name type &optional soft)
+  "Get the symbol of TYPE for NAME.
 
-(defun whale-line-symbol--segment (name)
-  "Get the symbol for segment NAME."
-  (intern (format "whale-line-%s--segment" (symbol-name name))))
+If SOFT is t, uses `intern-soft'."
+  (unless (memq type '(getter setter render verify setup teardown port))
+    (user-error "Invalid type `%s'" type))
 
-(defun whale-line-symbol--verify (name)
-  "Get the symbol for verifying NAME."
-  (intern (format "whale-line-%s--verify" (symbol-name name))))
+  (let* ((fmt (format "whale-line-%%s--%s" type))
+         (sym-name (format fmt name)))
 
-(defun whale-line-symbol--setup (name)
-  "Get the symbol for setting up NAME."
-  (intern (format "whale-line-%s--setup" (symbol-name name))))
-
-(defun whale-line-symbol--teardown (name)
-  "Get the symbol for tearing down NAME."
-  (intern (format "whale-line-%s--teardown" (symbol-name name))))
-
-(defun whale-line-symbol--get-segment (name)
-  "Get the symbol for getting segment NAME."
-  (intern (format "whale-line-%s--get-segment" (symbol-name name))))
-
-(defun whale-line-symbol--port (name)
-  "Get the symbol for getting port for NAME."
-  (intern (format "whale-line-%s--port" (symbol-name name))))
+    (if soft
+        (intern-soft sym-name)
+      (intern sym-name))))
 
 ;;; -- Macros
 
@@ -401,10 +387,10 @@ execution of the setup. If verification fails, the function will
 return early."
   (declare (indent defun))
 
-  (let ((setter-sym (whale-line-symbol--action name))
-        (setup-sym (whale-line-symbol--setup name))
-        (teardown-sym (whale-line-symbol--teardown name))
-        (verify-sym (whale-line-symbol--verify name)))
+  (let ((setter-sym (whale-line--symbol-for-type name 'setter))
+        (setup-sym (whale-line--symbol-for-type name 'setup))
+        (teardown-sym (whale-line--symbol-for-type name 'teardown))
+        (verify-sym (whale-line--symbol-for-type name 'verify)))
 
     `(progn
        (cl-defun ,setup-sym (&rest _)
@@ -491,7 +477,7 @@ the docstring. If APPLY is t, use `apply' instead of `funcall'."
 TYPE controls what is emitted: a variable for stateful segments, a
 function returning the empty string for stateless segments and
 nothing for augments."
-  (let ((segment-sym (whale-line-symbol--segment name)))
+  (let ((segment-sym (whale-line--symbol-for-type name 'render)))
     `(progn
        ,(pcase type
           ('stateless
@@ -552,11 +538,11 @@ segment. See description of PLUGS-INTO of
 `whale-line--create-augment'."
   (declare (indent defun))
 
-  (let* ((segment (whale-line-symbol--segment name))
-         (setter (whale-line-symbol--action name))
-         (getter-sym (whale-line-symbol--get-segment name))
-         (verify-sym (whale-line-symbol--verify name))
-         (port-sym (whale-line-symbol--port name))
+  (let* ((segment (whale-line--symbol-for-type name 'render))
+         (setter (whale-line--symbol-for-type name 'setter))
+         (getter-sym (whale-line--symbol-for-type name 'getter))
+         (verify-sym (whale-line--symbol-for-type name 'verify))
+         (port-sym (whale-line--symbol-for-type name 'port))
          (prio (or priority t))
          (normal-hooks (whale-line--normalize-list hooks))
          (normal-after (whale-line--normalize-list after))
@@ -639,10 +625,10 @@ segment. See description of PLUGS-INTO for
 `whale-line--create-augment'."
   (declare (indent defun))
 
-  (let ((segment (whale-line-symbol--segment name))
-        (getter-sym (whale-line-symbol--get-segment name))
-        (verify-sym (whale-line-symbol--verify name))
-        (port-sym (whale-line-symbol--port name))
+  (let ((segment (whale-line--symbol-for-type name 'render))
+        (getter-sym (whale-line--symbol-for-type name 'getter))
+        (verify-sym (whale-line--symbol-for-type name 'verify))
+        (port-sym (whale-line--symbol-for-type name 'port))
         (prio (or priority t))
         (con (or condition t)))
 
@@ -701,9 +687,9 @@ assumed to have defined a port function which will be called with
 the result of ACTION."
   (declare (indent defun))
 
-  (let* ((augment (whale-line-symbol--action name))
-         (verify-sym (whale-line-symbol--verify name))
-         (port-sym (whale-line-symbol--port plugs-into))
+  (let* ((augment (whale-line--symbol-for-type name 'setter))
+         (verify-sym (whale-line--symbol-for-type name 'verify))
+         (port-sym (whale-line--symbol-for-type plugs-into 'port))
          (normal-after (whale-line--normalize-list after))
          (normal-after-while (whale-line--normalize-list after-while))
          (advice (cond
@@ -788,8 +774,8 @@ Optionally FILTER out low priority segments."
   (delq nil (mapcar
              (lambda (it)
                (when-let* ((sym it)
-                           (segment (whale-line-symbol--segment sym))
-                           (setter (whale-line-symbol--action sym)))
+                           (segment (whale-line--symbol-for-type sym 'render))
+                           (setter (whale-line--symbol-for-type sym 'setter)))
 
                  (if (functionp segment)
                      `(:eval (whale-line--pad-segment ',sym (,segment)))
@@ -928,7 +914,7 @@ This will refresh stateful segments."
   "Refresh all stateful segments.
 
 This will call the respective segment's action."
-  (let* ((interner (lambda (it) (intern-soft (format "whale-line-%s--action" it))))
+  (let* ((interner (lambda (it) (whale-line--symbol-for-type it 'setter t)))
          (actions (mapcar interner (whale-line--segments-by-type 'stateful))))
 
     (whale-line-debug "Refreshing stateful segments (%s)" (format-time-string "%H:%M:%S"))

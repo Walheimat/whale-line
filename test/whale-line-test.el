@@ -28,16 +28,16 @@
        :setup (lambda () t))
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment.\nTriggered by `test-mode-hook'."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter
          (lambda nil t)
          "Get the test segment.")
        (whale-line--setup test :setup
@@ -55,16 +55,16 @@
        :getter (lambda () t))
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter
          (lambda nil t)
          "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)))))
@@ -81,14 +81,14 @@
        :priority low)
      '(progn
        (whale-line--set-props 'test 'stateful 'low 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action (&rest _)
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter (&rest _)
          "Set `test' segment."
-         (if-let ((str (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
+         (if-let ((str (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
 
-       (whale-line--function whale-line-test--get-segment ignore "Get the test segment.")
+       (whale-line--function whale-line-test--getter ignore "Get the test segment.")
 
        (whale-line--setup test
          :setup ignore
@@ -106,16 +106,16 @@
        :port test-port)
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment nil "Get the test segment.")
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter nil "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks nil :teardown nil :verify nil)
        (whale-line--function whale-line-test--port test-port "Plug into `test-port'" t)))))
 
@@ -126,16 +126,16 @@
        :hooks change-major-mode-hook)
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment.\nTriggered by `change-major-mode-hook'."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment nil "Get the test segment.")
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter nil "Get the test segment.")
        (whale-line--setup test :setup nil :advice nil :hooks
          (change-major-mode-hook)
          :teardown nil :verify nil)))))
@@ -148,16 +148,16 @@
        :after (some-fun))
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment.\nTriggered by `some-fun'."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment test-getter "Get the test segment.")
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter test-getter "Get the test segment.")
        (whale-line--setup test :setup nil :advice
          (:after some-fun)
          :hooks nil :teardown nil :verify nil)))
@@ -168,16 +168,16 @@
        :advice (:after . (some-fun other-fun)))
      '(progn
        (whale-line--set-props 'test 'stateful 't 'nil 'nil)
-       (defvar-local whale-line-test--segment 'initial)
-       (defun whale-line-test--action
+       (defvar-local whale-line-test--render 'initial)
+       (defun whale-line-test--setter
            (&rest _)
          "Set `test' segment."
          (if-let
              ((str
-               (whale-line-test--get-segment)))
-             (setq whale-line-test--segment str)
-           (setq whale-line-test--segment nil)))
-       (whale-line--function whale-line-test--get-segment test-getter "Get the test segment.")
+               (whale-line-test--getter)))
+             (setq whale-line-test--render str)
+           (setq whale-line-test--render nil)))
+       (whale-line--function whale-line-test--getter test-getter "Get the test segment.")
        (whale-line--setup test :setup nil :advice
          (:after some-fun other-fun)
          :hooks nil :teardown nil :verify nil)))))
@@ -192,13 +192,13 @@
        :setup (lambda () t))
      '(progn
        (whale-line--set-props 'test 'stateless 't 'nil 'nil)
-       (defun whale-line-test--segment ()
+       (defun whale-line-test--render ()
          "Render `test' segment."
          (or
           (when t
-            (whale-line-test--get-segment))
+            (whale-line-test--getter))
           ""))
-       (whale-line--function whale-line-test--get-segment
+       (whale-line--function whale-line-test--getter
          (lambda nil t)
          "Get the `test' segment.")
        (whale-line--setup test :setup (lambda nil t) :teardown (lambda nil t) :verify t)
@@ -212,7 +212,7 @@
        :var test-variable-segment)
      '(progn
        (whale-line--set-props 'test 'stateless 't 'nil 'nil)
-       (defun whale-line-test--segment ()
+       (defun whale-line-test--render ()
          "Render `test' segment."
          (or (when t test-variable-segment) ""))
        (whale-line--setup test :setup nil :teardown nil :verify nil)))))
@@ -226,13 +226,13 @@
        :dense t)
      '(progn
        (whale-line--set-props 'test 'stateless 't 't 'nil)
-       (defun whale-line-test--segment ()
+       (defun whale-line-test--render ()
          "Render `test' segment."
          (or
           (when buffer-file-name
-            (whale-line-test--get-segment))
+            (whale-line-test--getter))
           ""))
-       (whale-line--function whale-line-test--get-segment ignore "Get the `test' segment.")
+       (whale-line--function whale-line-test--getter ignore "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)))))
 
 (ert-deftest whale-line--create-stateless-segment--with-port ()
@@ -242,12 +242,12 @@
        :port test-port)
      '(progn
        (whale-line--set-props 'test 'stateless 't 'nil 'nil)
-       (defun whale-line-test--segment nil "Render `test' segment."
+       (defun whale-line-test--render nil "Render `test' segment."
               (or
                (when t
-                 (whale-line-test--get-segment))
+                 (whale-line-test--getter))
                ""))
-       (whale-line--function whale-line-test--get-segment nil "Get the `test' segment.")
+       (whale-line--function whale-line-test--getter nil "Get the `test' segment.")
        (whale-line--setup test :setup nil :teardown nil :verify nil)
        (whale-line--function whale-line-test--port test-port "Plug into `test-port'." t)))))
 
@@ -261,7 +261,7 @@
 
      '(progn
        (whale-line--set-props 'test 'augment)
-       (whale-line--function whale-line-test--action ignore
+       (whale-line--function whale-line-test--setter ignore
          "Augment function for `test'." t)
        (whale-line--setup test
          :hooks nil
@@ -281,7 +281,7 @@
        :verify (lambda () t))
      '(progn
        (whale-line--set-props 'test 'augment)
-       (whale-line--function whale-line-test--action
+       (whale-line--function whale-line-test--setter
          (lambda nil t)
          "Augment function for `test'.\nTriggered by `emacs-startup-hook' and `kill-emacs-hook'." t)
        (whale-line--setup test
@@ -300,7 +300,7 @@
        :after kill-line)
      '(progn
        (whale-line--set-props 'test 'augment)
-       (whale-line--function whale-line-test--action
+       (whale-line--function whale-line-test--setter
          (lambda nil t)
          "Augment function for `test'.\nTriggered by `kill-line'." t)
        (whale-line--setup test :hooks nil :advice
@@ -314,7 +314,7 @@
        :after-while (kill-line forward-line))
      '(progn
        (whale-line--set-props 'test 'augment)
-       (whale-line--function whale-line-test--action
+       (whale-line--function whale-line-test--setter
          (lambda nil t)
          "Augment function for `test'.\nTriggered by `kill-line' and `forward-line'." t)
        (whale-line--setup test :hooks nil :advice
@@ -330,7 +330,7 @@
        :plugs-into slot)
      '(progn
        (whale-line--set-props 'test 'augment)
-       (whale-line--function whale-line-test--action
+       (whale-line--function whale-line-test--setter
          (lambda
            (&rest r)
            (apply 'whale-line-slot--port
@@ -582,22 +582,22 @@
 (ert-deftest whale-line--refresh-stateful-segments ()
   (let ((whale-line--props '((a :type stateful) (b :type stateless) (c :type stateful))))
 
-    (defun whale-line-a--action () nil)
-    (defun whale-line-b--action () nil)
-    (defun whale-line-c--action () nil)
+    (defun whale-line-a--setter () nil)
+    (defun whale-line-b--setter () nil)
+    (defun whale-line-c--setter () nil)
 
-    (bydi ((:spy whale-line-a--action)
-           (:spy whale-line-b--action)
-           (:spy whale-line-c--action)
+    (bydi ((:spy whale-line-a--setter)
+           (:spy whale-line-b--setter)
+           (:spy whale-line-c--setter)
            whale-line-debug)
 
       (whale-line--refresh-stateful-segments)
 
       (bydi-was-called whale-line-debug)
 
-      (bydi-was-called whale-line-a--action)
-      (bydi-was-not-called whale-line-b--action)
-      (bydi-was-called whale-line-c--action))))
+      (bydi-was-called whale-line-a--setter)
+      (bydi-was-not-called whale-line-b--setter)
+      (bydi-was-called whale-line-c--setter))))
 
 (ert-deftest whale-line--is-current-window-p ()
 
@@ -706,16 +706,16 @@
       (bydi-was-not-called whale-line--filter))))
 
 (ert-deftest whale-line--render-segments ()
-  (bydi ((:mock functionp :with (lambda (x) (eq 'whale-line-three--segment x))))
-    (defvar whale-line-one--segment)
-    (defvar whale-line-four--segment)
+  (bydi ((:mock functionp :with (lambda (x) (eq 'whale-line-three--render x))))
+    (defvar whale-line-one--render)
+    (defvar whale-line-four--render)
     (let ((segments '(one three four))
-          (whale-line-one--segment "one")
-          (whale-line-four--segment 'initial))
+          (whale-line-one--render "one")
+          (whale-line-four--render 'initial))
 
-      (should (equal '((:eval (whale-line--pad-segment 'one whale-line-one--segment))
-                       (:eval (whale-line--pad-segment 'three (whale-line-three--segment)))
-                       (:eval (whale-line--pad-segment 'four (whale-line-four--action))))
+      (should (equal '((:eval (whale-line--pad-segment 'one whale-line-one--render))
+                       (:eval (whale-line--pad-segment 'three (whale-line-three--render)))
+                       (:eval (whale-line--pad-segment 'four (whale-line-four--setter))))
                      (whale-line--render-segments segments))))))
 
 (ert-deftest whale-line--setup ()
@@ -732,10 +732,10 @@
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--setup))
          (whale-line-log "Setting up `test' (%s)" (whale-line--prop 'test :type))
-         (add-hook 'first-hook #'whale-line-test--action)
-         (add-hook 'second-hook #'whale-line-test--action)
-         (advice-add 'one :after #'whale-line-test--action)
-         (advice-add 'two :after #'whale-line-test--action)
+         (add-hook 'first-hook #'whale-line-test--setter)
+         (add-hook 'second-hook #'whale-line-test--setter)
+         (advice-add 'one :after #'whale-line-test--setter)
+         (advice-add 'two :after #'whale-line-test--setter)
          (funcall (lambda nil t)))
 
        (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
@@ -745,10 +745,10 @@
          (unless (memq 'test whale-line-segments)
            (cl-return-from whale-line-test--teardown))
          (whale-line-log "Tearing down `test' (%s)" (whale-line--prop 'test :type))
-         (remove-hook 'first-hook #'whale-line-test--action)
-         (remove-hook 'second-hook #'whale-line-test--action)
-         (advice-remove 'one #'whale-line-test--action)
-         (advice-remove 'two #'whale-line-test--action)
+         (remove-hook 'first-hook #'whale-line-test--setter)
+         (remove-hook 'second-hook #'whale-line-test--setter)
+         (advice-remove 'one #'whale-line-test--setter)
+         (advice-remove 'two #'whale-line-test--setter)
          (funcall (lambda nil t)))
 
        (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
@@ -789,10 +789,10 @@
          (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
            (cl-return-from whale-line-test--setup))
          (whale-line-log "Setting up `test' (%s)" (whale-line--prop 'test :type))
-         (add-hook 'first-hook #'whale-line-test--action)
-         (add-hook 'second-hook #'whale-line-test--action)
-         (advice-add 'one :after #'whale-line-test--action)
-         (advice-add 'two :after #'whale-line-test--action)
+         (add-hook 'first-hook #'whale-line-test--setter)
+         (add-hook 'second-hook #'whale-line-test--setter)
+         (advice-add 'one :after #'whale-line-test--setter)
+         (advice-add 'two :after #'whale-line-test--setter)
          (funcall (lambda nil t)))
 
        (add-hook 'whale-line-setup-hook #'whale-line-test--setup)
@@ -802,10 +802,10 @@
          (unless (and (not whale-line--rebuilding) (whale-line-test--verify))
            (cl-return-from whale-line-test--teardown))
          (whale-line-log "Tearing down `test' (%s)" (whale-line--prop 'test :type))
-         (remove-hook 'first-hook #'whale-line-test--action)
-         (remove-hook 'second-hook #'whale-line-test--action)
-         (advice-remove 'one #'whale-line-test--action)
-         (advice-remove 'two #'whale-line-test--action)
+         (remove-hook 'first-hook #'whale-line-test--setter)
+         (remove-hook 'second-hook #'whale-line-test--setter)
+         (advice-remove 'one #'whale-line-test--setter)
+         (advice-remove 'two #'whale-line-test--setter)
          (funcall (lambda nil t)))
 
        (add-hook 'whale-line-teardown-hook #'whale-line-test--teardown)))))
@@ -973,6 +973,10 @@
       (kill-buffer whale-line-log--buffer-name)
 
       (should-error (whale-line-pop-to-logs)))))
+
+(ert-deftest whale-line--symbol-for-type--errors-for-unknown ()
+
+  (should-error (whale-line--symbol-for-type 'segment 'something)))
 
 ;;; whale-line-test.el ends here
 
