@@ -25,7 +25,7 @@
 
 (require 'cl-lib)
 
-;;; -- Customization
+;;;; Customization
 
 (defgroup whale-line nil
   "Configure behavior of `whale-line' and its segments."
@@ -81,7 +81,7 @@ logging."
                  (const :tag "Info logging" 1)
                  (const :tag "Debug logging" 0)))
 
-;;; -- Variables
+;;;; Variables
 
 (defvar whale-line-mode-line '("%e" (:eval (whale-line--format))))
 (defvar whale-line--default-mode-line nil)
@@ -99,7 +99,7 @@ logging."
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
 
-;;; -- Faces
+;;;; Faces
 
 (defface whale-line-neutral
   '((t))
@@ -141,7 +141,7 @@ logging."
   "Face used for urgency."
   :group 'whale-line)
 
-;;; -- Formatting
+;;;; Formatting
 
 (defun whale-line--format ()
   "Return a list of aligned left and right segments.
@@ -191,7 +191,7 @@ formatter to call."
 Optionally FILTER out low priority segments."
   (format-mode-line (whale-line--render side filter)))
 
-;;; -- Space calculation
+;;;; Space calculation
 
 (defun whale-line--calculate-space ()
   "Calculate space constraints for all visible windows.
@@ -245,7 +245,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
    'display
    `((space :align-to (- right (- 0 right-margin) ,length)))))
 
-;;; -- Windows
+;;;; Windows
 
 (defun whale-line--get-current-window ()
   "Get the current window but should exclude the child windows."
@@ -265,14 +265,14 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
   (and whale-line--current-window
        (eq (whale-line--get-current-window) whale-line--current-window)))
 
-;;; -- Caches
+;;;; Caches
 
 (defun whale-line--clear-caches ()
   "Clear all caches."
   (clrhash whale-line--padded-cache)
   (clrhash whale-line--space-cache))
 
-;;; -- Building segments
+;;;; Building segments
 
 (defvar whale-line--last-build nil)
 (defvar whale-line--rebuilding nil)
@@ -339,7 +339,7 @@ Sets up augments. If ARG is t tears them down instead."
         (funcall verify-sym)
       t)))
 
-;;; -- Props
+;;;; Props
 
 (defun whale-line--set-props (segment type &optional priority dense padded)
   "Set props for SEGMENT.
@@ -355,7 +355,7 @@ and/or PADDED."
   "Get PROP for SEGMENT."
   (plist-get (cdr-safe (assoc segment whale-line--props)) prop))
 
-;;; -- Macros
+;;;; Macros
 
 (cl-defmacro whale-line--setup (name &key setup teardown hooks advice verify)
   "Create setup for NAME.
@@ -713,7 +713,7 @@ the result of ACTION."
       `(progn
          (whale-line--omit ,name augment)))))
 
-;;; -- Priorities
+;;;; Priorities
 
 (defvar whale-line--priorities '(t low current current-low))
 
@@ -743,7 +743,7 @@ ARGS is a list of segments followed by a priority value."
 
     (macroexp-progn commands)))
 
-;;; -- Rendering
+;;;; Rendering
 
 (defun whale-line--render (side &optional filter)
   "Render SIDE.
@@ -773,7 +773,7 @@ Optionally FILTER out low priority segments."
                      `(:eval (whale-line--pad-segment ',sym ,eval))))))
              segments)))
 
-;;; -- Padding
+;;;; Padding
 
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
@@ -855,7 +855,7 @@ If DENSE is t, add no padding."
   "Check if RENDER is empty."
   (member render whale-line--empty-renders))
 
-;;; -- Filtering
+;;;; Filtering
 
 (defun whale-line--filter (segments &optional low-space)
   "Filter SEGMENTS.
@@ -884,7 +884,7 @@ If LOW-SPACE is t, filter out additional segments."
       (list 'current 'current-low 'low)
     (list 'current 'current-low)))
 
-;;; -- Refreshing
+;;;; Refreshing
 
 (defun whale-line--queue-refresh ()
   "Queue a refresh.
@@ -907,7 +907,7 @@ This will call the respective segment's action."
 
     (mapc #'funcall actions)))
 
-;;; -- Helpers
+;;;; Helpers
 
 (defun whale-line--segments-by-type (type)
   "Get all segments matching TYPE."
@@ -978,7 +978,7 @@ If SOFT is t, uses `intern-soft'."
         (intern-soft sym-name)
       (intern sym-name))))
 
-;;; -- Logging
+;;;; Logging
 
 (defvar whale-line-log--buffer-name " *whale-line*")
 
@@ -1008,7 +1008,7 @@ If SOFT is t, uses `intern-soft'."
              (< whale-line-log 1))
     (apply #'whale-line-log--write (append (list fmt) args))))
 
-;;; -- Setup
+;;;; Setup
 
 (defun whale-line-mode--setup ()
   "Set up `whale-line-mode'."
@@ -1038,7 +1038,7 @@ If SOFT is t, uses `intern-soft'."
   ;; Restore the original mode-line format
   (setq-default mode-line-format whale-line--default-mode-line))
 
-;;; -- API
+;;;; API
 
 ;;;###autoload
 (defmacro whale-line-create-stateful-segment (name &rest args)

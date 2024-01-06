@@ -24,7 +24,7 @@
 (declare-function whale-line-iconify "whale-line-iconify.el")
 (declare-function whale-line-iconify-decorates-p "whale-line-iconify.el")
 
-;;; -- Customization
+;;;; Customization
 
 (defgroup whale-line-segments nil
   "Settings for individual segments."
@@ -90,7 +90,7 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
-;;; -- Utility
+;;;; Utility
 
 (defun whale-line-segments--decorate (symbol &rest args)
   "Get the decoration for SYMBOL passing ARGS.
@@ -104,9 +104,9 @@ See `whale-line-segments-decorator'."
   (when (fboundp whale-line-segments-decorates)
     (funcall whale-line-segments-decorates symbol)))
 
-;;; -- Segments
+;;;; Segments
 
-;;;; -- Buffer identification
+;;;;; Buffer identification
 
 (defvar whale-line-segments-buffer-identification-hook nil
   "Hook run to make `buffer-identification' segment react.")
@@ -134,7 +134,7 @@ See `whale-line-segments-decorator'."
   :after (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)
   :port whale-line-segments--buffer-identification--set-additional)
 
-;;;; -- Buffer status
+;;;;; Buffer status
 
 (defun whale-line-segments--buffer-status ()
   "Render buffer status."
@@ -167,7 +167,7 @@ See `whale-line-segments-decorator'."
 (whale-line-create-stateless-segment buffer-status
   :getter whale-line-segments--buffer-status)
 
-;;;; -- Window status
+;;;;; Window status
 
 (defun whale-line-segments--window-status ()
   "Render window status segment."
@@ -183,7 +183,7 @@ See `whale-line-segments-decorator'."
 (whale-line-create-stateless-segment window-status
   :getter whale-line-segments--window-status)
 
-;;;; -- Position
+;;;;; Position
 
 (defvar whale-line-segments--position
   '((pdf-view--server-file-name
@@ -213,26 +213,26 @@ See `whale-line-segments-decorator'."
   :var whale-line-segments--position
   :priority current)
 
-;;;; -- Misc info
+;;;;; Misc info
 
 (whale-line-create-stateless-segment misc-info
   :var mode-line-misc-info
   :priority current-low)
 
-;;;; -- Minor modes
+;;;;; Minor modes
 
 (whale-line-create-stateless-segment minor-modes
   :var minor-mode-alist
   :padded left
   :priority current)
 
-;;;; -- Process
+;;;;; Process
 
 (whale-line-create-stateless-segment process
   :var mode-line-process
   :priority low)
 
-;;;; -- Client
+;;;;; Client
 
 (defvar whale-line-segments--client
   '((:eval (when (frame-parameter nil 'client)
@@ -246,7 +246,7 @@ See `whale-line-segments-decorator'."
   :var whale-line-segments--client
   :priority current-low)
 
-;;;; -- Selection
+;;;;; Selection
 
 (defvar whale-line-segments--selection
   '((mark-active
@@ -282,7 +282,7 @@ See `whale-line-segments-decorator'."
   :priority current
   :dense (lambda () (not mark-active)))
 
-;;;; -- Animation
+;;;;; Animation
 
 (defvar whale-line-segments--animation-frame-index 0)
 (defvar whale-line-segments--animation-timer nil)
@@ -324,7 +324,7 @@ Afterwards a mode-line update is forced to display the new frame."
   :teardown whale-line-segments--animation-stop-timer
   :priority current-low)
 
-;;;; -- Flycheck
+;;;;; Flycheck
 
 (declare-function flycheck-count-errors "ext:flycheck.el")
 
@@ -379,7 +379,7 @@ Returns nil if not checking or if no errors were found."
   :plugs-into buffer-identification
   :hooks (flycheck-status-changed-functions))
 
-;;;; -- Flymake segment
+;;;;; Flymake
 
 (declare-function flymake--diag-type "ext:flymake.el")
 (declare-function flymake-running-backends "ext:flymake.el")
@@ -456,7 +456,7 @@ Returns nil if not checking or if no errors were found."
   :plugs-into buffer-identification
   :after flymake--mode-line-exception)
 
-;;;; -- Major mode
+;;;;; Major mode
 
 (defun whale-line-segments--major-mode--decorated ()
   "Get the decoration for the `major-mode'."
@@ -482,7 +482,7 @@ Returns nil if not checking or if no errors were found."
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
   :getter whale-line-segments--major-mode)
 
-;;; -- LSP
+;;;;; LSP
 
 (declare-function lsp-workspaces "ext:lsp-mode.el")
 (declare-function lsp--workspace-print "ext:lsp-mode.el")
@@ -550,7 +550,7 @@ Returns nil if not checking or if no errors were found."
    eglot-server-initialized-hook
    eglot-managed-mode-hook))
 
-;;; -- Debugging
+;;;;; Debugging
 
 (declare-function dap--cur-session "ext:dap-mode.el")
 (declare-function dap--debug-session-name "ext:dap-mode.el")
@@ -582,7 +582,7 @@ Returns nil if not checking or if no errors were found."
    dap-session-changed-hook
    dap-terminated-hook))
 
-;;; -- Minions
+;;;;; Minions
 
 (declare-function minions--prominent-modes "ext:minions.el")
 
@@ -605,7 +605,7 @@ Returns nil if not checking or if no errors were found."
   :action whale-line-segments--minions--list
   :after-while whale-line-minor-modes--render)
 
-;;; -- Org
+;;;;; Org
 
 (eval-when-compile
   (require 'org))
@@ -689,7 +689,7 @@ Use FACE for the ellipsis glyph."
   :condition (derived-mode-p 'org-mode)
   :priority current)
 
-;;; -- Project
+;;;;; Project
 
 (declare-function project-name "ext:project.el")
 (declare-function project-root "ext:project.el")
@@ -738,7 +738,7 @@ Only consider Dired buffers and file buffers."
   :hooks (find-file-hook)
   :priority low)
 
-;;; --- Tab bar
+;;;;; Tab bar
 
 (defun whale-line-segments--tab-bar--identifier ()
   "Get the identifier of the current tab.
@@ -762,7 +762,7 @@ This is either an explicit name or its index."
   :hooks (window-configuration-change-hook)
   :priority current)
 
-;;; -- VC
+;;;;; VC
 
 (declare-function vc-git-root "ext:vc-git.el")
 
@@ -793,7 +793,7 @@ This is either an explicit name or its index."
           (list decorated (whale-line--spacer)))
       ,info)))
 
-;;;; -- Registered
+;;;;;; Registered
 
 (defun whale-line-segments--vc-registered--info ()
   "Get info for registered files."
@@ -808,7 +808,7 @@ This is either an explicit name or its index."
                    mouse-face whale-line-highlight)
       (:propertize ,(nth 1 specs) face ,(nth 0 specs)))))
 
-;;;; -- Unregistered
+;;;;;; Unregistered
 
 (defun whale-line-segments--vc-unregistered--git-p (file)
   "Check whether the unregistered FILE is in a git repository."

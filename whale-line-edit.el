@@ -136,7 +136,7 @@ Returns a list of warnings for every issue found."
 
     warnings))
 
-;;; -- API
+;;;; API
 
 ;;;###autoload
 (defun whale-line-edit ()

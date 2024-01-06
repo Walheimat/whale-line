@@ -339,7 +339,7 @@
        (whale-line--setup test :hooks nil :advice nil :setup nil :teardown nil :verify t)
        (whale-line--function whale-line-test--verify always "Verify `test' augment." t)))))
 
-;;; -- Priorities
+;;;; Priorities
 
 (ert-deftest whale-line--update-priorities ()
   (let ((whale-line--props '((one :priority nil) (two :priority nil) (three :priority nil))))

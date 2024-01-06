@@ -102,7 +102,7 @@
 
       (bydi-was-called whale-line-segments--buffer-status--writable))))
 
-;;; -- Window status
+;;;; Window status
 
 (ert-deftest window-status ()
   (should-not (whale-line-segments--window-status))
@@ -132,7 +132,7 @@
   (bydi ((:mock format-mode-line :return " 2% 5/6"))
     (should (string= "2%% 5/6" (whale-line-segments--position--default)))))
 
-;;; -- Selection
+;;;; Selection
 
 (ert-deftest selection--area ()
   (with-temp-buffer
@@ -248,7 +248,7 @@
     (should (equal (list "face" "help")
                    (whale-line-segments--flycheck 'status)))))
 
-;;; -- Major mode
+;;;; Major mode
 
 (ert-deftest major-mode--icon ()
   (bydi ((:mock whale-line-segments--decorate :return "?")
@@ -272,7 +272,7 @@
     (whale-line-segments--major-mode)
     (bydi-was-called whale-line-segments--major-mode--text)))
 
-;;; -- Flymake
+;;;; Flymake
 
 (require 'flymake)
 
@@ -354,7 +354,7 @@
       (bydi-was-called flymake-diagnostics)
       (bydi-was-called whale-line-segments--flymake--count-types))))
 
-;;; -- LSP mode
+;;;; LSP mode
 
 (ert-deftest lsp--uses-lsp-mode-p ()
   (defvar lsp-mode)
@@ -630,7 +630,7 @@
 
       (should (propertized-string= " 42 " (whale-line-segments--tab-bar))))))
 
-;;; -- VC
+;;;; VC
 
 (ert-deftest vc--face-for-state ()
   (let ((whale-line-segments--vc--state-specs '((test . (neutral))

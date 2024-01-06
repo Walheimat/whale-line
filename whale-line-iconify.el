@@ -19,7 +19,7 @@
 
 (require 'cl-lib)
 
-;;; -- Customization
+;;;; Customization
 
 (defgroup whale-line-iconify nil
   "Settings for icon usage."
@@ -83,11 +83,11 @@ All remaining keys and their values will be passed to
   :group 'whale-line-iconify
   :type '(alist :key-type symbol :value-type plist))
 
-;;; -- Variables
+;;;; Variables
 
 (defvar whale-line-iconify--default-specs '(:height 0.85 :v-adjust 0.0))
 
-;;; -- Functionality
+;;;; Functionality
 
 (defun whale-line-iconify--from-specs (specs)
   "Get icon from SPECS."
@@ -130,7 +130,7 @@ Only properties not in EXISTING are added."
   (and (display-graphic-p)
        (featurep 'all-the-icons)))
 
-;;; -- API
+;;;; API
 
 ;;;###autoload
 (cl-defun whale-line-iconify (name &key face &allow-other-keys)
