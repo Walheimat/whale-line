@@ -649,14 +649,15 @@ segment. See description of PLUGS-INTO for
      setup
      teardown
      verify
-     plugs-into)
+     plugs-into
+     wraps)
   "Create augment(-or) named NAME.
 
 ACTION is the function to call for HOOKS.
 
 You can pass lists of functions to AFTER or AFTER-WHILE to advise
 them with the combinator of the same name. These functions will
-be advised to call ACTION.
+be advised to call ACTION. See also WRAPS described below.
 
 Alternatively you can pass a cons cell of the
 form (ADVICE-COMBINATOR . FUNC-LIST) to ADVICE. Each function in
@@ -670,7 +671,10 @@ SETUP is not executed.
 
 You may pass a segment symbol to PLUGS-INTO. That segment is
 assumed to have defined a port function which will be called with
-the result of ACTION."
+the result of ACTION.
+
+You may also pass a segment symbol to WRAPS. That segment's
+render function will be advised with combinator after-while."
   (declare (indent defun))
 
   (let* ((augment (whale-line--symbol-for-type name 'setter))
@@ -683,6 +687,8 @@ the result of ACTION."
                    `(:after . ,normal-after))
                   ((not (null after-while))
                    `(:after-while . ,normal-after-while))
+                  ((not (null wraps))
+                   `(:after-while . (,(whale-line--symbol-for-type wraps 'render))))
                   (t advice)))
          (triggers (append hooks normal-after normal-after-while))
          (docs (cond

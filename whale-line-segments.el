@@ -603,7 +603,7 @@ Returns nil if not checking or if no errors were found."
 
 (whale-line-create-augment minions
   :action whale-line-segments--minions--list
-  :after-while whale-line-minor-modes--render)
+  :wraps minor-modes)
 
 ;;;;; Org
 

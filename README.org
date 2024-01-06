@@ -343,7 +343,9 @@ stateful segment or a stateless getter-based segment.
   :verify my-augment-should-augment-p
   :action my-augment-fun
   ;; You may also provide a list.
-  :after-while whale-line-stateful--get-segment)
+  :after-while whale-line-stateful--render
+  ;; Or equivalent and more readable.
+  :wraps stateful)
 #+end_src
 
 If you don't set =:verify= =always= will be used for augments. More on
@@ -354,7 +356,7 @@ You can also use =:after= or specify your own advice combinator.
 #+begin_src emacs-lisp
 (whale-line-create-augment before-augment
   ;; :after (whale-line-staetful--get-segment)
-  :advice (:before-while . (whale-line-stateful--get-segment)))
+  :advice (:before-while . (whale-line-stateful--render)))
 #+end_src
 
 The function =whale-line-stateful--get-segment= is created by previous
@@ -446,23 +448,22 @@ If you want to build something more complicated, you might need to
 know what functions and variables are created during macro expansion.
 So here's a summary.
 
-Stateless segments define a function =whale-line-<name>--segment=.
-This function is called to get the segment. If they use =:var= this
+Stateless segments define a function =whale-line-<name>--render=. This
+function is called to render the segment. If they use =:var= this
 function will just return that variable's value. If they use =:getter=
 this function will call additionally created
-=whale-line-<name>--get-segment= that in turn will finally call the
-passed function. The reason for this nesting and indirection is that
-you may pass either a function symbol or an anonymous function to
-=:getter=.
+=whale-line-<name>--getter= that in turn will finally call the passed
+function. The reason for this nesting and indirection is that you may
+pass either a function symbol or an anonymous function to =:getter=.
 
 Stateful segments hold their state in local variable (not function!)
-=whale-line-<name>--segment=. This variable is set to symbol =initial=
+=whale-line-<name>--render=. This variable is set to symbol =initial=
 at first to make sure the the value is set at least once during
 =format-mode-line=. The function that does this uses pattern
-=whale-line-<name>--action=. It calls the passed =getter= to set the
+=whale-line-<name>--setter=. It calls the passed =getter= to set the
 variable.
 
-Augments also create =whale-line-<name>--action=.
+Augments also create =whale-line-<name>--setter= to do their thing.
 
 If you're using =:port= and =:plugs-into=, the segment with =:port=
 will create function =whale-line-<name>--port= that will be called
