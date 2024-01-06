@@ -97,7 +97,7 @@
         '((:name "test" :font test :face test-face)))
 
       (bydi-clear-mocks)
-      (whale-line-iconify 'test 'other-face)
+      (whale-line-iconify 'test :face 'other-face)
 
       (bydi-was-called-with whale-line-iconify--from-specs
         '((:name "test" :font test :face other-face)))

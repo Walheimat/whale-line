@@ -55,11 +55,11 @@
       (setq modified t)
 
       (should (string= "!" (whale-line-segments--buffer-status--writable)))
-      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified whale-line-shadow))
+      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified :face whale-line-shadow))
 
       (setq buffer-file-name "some-name")
       (should (string= "!" (whale-line-segments--buffer-status--writable)))
-      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified whale-line-emphasis)))))
+      (bydi-was-called-last-with whale-line-segments--decorate '(buffer-modified :face whale-line-emphasis)))))
 
 (ert-deftest buffer-status--not-using-icons ()
   (let ((modified nil)

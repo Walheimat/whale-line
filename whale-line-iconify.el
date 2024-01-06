@@ -1,4 +1,4 @@
-;;; whale-line-iconify.el --- Use icons in segments -*- lexical-binding: t; -*-
+;;; whale-line-iconify.el --- Decorate segments with icons -*- lexical-binding: t; -*-
 
 ;; Author: Krister Schuchardt <krister.schuchardt@gmail.com>
 ;; Homepage: https://github.com/Walheimat/whale-line
@@ -14,7 +14,6 @@
 ;; To use different icons you can customize
 ;; `whale-line-iconify-specs'. You can disable individual segments (or
 ;; sub-segments) by adding them to `whale-line-iconify-disabled'.
-
 
 ;;; Code:
 
@@ -134,7 +133,7 @@ Only properties not in EXISTING are added."
 ;;; -- API
 
 ;;;###autoload
-(defun whale-line-iconify (name &optional face)
+(cl-defun whale-line-iconify (name &key face &allow-other-keys)
   "Get the icon for NAME.
 
 If optional argument FACE is passed, it will be used instead of

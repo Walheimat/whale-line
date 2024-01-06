@@ -34,6 +34,12 @@
 (defcustom whale-line-segments-decorator #'whale-line-iconify
   "The function to use to decorate segments (or their parts).
 
+The function is called with the name of the segment to decorate
+as first argument and a list of keyword arguments that it may
+consume.
+
+The arguments are: FACE the preferred face for decoration.
+
 This function should return a mode-line construct or string."
   :group 'whale-line-segments
   :type 'function)
@@ -140,9 +146,11 @@ See `whale-line-segments-decorator'."
   "Buffer status for a writable buffer."
   (if (whale-line-segments--decorates-p 'buffer-status)
       (if (buffer-modified-p)
-          (whale-line-segments--decorate 'buffer-modified (if buffer-file-name
-                                                              'whale-line-emphasis
-                                                            'whale-line-shadow))
+          (whale-line-segments--decorate
+           'buffer-modified
+           :face (if buffer-file-name
+                     'whale-line-emphasis
+                   'whale-line-shadow))
         (unless buffer-file-name
           (whale-line-segments--decorate 'buffer-file-name)))
     (concat
@@ -229,7 +237,8 @@ See `whale-line-segments-decorator'."
 (defvar whale-line-segments--client
   '((:eval (when (frame-parameter nil 'client)
              (if (whale-line-segments--decorates-p 'client)
-                 (propertize (whale-line-segments--decorate 'client)'help-echo "Client frame")
+                 (propertize (whale-line-segments--decorate 'client)
+                             'help-echo "Client frame")
                mode-line-client))))
   "Segment for client.")
 
