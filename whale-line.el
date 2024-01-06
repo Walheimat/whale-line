@@ -83,11 +83,13 @@ logging."
 
 ;;; -- Variables
 
+(defvar whale-line-mode-line '("%e" (:eval (whale-line--format))))
+(defvar whale-line--default-mode-line nil)
+
 (defvar whale-line--segments nil)
 (defvar whale-line--props nil)
 
 (defvar whale-line--current-window nil)
-(defvar whale-line--default-mode-line nil)
 
 (defvar whale-line--padded-cache (make-hash-table))
 (defvar whale-line--space-cache (make-hash-table))
@@ -1023,7 +1025,7 @@ If SOFT is t, uses `intern-soft'."
   (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
   ;; Set the new mode-line-format
-  (setq-default mode-line-format '("%e" (:eval (whale-line--format)))))
+  (setq-default mode-line-format whale-line-mode-line))
 
 (defun whale-line-mode--teardown ()
   "Tear down `whale-line-mode'."

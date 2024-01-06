@@ -911,7 +911,9 @@
     (bydi ((:mock require :return t)
            (:sometimes whale-line--build-segments)
            add-hook
-           run-hooks)
+           run-hooks
+           (:watch mode-line-format)
+           (:watch whale-line--default-mode-line))
       (whale-line-mode--setup)
 
       (bydi-was-called-with run-hooks (list 'whale-line-setup-hook))
@@ -919,7 +921,8 @@
       (bydi-was-called-nth-with add-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
       (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
 
-      (eq 'format whale-line--default-mode-line)
+      (bydi-was-set-to mode-line-format whale-line-mode-line)
+      (bydi-was-set-to whale-line--default-mode-line 'format)
 
       (bydi-toggle-sometimes)
 
@@ -929,15 +932,16 @@
   (let ((mode-line-format 'whale)
         (whale-line--default-mode-line 'other))
 
-    (bydi (run-hooks remove-hook)
+    (bydi (run-hooks
+           remove-hook
+           (:watch mode-line-format))
       (whale-line-mode--teardown)
 
       (bydi-was-called-with run-hooks (list 'whale-line-teardown-hook))
       (bydi-was-called-nth-with remove-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
       (bydi-was-called-nth-with remove-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
       (bydi-was-called-nth-with remove-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
-
-      (should (eq 'other mode-line-format)))))
+      (bydi-was-set-to mode-line-format 'other))))
 
 (ert-deftest whale-line-mode ()
   (bydi (whale-line-mode--setup whale-line-mode--teardown)
