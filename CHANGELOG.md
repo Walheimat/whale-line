@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Keyword `:wraps` for augments. This is a shorthand to `:after-while`
   and passing the name of the render function of another segment.
+- Results `whale-line--format-side` are now cached until window
+  configuration changes.
 
 ## [0.8.3]
 
