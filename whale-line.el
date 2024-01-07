@@ -93,7 +93,6 @@ logging."
 
 (defvar whale-line--padded-cache (make-hash-table))
 (defvar whale-line--space-cache (make-hash-table))
-(defvar whale-line--render-cache (make-hash-table :test 'equal))
 
 (defvar whale-line--stateful-timer nil)
 
@@ -190,11 +189,7 @@ formatter to call."
   "Get the formatted SIDE.
 
 Optionally FILTER out low priority segments."
-  (if-let* ((value (gethash (list side filter) whale-line--render-cache)))
-      value
-    (let ((render (format-mode-line (whale-line--render side filter))))
-
-      (puthash (list side filter) render whale-line--render-cache))))
+  (format-mode-line (whale-line--render side filter)))
 
 ;;;; Space calculation
 
@@ -275,8 +270,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 (defun whale-line--clear-caches ()
   "Clear all caches."
   (clrhash whale-line--padded-cache)
-  (clrhash whale-line--space-cache)
-  (clrhash whale-line--render-cache))
+  (clrhash whale-line--space-cache))
 
 ;;;; Building segments
 

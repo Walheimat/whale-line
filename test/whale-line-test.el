@@ -982,18 +982,6 @@
 
   (should-error (whale-line--symbol-for-type 'segment 'something)))
 
-(ert-deftest whale-line--format-side--uses-cache ()
-  (let ((whale-line--render-cache (make-hash-table :test 'equal)))
-
-    (bydi ((:mock whale-line--render :return "hello")
-           (:mock format-mode-line :with bydi-rf))
-
-      (whale-line--format-side :left)
-
-      (should (equal (nth 0 (hash-table-keys whale-line--render-cache)) '(:left nil)))
-
-      (should (string= "hello" (whale-line--format-side :left))))))
-
 ;;; whale-line-test.el ends here
 
 ;; Local Variables:
