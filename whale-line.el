@@ -162,14 +162,14 @@ formatter to call."
       (whale-line--format-ignore)
     (let ((lhs (whale-line--render :left t))
           (rhs (whale-line--render :right t))
-          (rlen (length (whale-line--format-side :right t))))
+          (rlen (whale-line--rlen t)))
       `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
 
 (defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
   (let ((lhs (whale-line--render :left))
         (rhs (whale-line--render :right))
-        (rlen (length (whale-line--format-side :right)))
+        (rlen (whale-line--rlen))
         (space? (whale-line--enough-space-p)))
     `(,@lhs
       ,(whale-line--space-between (if space? rlen 5))
@@ -182,7 +182,7 @@ formatter to call."
   "Format mode line ignoring space constraints."
   (let ((lhs (whale-line--render :left))
         (rhs (whale-line--render :right))
-        (rlen (length (whale-line--format-side :right))))
+        (rlen (whale-line--rlen)))
     `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
 
 (defun whale-line--format-side (side &optional filter)
@@ -192,6 +192,14 @@ Optionally FILTER out low priority segments."
   (format-mode-line (whale-line--render side filter)))
 
 ;;;; Space calculation
+
+(defun whale-line--rlen (&optional filter)
+  "Get the length of the right side.
+
+Optionally use FILTER."
+  ;; FIXME: This is quite expensive. Need to find a way to cache this
+  ;;        reliably.
+  (length (whale-line--format-side :right filter)))
 
 (defun whale-line--calculate-space ()
   "Calculate space constraints for all visible windows.
