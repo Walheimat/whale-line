@@ -401,7 +401,13 @@
 
 (ert-deftest whale-line--spacer ()
   (should (string= " " (whale-line--spacer)))
-  (should (string= "" (whale-line--spacer t))))
+  (should (string= "" (whale-line--spacer t)))
+
+  (bydi ((:spy propertize))
+    (let ((whale-line--debug-padding t))
+
+      (should (string= " " (whale-line--spacer)))
+      (bydi-was-called propertize))))
 
 (ert-deftest whale-line--format-side ()
   (bydi (format-mode-line

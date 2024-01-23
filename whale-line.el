@@ -99,6 +99,8 @@ logging."
 (defvar whale-line-setup-hook nil)
 (defvar whale-line-teardown-hook nil)
 
+(defvar whale-line--debug-padding nil)
+
 ;;;; Faces
 
 (defface whale-line-neutral
@@ -856,7 +858,9 @@ The results are cached."
   "A space used for padding.
 
 If DENSE is t, add no padding."
-  (if dense "" " "))
+  (if dense "" (if whale-line--debug-padding
+                   (propertize " " 'face 'whale-line-highlight)
+                 " ")))
 
 (defvar whale-line--empty-renders
   `((,(whale-line--spacer) ,(whale-line--spacer t))
