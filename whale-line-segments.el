@@ -217,7 +217,8 @@ See `whale-line-segments-decorator'."
 
 (whale-line-create-stateless-segment misc-info
   :var mode-line-misc-info
-  :priority current-low)
+  :priority current-low
+  :dense problematic)
 
 ;;;;; Minor modes
 
@@ -230,7 +231,8 @@ See `whale-line-segments-decorator'."
 
 (whale-line-create-stateless-segment process
   :var mode-line-process
-  :priority low)
+  :priority current
+  :dense problematic)
 
 ;;;;; Client
 

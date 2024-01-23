@@ -794,7 +794,12 @@ Optionally FILTER out low priority segments."
 (defun whale-line--pad-segment (segment render)
   "Add padding to SEGMENT's RENDER based on its position."
   (let* ((dense (whale-line--prop segment :dense))
-         (dense (if (functionp dense) (funcall dense) dense))
+         (dense (cond
+                 ((functionp dense)
+                  (funcall dense))
+                 ((eq 'problematic dense)
+                  (string-empty-p (format-mode-line render)))
+                 (t dense)))
          (render (if (listp render) render (list render)))
          (side (whale-line--side segment))
          (paddings (whale-line--padding segment))

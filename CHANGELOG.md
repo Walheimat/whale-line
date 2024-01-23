@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Variable `whale-line--debug-padding` that when toggled renders
   padding using `whale-line-highlight`.
+- Segments `misc-info` and `process` now set `:dense problematic`.
+  This means their contents are evaluated before padding.
 
 ## [0.8.4]
 

@@ -653,14 +653,17 @@
     (should (whale-line--valid-segment-p 'test))))
 
 (ert-deftest whale-line--pad-segment ()
-  (let ((whale-line--segments '(:left (one three five) :right (two four)))
-        (whale-line--props '((four :dense t) (five :dense always))))
+  (let ((whale-line--segments '(:left (one three five) :right (two four six)))
+        (whale-line--props '((four :dense t) (five :dense always) (six :dense problematic))))
 
     (should (equal '(" " "test") (whale-line--pad-segment 'one "test")))
     (should (equal '("test" " ") (whale-line--pad-segment 'two "test")))
     (should (equal '(" " "test") (whale-line--pad-segment 'three '("test"))))
     (should (equal '("test" "") (whale-line--pad-segment 'four "test")))
-    (should (equal '("" "test") (whale-line--pad-segment 'five "test")))))
+    (should (equal '("" "test") (whale-line--pad-segment 'five "test")))
+
+    (bydi ((:mock format-mode-line :return ""))
+      (should (equal '("test" "") (whale-line--pad-segment 'six "test"))))))
 
 (ert-deftest pad-segment--pre-padded ()
   (let ((whale-line--segments '(:left (one two three) :right (four five six)))
