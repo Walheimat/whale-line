@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.5](https://github.com/Walheimat/whale-line/compare/v0.8.4...v0.8.5) (2024-01-28)
+
+
+### Features
+
+* **ci:** add semantic-release ([3352cda](https://github.com/Walheimat/whale-line/commit/3352cdac59f7bc052ec795680e380f74e7d9883e))
+* **padding:** add variable to highlight padding ([3932b55](https://github.com/Walheimat/whale-line/commit/3932b55b7c2012524322d84b0c100bf398dfbff1))
+* **segments:** consider misc-info and process problematic ([12c3be9](https://github.com/Walheimat/whale-line/commit/12c3be9ab17ed927a4a2a130a7555d97b43d030d))
+
 ## [0.8.4]
 
 ### Added
