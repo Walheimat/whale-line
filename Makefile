@@ -6,6 +6,7 @@ UPDATE_VERSION_FILES=Cask \
 					 whale-line.el \
 					 whale-line-segments.el \
 					 whale-line-iconify.el \
-					 whale-line-edit.el
+					 whale-line-edit.el \
+					 Makefile
 
 include dinghy/emacs-package.mk

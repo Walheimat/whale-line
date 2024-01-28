@@ -4,10 +4,10 @@ on:
     branches:
       - trunk
     paths-ignore:
-      - '.gitignore'
-      - 'CHANGELOG.md'
-      - 'README.org'
-      - 'assets/**'
+      - .gitignore
+      - CHANGELOG.md
+      - README.org
+  workflow_call:
 
 jobs:
   test:
@@ -31,7 +31,7 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies with Cask
+      - name: Tangle and install dependencies with Cask
         run: make
 
       - name: Run tests

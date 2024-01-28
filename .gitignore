@@ -5,3 +5,4 @@ coverage/
 dist/
 whale-line-autoloads.el
 whale-line-pkg.el
+node_modules/

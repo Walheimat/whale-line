@@ -1,0 +1,47 @@
+{
+  "branches": [
+    "trunk"
+  ],
+  "repositoryUrl": "git@github.com:Walheimat/whale-line.git",
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          {
+            "type": "feat",
+            "release": "patch"
+          }
+        ]
+      },
+    ],
+    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "make update-next-version NEXT_PACKAGE_VERSION=${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogTitle": "# Changelog"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "whale-line.el",
+          "whale-line-segments.el",
+          "whale-line-iconify.el",
+          "whale-line-edit.el",
+          "Cask",
+          "Makefile"
+        ]
+      }
+    ]
+  ]
+}
