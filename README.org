@@ -95,6 +95,9 @@ the change.
   :config
   (whale-line-mode +1)
 
+  ;; If you want to use icons.
+  (whale-line-iconify-mode)
+
   :custom
   (whale-line-segments '(major-mode
                          buffer-identification

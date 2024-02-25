@@ -108,6 +108,32 @@
 
       (bydi-was-not-called whale-line-iconify--from-specs))))
 
+(ert-deftest iconify-decorates-p ()
+  :tags '(iconify)
+
+  (bydi ((:sometimes whale-line-iconify--use-for-p))
+
+    (should (whale-line-iconify-decorates-p 'test))
+
+    (bydi-toggle-sometimes)
+
+    (should-not (whale-line-iconify-decorates-p 'test))))
+
+(ert-deftest whale-line-iconify-mode ()
+  :tags '(iconify)
+
+  (let ((whale-line-iconify-mode nil))
+
+    (bydi ((:spy advice-add)
+           (:spy advice-remove))
+
+      (whale-line-iconify-mode)
+
+      (bydi-was-called-last-with advice-add '(whale-line-segments--decorates-p :override whale-line-iconify-decorates-p))
+
+      (whale-line-iconify-mode -1)
+      (bydi-was-called-last-with advice-remove '(whale-line-segments--decorates-p  whale-line-iconify-decorates-p)))))
+
 ;;; whale-line-iconify-test.el ends here
 
 ;; Local Variables:

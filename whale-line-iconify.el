@@ -7,8 +7,7 @@
 
 ;;; Commentary:
 
-;; Default decorator for `whale-line-segments' using icons provided by
-;; external package `all-the-icons'.
+;; Decorates `whale-line-segments' using `all-the-icons'.
 ;;
 ;; Provides `whale-line-iconify' and `whale-line-iconify-decorates-p'.
 ;; To use different icons you can customize
@@ -149,6 +148,25 @@ the value in the retrieved specs."
 (defun whale-line-iconify-decorates-p (name)
   "Check if NAME is decorated."
   (whale-line-iconify--use-for-p name))
+
+;;;###autoload
+(define-minor-mode whale-line-iconify-mode
+  "Mode that decorates segments using `all-the-icons'."
+  :global t
+  (if whale-line-iconify-mode
+      (progn
+        (advice-add
+         'whale-line-segments--decorate :override
+         #'whale-line-iconify)
+        (advice-add
+         'whale-line-segments--decorates-p :override
+         #'whale-line-iconify-decorates-p))
+    (advice-remove
+     'whale-line-segments--decorate
+     #'whale-line-iconify)
+    (advice-remove
+     'whale-line-segments--decorates-p
+     #'whale-line-iconify-decorates-p)))
 
 (provide 'whale-line-iconify)
 

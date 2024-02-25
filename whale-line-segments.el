@@ -12,17 +12,12 @@
 ;; well as their private logic. Note that their positioning is
 ;; determined by `whale-line-segments' which you can freely customize.
 ;;
-;; This package uses `whale-line-segments-decorator' and
-;; `whale-line-segments-decorates' to determine how to decorate
-;; certain segments. The default decorator is provided by package
-;; `whale-line-iconify' which uses icons.
+;; By default segments aren't decorated using icons, see
+;; `whale-line-iconify'.
 
 ;;; Code:
 
 (require 'whale-line)
-
-(declare-function whale-line-iconify "whale-line-iconify.el")
-(declare-function whale-line-iconify-decorates-p "whale-line-iconify.el")
 
 ;;;; Customization
 
@@ -30,24 +25,6 @@
   "Settings for individual segments."
   :group 'whale-line
   :tag "Segments")
-
-(defcustom whale-line-segments-decorator #'whale-line-iconify
-  "The function to use to decorate segments (or their parts).
-
-The function is called with the name of the segment to decorate
-as first argument and a list of keyword arguments that it may
-consume.
-
-The arguments are: FACE the preferred face for decoration.
-
-This function should return a mode-line construct or string."
-  :group 'whale-line-segments
-  :type 'function)
-
-(defcustom whale-line-segments-decorates #'whale-line-iconify-decorates-p
-  "The function used to check whether a named segment is decorated."
-  :group 'whale-line-segments
-  :type 'function)
 
 (defcustom whale-line-segments-animation-key-frames ["(__.- >{"
                                                      "(__.' >{"
@@ -92,17 +69,17 @@ to 2, only the 3rd level is elided."
 
 ;;;; Utility
 
-(defun whale-line-segments--decorate (symbol &rest args)
-  "Get the decoration for SYMBOL passing ARGS.
+(defun whale-line-segments--decorate (_symbol &rest _args)
+  "Get decoration for symbol.
 
-See `whale-line-segments-decorator'."
-  (when (fboundp whale-line-segments-decorator)
-    (apply whale-line-segments-decorator (append (list symbol) args))))
+See `whale-line-iconify' for a way to do this."
+  nil)
 
-(defun whale-line-segments--decorates-p (symbol)
-  "Check if SYMBOL is decorated."
-  (when (fboundp whale-line-segments-decorates)
-    (funcall whale-line-segments-decorates symbol)))
+(defun whale-line-segments--decorates-p (_symbol)
+  "Check if SYMBOL is decorated.
+
+See `whale-line-iconify' for a way to do this."
+  nil)
 
 ;;;; Segments
 
