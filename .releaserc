@@ -1,7 +1,5 @@
 {
-  "branches": [
-    "trunk"
-  ],
+  "branches": ["trunk"],
   "repositoryUrl": "git@github.com:Walheimat/whale-line.git",
   "plugins": [
     [
@@ -10,11 +8,11 @@
         "preset": "conventionalcommits",
         "releaseRules": [
           {
-            "type": "feat",
+            "type": "improve",
             "release": "patch"
           }
         ]
-      },
+      }
     ],
     "@semantic-release/release-notes-generator",
     [
