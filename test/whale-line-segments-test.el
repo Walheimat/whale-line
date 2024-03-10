@@ -27,16 +27,37 @@
       (bydi-was-called-with run-hooks 'whale-line-segments-buffer-identification-hook))))
 
 (ert-deftest buffer-identification ()
-  (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
+  (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
+                                face whale-line-shadow)
+                   (:propertize (:eval (propertized-buffer-identification "%b"))
                                 face (mode-line-buffer-id nil)))
                  (whale-line-segments--buffer-identification)))
 
   (let ((whale-line-segments--buffer-identification--additional-help "help"))
 
-    (should (equal '((:propertize (:eval (propertized-buffer-identification "%b"))
+    (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
+                 face whale-line-shadow)
+                     (:propertize (:eval (propertized-buffer-identification "%b"))
                                   face (mode-line-buffer-id nil)
                                   help-echo "help"))
                    (whale-line-segments--buffer-identification)))))
+
+(ert-deftest buffer-identification--path-segments ()
+  :tags '(segments buffer)
+
+  (bydi ((:mock buffer-file-name :return "/test/one/two/three.el"))
+
+    (let ((whale-line-segments-buffer-identification-path-segments 1))
+
+      (should (string= "two/" (whale-line-segments--buffer-identification--path-segments)))
+
+      (setq whale-line-segments-buffer-identification-path-segments 12)
+
+      (should (string= "/test/one/two/" (whale-line-segments--buffer-identification--path-segments)))
+
+      (setq whale-line-segments-buffer-identification-path-segments 0)
+
+      (should-not (whale-line-segments--buffer-identification--path-segments)))))
 
 (ert-deftest buffer-status--using-icons ()
   (let ((modified nil)

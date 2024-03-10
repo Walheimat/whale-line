@@ -67,6 +67,13 @@ to 2, only the 3rd level is elided."
   :group 'whale-line-segments
   :type 'integer)
 
+(defcustom whale-line-segments-buffer-identification-path-segments 1
+  "The amount of path elements to show before buffer identification.
+
+This can be disabled by setting this to 0."
+  :group 'whale-line-segments
+  :type 'integer)
+
 ;;;; Utility
 
 (defun whale-line-segments--decorate (_symbol &rest _args)
@@ -99,11 +106,26 @@ See `whale-line-iconify' for a way to do this."
   (run-hooks 'whale-line-segments-buffer-identification-hook))
 
 (defun whale-line-segments--buffer-identification ()
-  "Get the buffer identification."
-  `((:propertize (:eval (propertized-buffer-identification "%b"))
+  "Get the buffer identification.
+
+This pre-pends the path to the buffer if so configured."
+  `((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
+                 face whale-line-shadow)
+    (:propertize (:eval (propertized-buffer-identification "%b"))
                  face ,(list 'mode-line-buffer-id whale-line-segments--buffer-identification--additional-face)
                  ,@(and whale-line-segments--buffer-identification--additional-help
                         (list 'help-echo whale-line-segments--buffer-identification--additional-help)))))
+
+(defun whale-line-segments--buffer-identification--path-segments ()
+  "Get preceding path segments."
+  (when (> whale-line-segments-buffer-identification-path-segments 0)
+
+    (let* ((file (buffer-file-name (current-buffer)))
+           (path (file-name-split file))
+           (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
+           (segments (seq-take (cdr (reverse path)) count)))
+
+      (concat (string-join (reverse segments) "/") "/"))))
 
 (whale-line-create-stateful-segment buffer-identification
   :getter whale-line-segments--buffer-identification

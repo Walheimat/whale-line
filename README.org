@@ -132,6 +132,9 @@ the change.
                                              ])
   (whale-line-segments-animation-speed 0.4)
 
+  ;; Buffer identification.
+  (whale-line-segments-buffer-identification-path-segments 1)
+
   ;; Org.
   (whale-line-segments-org-separator ">")
   (whale-line-segments-org-ellispis "…")
