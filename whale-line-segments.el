@@ -110,7 +110,8 @@ See `whale-line-iconify' for a way to do this."
 
 This pre-pends the path to the buffer if so configured."
   `((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
-                 face whale-line-shadow)
+                 face whale-line-shadow
+                 help-echo ,(buffer-file-name))
     (:propertize (:eval (propertized-buffer-identification "%b"))
                  face ,(list 'mode-line-buffer-id whale-line-segments--buffer-identification--additional-face)
                  ,@(and whale-line-segments--buffer-identification--additional-help
