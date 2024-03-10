@@ -118,14 +118,13 @@ This pre-pends the path to the buffer if so configured."
 
 (defun whale-line-segments--buffer-identification--path-segments ()
   "Get preceding path segments."
-  (when (> whale-line-segments-buffer-identification-path-segments 0)
+  (and-let* (((> whale-line-segments-buffer-identification-path-segments 0))
+             (file (buffer-file-name (current-buffer)))
+             (path (file-name-split file))
+             (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
+             (segments (seq-take (cdr (reverse path)) count)))
 
-    (let* ((file (buffer-file-name (current-buffer)))
-           (path (file-name-split file))
-           (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
-           (segments (seq-take (cdr (reverse path)) count)))
-
-      (concat (string-join (reverse segments) "/") "/"))))
+    (concat (string-join (reverse segments) "/") "/")))
 
 (whale-line-create-stateful-segment buffer-identification
   :getter whale-line-segments--buffer-identification
