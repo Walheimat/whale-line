@@ -98,6 +98,13 @@ See `whale-line-iconify' for a way to do this."
 (defvar-local whale-line-segments--buffer-identification--additional-face nil)
 (defvar-local whale-line-segments--buffer-identification--additional-help nil)
 
+(defvar whale-line-segments--buffer-identification--path-segments-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1] 'dired-jump)
+
+    map))
+
 (defun whale-line-segments--buffer-identification--set-additional (face help &rest _)
   "Set additional HELP and FACE."
   (setq whale-line-segments--buffer-identification--additional-face face
@@ -111,7 +118,9 @@ See `whale-line-iconify' for a way to do this."
 This pre-pends the path to the buffer if so configured."
   `((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
                  face whale-line-shadow
-                 help-echo ,(buffer-file-name))
+                 help-echo ,(buffer-file-name)
+                 mouse-face whale-line-highlight
+                 local-map ,whale-line-segments--buffer-identification--path-segments-map)
     (:propertize (:eval (propertized-buffer-identification "%b"))
                  face ,(list 'mode-line-buffer-id whale-line-segments--buffer-identification--additional-face)
                  ,@(and whale-line-segments--buffer-identification--additional-help

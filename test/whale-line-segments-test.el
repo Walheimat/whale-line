@@ -27,23 +27,29 @@
       (bydi-was-called-with run-hooks 'whale-line-segments-buffer-identification-hook))))
 
 (ert-deftest buffer-identification ()
-  (bydi ((:mock buffer-file-name :return "/test/buffer.org"))
-    (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
-                                  face whale-line-shadow
-                                  help-echo "/test/buffer.org")
-                     (:propertize (:eval (propertized-buffer-identification "%b"))
-                                  face (mode-line-buffer-id nil)))
-                   (whale-line-segments--buffer-identification))))
+  (let ((whale-line-segments--buffer-identification--path-segments-map nil))
 
-  (let ((whale-line-segments--buffer-identification--additional-help "help"))
+    (bydi ((:mock buffer-file-name :return "/test/buffer.org"))
+      (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
+                                    face whale-line-shadow
+                                    help-echo "/test/buffer.org"
+                                    mouse-face whale-line-highlight
+                                    local-map nil)
+                       (:propertize (:eval (propertized-buffer-identification "%b"))
+                                    face (mode-line-buffer-id nil)))
+                     (whale-line-segments--buffer-identification))))
 
-    (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
-                                  face whale-line-shadow
-                                  help-echo nil)
-                     (:propertize (:eval (propertized-buffer-identification "%b"))
-                                  face (mode-line-buffer-id nil)
-                                  help-echo "help"))
-                   (whale-line-segments--buffer-identification)))))
+    (let ((whale-line-segments--buffer-identification--additional-help "help"))
+
+      (should (equal '((:propertize (:eval (whale-line-segments--buffer-identification--path-segments))
+                                    face whale-line-shadow
+                                    help-echo nil
+                                    mouse-face whale-line-highlight
+                                    local-map nil)
+                       (:propertize (:eval (propertized-buffer-identification "%b"))
+                                    face (mode-line-buffer-id nil)
+                                    help-echo "help"))
+                     (whale-line-segments--buffer-identification))))))
 
 (ert-deftest buffer-identification--path-segments ()
   :tags '(segments buffer)
