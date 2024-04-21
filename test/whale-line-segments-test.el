@@ -280,18 +280,54 @@
 
 ;;;; Major mode
 
-(ert-deftest major-mode--icon ()
-  (bydi ((:mock whale-line-segments--decorate :return "?")
-         (:mock format-mode-line :return "echo"))
+(ert-deftest major-mode--toggle-fundamental ()
+  :tags '(segments major-mode)
 
-    (should (equal '((:propertize "?" help-echo "echo" display (raise -0.135)))
-                   (whale-line-segments--major-mode--decorated)))))
+  (bydi ((:always text-mode)
+         (:watch whale-line-segments--major-mode--before-fundamental))
+
+    (ert-with-test-buffer (:name "fundamental")
+
+      (setq major-mode 'text-mode)
+
+      (whale-line-segments--major-mode--toggle-fundamental)
+
+      (bydi-was-set-to whale-line-segments--major-mode--before-fundamental 'text-mode)
+
+      (whale-line-segments--major-mode--toggle-fundamental)
+
+      (bydi-was-called text-mode)
+
+      (bydi-was-set-to whale-line-segments--major-mode--before-fundamental nil))))
+
+(ert-deftest major-mode--decorated ()
+  :tags '(segments major-mode)
+
+  (let ((whale-line-segments--major-mode--map nil))
+
+    (bydi ((:mock whale-line-segments--decorate :return "?")
+           (:mock format-mode-line :return "echo"))
+
+      (should (equal '((:propertize "?"
+                                    help-echo "echo"
+                                    display (raise -0.135)
+                                    mouse-face whale-line-highlight
+                                    local-map nil))
+                     (whale-line-segments--major-mode--decorated))))))
 
 (ert-deftest major-mode--text ()
-  (should (equal '((:propertize (" " mode-name " ") face whale-line-highlight))
-                 (whale-line-segments--major-mode--text))))
+  :tags '(segments major-mode)
+
+  (let ((whale-line-segments--major-mode--map nil))
+
+    (should (equal '((:propertize (" " mode-name " ")
+                                  face whale-line-highlight
+                                  mouse-face whale-line-highlight
+                                  local-map nil))
+                   (whale-line-segments--major-mode--text)))))
 
 (ert-deftest major-mode ()
+  :tags '(segments major-mode)
   (bydi ((:sometimes whale-line-segments--major-mode--decorated)
          (:always whale-line-segments--major-mode--text))
 

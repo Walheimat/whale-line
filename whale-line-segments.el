@@ -468,6 +468,31 @@ Returns nil if not checking or if no errors were found."
 
 ;;;;; Major mode
 
+(defvar whale-line-segments--major-mode--map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1] 'whale-line-segments--major-mode--toggle-fundamental)
+
+    map))
+
+(defvar-local whale-line-segments--major-mode--before-fundamental nil
+  "The mode in this buffer before `fundamental-mode' was activated.")
+
+(defun whale-line-segments--major-mode--toggle-fundamental ()
+  "Toggle `fundamental-mode' on or off."
+  (interactive)
+
+  (let ((current major-mode))
+
+    (if-let ((before whale-line-segments--major-mode--before-fundamental))
+
+        (progn
+          (funcall before)
+          (setq whale-line-segments--major-mode--before-fundamental nil))
+
+      (fundamental-mode)
+      (setq whale-line-segments--major-mode--before-fundamental current))))
+
 (defun whale-line-segments--major-mode--decorated ()
   "Get the decoration for the `major-mode'."
   (and-let* ((decorated (whale-line-segments--decorate 'major-mode))
@@ -477,11 +502,16 @@ Returns nil if not checking or if no errors were found."
 
     `((:propertize ,decorated
                    help-echo ,(format "%s" (format-mode-line mode-name))
-                   display (raise -0.135)))))
+                   display (raise -0.135)
+                   mouse-face whale-line-highlight
+                   local-map ,whale-line-segments--major-mode--map))))
 
 (defun whale-line-segments--major-mode--text ()
   "Get the text for the `major-mode'."
-  `((:propertize (" " mode-name " ") face whale-line-highlight)))
+  `((:propertize (" " mode-name " ")
+                 face whale-line-highlight
+                 mouse-face whale-line-highlight
+                 local-map ,whale-line-segments--major-mode--map)))
 
 (defun whale-line-segments--major-mode ()
   "Get the `major-mode' segment."
