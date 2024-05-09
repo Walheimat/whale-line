@@ -141,6 +141,9 @@ the change.
   (whale-line-segments-org-elision "*")
   (whale-line-segments-org-max-count 2)
 
+  ;; Window status.
+  (whale-line-segments-window-status-separator "·")
+
   ;; Specs for used icons.
   (whale-line-iconify-specs
    '((project . (:name "package" :font octicon :face whale-line-emphasis))
@@ -151,6 +154,7 @@ the change.
      (buffer-modified . (:name "pencil" :face whale-line-emphasis :parent buffer-status))
      (window-dedicated . (:name "link" :face whale-line-shadow :parent window-status))
      (window-no-other . (:name "low-vision" :face whale-line-shadow :parent window-status))
+     (window-no-delete . (:name "deaf" :face whale-line-shadow :parent window-status))
      (buffer-fallback . (:name "question-circle" :face whale-line-contrast :no-defaults t))
      (lsp . (:name "plug" :face whale-line-contrast))
      (debug . (:name "bug" :face whale-line-urgent)))

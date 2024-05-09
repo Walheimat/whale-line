@@ -135,21 +135,25 @@
 ;;;; Window status
 
 (ert-deftest window-status ()
-  (should-not (whale-line-segments--window-status))
+  (should (string-empty-p (whale-line-segments--window-status)))
 
   (set-window-dedicated-p (selected-window) t)
 
-  (should (equal '("^") (whale-line-segments--window-status)))
+  (should (string-equal "^" (whale-line-segments--window-status)))
 
   (set-window-parameter (selected-window) 'no-other-window t)
 
-  (should (equal '("~" "^") (whale-line-segments--window-status)))
+  (should (string-equal "~·^" (whale-line-segments--window-status)))
 
   (set-window-dedicated-p (selected-window) nil)
 
-  (should (equal '("~") (whale-line-segments--window-status)))
+  (should (string-equal "~" (whale-line-segments--window-status)))
 
-  (set-window-parameter (selected-window) 'no-other-window nil))
+  (set-window-parameter (selected-window) 'no-other-window nil)
+
+  (set-window-parameter (selected-window) 'no-delete-other-windows t)
+
+  (should (string-equal "!" (whale-line-segments--window-status))))
 
 ;;; Position
 

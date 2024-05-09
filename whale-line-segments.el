@@ -74,6 +74,11 @@ This can be disabled by setting this to 0."
   :group 'whale-line-segments
   :type 'integer)
 
+(defcustom whale-line-segments-window-status-separator "·"
+  "Separator between multiple window statuses."
+  :group 'whale-line-segments
+  :type 'string)
+
 ;;;; Utility
 
 (defun whale-line-segments--decorate (_symbol &rest _args)
@@ -179,14 +184,20 @@ This pre-pends the path to the buffer if so configured."
 
 (defun whale-line-segments--window-status ()
   "Render window status segment."
-  (delq nil
-        (list
-         (and (window-parameter (selected-window) 'no-other-window)
-              (or (whale-line-segments--decorate 'window-no-other)
-                  (propertize "~" 'face 'whale-line-shadow)))
-         (and (window-dedicated-p)
-              (or (whale-line-segments--decorate 'window-dedicated)
-                  (propertize "^" 'face 'whale-line-shadow))))))
+  (mapconcat
+   'identity
+   (delq nil
+       (list
+        (and (window-parameter (selected-window) 'no-other-window)
+             (or (whale-line-segments--decorate 'window-no-other)
+                 (propertize "~" 'face 'whale-line-shadow)))
+        (and (window-parameter (selected-window) 'no-delete-other-windows)
+             (or (whale-line-segments--decorate 'window-no-delete)
+                 (propertize "!" 'face 'whale-line-shadow)))
+        (and (window-dedicated-p)
+             (or (whale-line-segments--decorate 'window-dedicated)
+                 (propertize "^" 'face 'whale-line-shadow)))))
+   whale-line-segments-window-status-separator))
 
 (whale-line-create-stateless-segment window-status
   :getter whale-line-segments--window-status)
