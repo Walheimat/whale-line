@@ -182,22 +182,63 @@ This pre-pends the path to the buffer if so configured."
 
 ;;;;; Window status
 
+(defvar whale-line-segments--window-status--no-other-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1]
+                (lambda () (interactive)
+                  (set-window-parameter (selected-window) 'no-other-window nil)))
+
+    map))
+
+(defvar whale-line-segments--window-status--no-delete-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1]
+                (lambda () (interactive)
+                  (set-window-parameter (selected-window) 'no-delete-other-windows nil)))
+
+    map))
+
+(defvar whale-line-segments--window-status--dedicted-map
+  (let ((map (make-sparse-keymap)))
+
+    (define-key map [mode-line mouse-1]
+                (lambda () (interactive)
+                  (set-window-dedicated-p (selected-window) nil)))
+
+    map))
+
 (defun whale-line-segments--window-status ()
   "Render window status segment."
-  (mapconcat
-   'identity
-   (delq nil
-       (list
-        (and (window-parameter (selected-window) 'no-other-window)
-             (or (whale-line-segments--decorate 'window-no-other)
-                 (propertize "~" 'face 'whale-line-shadow)))
-        (and (window-parameter (selected-window) 'no-delete-other-windows)
-             (or (whale-line-segments--decorate 'window-no-delete)
-                 (propertize "!" 'face 'whale-line-shadow)))
-        (and (window-dedicated-p)
-             (or (whale-line-segments--decorate 'window-dedicated)
-                 (propertize "^" 'face 'whale-line-shadow)))))
-   whale-line-segments-window-status-separator))
+  (let ((no-other (or (whale-line-segments--decorate 'window-no-other)
+                      "~"))
+        (no-delete (or (whale-line-segments--decorate 'window-no-delete)
+                       "!") )
+        (dedicated (or (whale-line-segments--decorate 'window-dedicated)
+                       "^")))
+
+    (mapconcat
+     'identity
+     (delq nil
+           (list
+            (and (window-parameter (selected-window) 'no-other-window)
+                 (propertize no-other
+                             'face 'whale-line-shadow
+                             'mouse-face 'whale-line-highlight
+                             'local-map whale-line-segments--window-status--no-other-map))
+            (and (window-parameter (selected-window) 'no-delete-other-windows)
+                 (propertize no-delete
+                             'face 'whale-line-shadow
+                             'mouse-face 'whale-line-highlight
+                             'local-map whale-line-segments--window-status--no-delete-map))
+            (and (window-dedicated-p)
+                 (propertize dedicated
+                             'face 'whale-line-shadow
+                             'mouse-face 'whale-line-highlight
+                             'local-map whale-line-segments--window-status--dedicted-map))))
+
+     whale-line-segments-window-status-separator)))
 
 (whale-line-create-stateless-segment window-status
   :getter whale-line-segments--window-status)
