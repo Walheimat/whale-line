@@ -132,9 +132,16 @@ This pre-pends the path to the buffer if so configured."
                         (list 'help-echo whale-line-segments--buffer-identification--additional-help)))))
 
 (defun whale-line-segments--buffer-identification--path-segments ()
-  "Get preceding path segments."
+  "Get preceding path segments.
+
+This can be disabled by setting
+`whale-line-segments-buffer-identification-path-segments' to a
+non-positive value.
+
+Buffers that have been renamed will also yield no segments."
   (and-let* (((> whale-line-segments-buffer-identification-path-segments 0))
-             (file (buffer-file-name (current-buffer)))
+             (file (buffer-file-name))
+             ((string= (buffer-name) (file-name-nondirectory file)))
              (path (file-name-split file))
              (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
              (segments (seq-take (cdr (reverse path)) count)))

@@ -54,7 +54,8 @@
 (ert-deftest buffer-identification--path-segments ()
   :tags '(segments buffer)
 
-  (bydi ((:mock buffer-file-name :return "/test/one/two/three.el"))
+  (bydi ((:mock buffer-file-name :return "/test/one/two/three.el")
+         (:mock buffer-name :return "three.el"))
 
     (let ((whale-line-segments-buffer-identification-path-segments 1))
 
