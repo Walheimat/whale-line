@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.9.0](https://github.com/Walheimat/whale-line/compare/v0.8.5...v0.9.0) (2024-06-29)
+
+
+### Features
+
+* **segments:** buffer-identification now prepends path ([e100675](https://github.com/Walheimat/whale-line/commit/e1006758836322c7b545ca8ed90f19885f646a84))
+
 ## [0.8.5](https://github.com/Walheimat/whale-line/compare/v0.8.4...v0.8.5) (2024-01-28)
 
 
