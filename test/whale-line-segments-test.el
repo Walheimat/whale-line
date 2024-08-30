@@ -125,7 +125,7 @@
 
       (whale-line-segments--buffer-status)
 
-      (bydi-was-called whale-line-segments--buffer-status--read-only t)
+      (bydi-was-called whale-line-segments--buffer-status--read-only :clear t)
 
       (setq buffer-read-only nil)
 

@@ -40,7 +40,7 @@
 
       (whale-line-iconify--from-specs (cdr-safe (assoc 'fun whale-line-iconify-specs)))
 
-      (bydi-was-called specs-fun t)
+      (bydi-was-called specs-fun :clear t)
 
       (whale-line-iconify--from-specs (cdr-safe (assoc 'args whale-line-iconify-specs)))
 
@@ -100,7 +100,8 @@
       (whale-line-iconify 'test :face 'other-face)
 
       (bydi-was-called-with whale-line-iconify--from-specs
-        '((:name "test" :font test :face other-face)))
+        '((:name "test" :font test :face other-face))
+        :clear t)
 
       (bydi-toggle-sometimes)
 

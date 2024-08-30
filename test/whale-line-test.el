@@ -715,9 +715,13 @@
       (bydi-was-not-called whale-line--filter))))
 
 (ert-deftest whale-line--render-segments ()
-  (bydi ((:mock functionp :with (lambda (x) (eq 'whale-line-three--render x))))
+  (bydi ((:spy functionp))
+
+    (bydi-when functionp :called-with (list 'whale-line-three--render) :then-return t :once t)
+
     (defvar whale-line-one--render)
     (defvar whale-line-four--render)
+
     (let ((segments '(one three four))
           (whale-line-one--render "one")
           (whale-line-four--render 'initial))
@@ -863,7 +867,7 @@
       (whale-line--trigger-augments)
 
       (bydi-was-set-to whale-line-segments '(two three))
-      (bydi-was-called-with run-hooks 'whale-line-setup-hook t)
+      (bydi-was-called-with run-hooks 'whale-line-setup-hook :clear t)
 
       (whale-line--trigger-augments t)
 
