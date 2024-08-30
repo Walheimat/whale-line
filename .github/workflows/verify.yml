@@ -24,10 +24,10 @@ jobs:
       - name: Get Cask
         uses: conao3/setup-cask@master
         with:
-          version: snapshot
+          version: 29.1
 
       - name: Check out the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
 
