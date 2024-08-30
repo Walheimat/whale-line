@@ -78,7 +78,7 @@ logging."
   :group 'whale-line
   :type '(choice (const :tag "No logging" nil)
                  (symbol :tag "Info logging")
-                 (const :tag "Info logging" 1)
+                 (const :tag "Default logging" 1)
                  (const :tag "Debug logging" 0)))
 
 ;;;; Variables
