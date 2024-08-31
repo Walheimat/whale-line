@@ -10,6 +10,8 @@
 
 (package "whale-line" "0.9.0" "A whale-based mode-line")
 
-(package-file "whale-line.el")
-
-(files "*.el" (:exclude ".dir-locals.el"))
+(files
+ "whale-line.el"
+ "whale-line-edit.el"
+ "whale-line-segments.el"
+ "whale-line-iconify.el")

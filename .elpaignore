@@ -1,4 +1,13 @@
+assets/
+dinghy/
 .github/
-Cask
-Makefile
+node_modules/
 test/
+
+Cask
+CHANGELOG.md
+.gitmodules
+Makefile
+package.json
+package-lock.json
+.releaserc
