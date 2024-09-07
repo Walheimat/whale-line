@@ -14,7 +14,20 @@
         ]
       }
     ],
-    "@semantic-release/release-notes-generator",
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            {
+              "type": "improve",
+              "section": "Improvements"
+            }
+          ]
+        }
+      }
+    ],
     [
       "@semantic-release/exec",
       {
