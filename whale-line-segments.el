@@ -284,7 +284,7 @@ Buffers that have been renamed will also yield no segments."
 
 (whale-line-create-stateless-segment misc-info
   :var mode-line-misc-info
-  :priority current-low
+  :priority current
   :dense problematic)
 
 ;;;;; Minor modes
