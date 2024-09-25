@@ -849,16 +849,14 @@ This is either an explicit name or its index."
       name
     (number-to-string (tab-bar--current-tab-index))))
 
-(defun whale-line-segments--tab-bar ()
-  "Get the name or number of the tab."
-  (and-let* (((bound-and-true-p tab-bar-mode))
-             (id (whale-line-segments--tab-bar--identifier)))
+(defvar whale-line-segments--tab-bar
+  '((tab-bar-mode
+     ((:propertize (:eval (format " %s " (whale-line-segments--tab-bar--identifier)))
+                   face whale-line-highlight))))
+  "Get the name or number of the tab.")
 
-    `((:propertize ,(format " %s " id) face whale-line-highlight))))
-
-(whale-line-create-stateful-segment tab-bar
-  :getter whale-line-segments--tab-bar
-  :hooks (window-configuration-change-hook)
+(whale-line-create-stateless-segment tab-bar
+  :var whale-line-segments--tab-bar
   :priority current)
 
 ;;;;; VC

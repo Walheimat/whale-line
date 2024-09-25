@@ -695,11 +695,11 @@
            (:mock tab-bar--current-tab-index :return 42)
            (:risky-mock fboundp :with always))
 
-      (should (propertized-string= " test-tab " (whale-line-segments--tab-bar)))
+      (should (string= "test-tab" (whale-line-segments--tab-bar--identifier)))
 
       (setcdr (assoc 'explicit-name tab) nil)
 
-      (should (propertized-string= " 42 " (whale-line-segments--tab-bar))))))
+      (should (string= "42" (whale-line-segments--tab-bar--identifier))))))
 
 ;;;; VC
 
