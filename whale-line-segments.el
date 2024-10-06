@@ -76,6 +76,12 @@ In project buffers segments are calculated relative to the project root."
   :group 'whale-line-segments
   :type 'integer)
 
+(defcustom whale-line-segments-buffer-identification-path-segments-length 'full
+  "The length of path segments beyond the final one."
+  :group 'whale-line-segments
+  :type '(choice (symbol :tag "Show full length")
+                 (integer :tag "Length of other segments")))
+
 (defcustom whale-line-segments-window-status-separator "·"
   "Separator between multiple window statuses."
   :group 'whale-line-segments
@@ -151,7 +157,16 @@ Project buffers will only show segments deeper than root."
                      file))
              (path (file-name-split file))
              (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
-             (segments (seq-take (cdr (reverse path)) count)))
+             (segments (seq-take (cdr (reverse path)) count))
+             (max-len whale-line-segments-buffer-identification-path-segments-length)
+             (segments (if (and (numberp max-len)
+                                (> (length segments) 1))
+
+                           (append
+                            (list (car segments))
+                            (mapcar (lambda (it) (substring it 0 (min (length it) max-len))) (cdr-safe segments)))
+
+                         segments)))
 
     (concat (string-join (reverse segments) "/") "/")))
 

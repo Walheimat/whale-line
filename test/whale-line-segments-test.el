@@ -59,7 +59,8 @@
          (:othertimes project-current)
          (:mock project-root :return "/test"))
 
-    (let ((whale-line-segments-buffer-identification-path-segments 1))
+    (let ((whale-line-segments-buffer-identification-path-segments 1)
+          (whale-line-segments-buffer-identification-path-segments-length 'full))
 
       (should (string= "two/" (whale-line-segments--buffer-identification--path-segments)))
 
@@ -67,7 +68,12 @@
 
       (should (string= "/test/one/two/" (whale-line-segments--buffer-identification--path-segments)))
 
-      (setq whale-line-segments-buffer-identification-path-segments 0)
+      (setq whale-line-segments-buffer-identification-path-segments-length 1)
+
+      (should (string= "/t/o/two/" (whale-line-segments--buffer-identification--path-segments)))
+
+      (setq whale-line-segments-buffer-identification-path-segments 0
+            whale-line-segments-buffer-identification-path-segments-length 'full)
 
       (should-not (whale-line-segments--buffer-identification--path-segments))
 
