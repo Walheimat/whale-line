@@ -55,7 +55,9 @@
   :tags '(segments buffer)
 
   (bydi ((:mock buffer-file-name :return "/test/one/two/three.el")
-         (:mock buffer-name :return "three.el"))
+         (:mock buffer-name :return "three.el")
+         (:othertimes project-current)
+         (:mock project-root :return "/test"))
 
     (let ((whale-line-segments-buffer-identification-path-segments 1))
 
@@ -67,7 +69,13 @@
 
       (setq whale-line-segments-buffer-identification-path-segments 0)
 
-      (should-not (whale-line-segments--buffer-identification--path-segments)))))
+      (should-not (whale-line-segments--buffer-identification--path-segments))
+
+      (bydi-toggle-volatile 'project-current)
+
+      (setq whale-line-segments-buffer-identification-path-segments 4)
+
+      (should (string= "one/two/" (whale-line-segments--buffer-identification--path-segments))))))
 
 (ert-deftest buffer-status--using-icons ()
   (let ((modified nil)

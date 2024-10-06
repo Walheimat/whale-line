@@ -70,7 +70,9 @@ to 2, only the 3rd level is elided."
 (defcustom whale-line-segments-buffer-identification-path-segments 1
   "The amount of path elements to show before buffer identification.
 
-This can be disabled by setting this to 0."
+This can be disabled by setting this to 0.
+
+In project buffers segments are calculated relative to the project root."
   :group 'whale-line-segments
   :type 'integer)
 
@@ -138,10 +140,15 @@ This can be disabled by setting
 `whale-line-segments-buffer-identification-path-segments' to a
 non-positive value.
 
-Buffers that have been renamed will also yield no segments."
+Buffers that have been renamed will also yield no segments.
+
+Project buffers will only show segments deeper than root."
   (and-let* (((> whale-line-segments-buffer-identification-path-segments 0))
              (file (buffer-file-name))
              ((string= (buffer-name) (file-name-nondirectory file)))
+             (file (if (project-current)
+                       (file-relative-name file (project-root (project-current)))
+                     file))
              (path (file-name-split file))
              (count (min (1- (length path)) whale-line-segments-buffer-identification-path-segments))
              (segments (seq-take (cdr (reverse path)) count)))
