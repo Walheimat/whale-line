@@ -706,14 +706,9 @@
         (tab-bar-mode t))
 
     (bydi ((:mock tab-bar--current-tab :return tab)
-           (:mock tab-bar--current-tab-index :return 42)
            (:risky-mock fboundp :with always))
 
-      (should (string= "test-tab" (whale-line-segments--tab-bar--identifier)))
-
-      (setcdr (assoc 'explicit-name tab) nil)
-
-      (should (string= "42" (whale-line-segments--tab-bar--identifier))))))
+      (should (string= "test-tab" (whale-line-segments--tab-bar--identifier))))))
 
 ;;;; VC
 

@@ -862,20 +862,17 @@ Only consider Dired buffers and file buffers."
 ;;;;; Tab bar
 
 (defun whale-line-segments--tab-bar--identifier ()
-  "Get the identifier of the current tab.
+  "Get the identifier of the current tab."
+  (when-let* ((tab (tab-bar--current-tab))
+              (name (alist-get 'name tab)))
 
-This is either an explicit name or its index."
-  (if-let* ((tab (tab-bar--current-tab))
-            ((alist-get 'explicit-name tab))
-            (name (alist-get 'name tab)))
-      name
-    (number-to-string (tab-bar--current-tab-index))))
+    name))
 
 (defvar whale-line-segments--tab-bar
   '((tab-bar-mode
      ((:propertize (:eval (format " %s " (whale-line-segments--tab-bar--identifier)))
                    face whale-line-highlight))))
-  "Get the name or number of the tab.")
+  "Get the name of the tab.")
 
 (whale-line-create-stateless-segment tab-bar
   :var whale-line-segments--tab-bar
