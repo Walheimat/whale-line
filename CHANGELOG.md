@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.9.1](https://github.com/Walheimat/whale-line/compare/v0.9.0...v0.9.1) (2024-10-13)
+
+
+### Improvements
+
+* **buffer-ident:** allow truncating additional segments ([bd2c3d8](https://github.com/Walheimat/whale-line/commit/bd2c3d8a5f7e9974f3970f953682be4551cd57f4))
+* **buffer-identification:** subtract project-root ([8c53da4](https://github.com/Walheimat/whale-line/commit/8c53da402ca12d7b7068b89f851610056ce388e6))
+* **segments:** change priority current-low=>current ([934115e](https://github.com/Walheimat/whale-line/commit/934115e5fd83a52f56b46458e1f6186359e57327))
+* **tab-bar-segment:** always use the name ([0a6b47f](https://github.com/Walheimat/whale-line/commit/0a6b47ff38541198780531d9155c848dd36fee96))
+
 # [0.9.0](https://github.com/Walheimat/whale-line/compare/v0.8.5...v0.9.0) (2024-06-29)
 
 
