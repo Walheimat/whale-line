@@ -345,7 +345,7 @@ Project buffers will only show segments deeper than root."
       ((:eval (whale-line--spacer))
        (multiple-cursors-mode
         "mc"
-        (rectangle-mark-mode
+        (mark-active
          ((:eval (whale-line-segments--selection--rows)) "×" (:eval (whale-line-segments--selection--columns)))
          (:eval (whale-line-segments--selection--rows))))
        (:eval (whale-line--spacer)))
