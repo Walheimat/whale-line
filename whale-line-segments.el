@@ -88,6 +88,14 @@ In project buffers segments are calculated relative to the project root."
   :group 'whale-line-segments
   :type 'string)
 
+(defcustom whale-line-segments-project-width 10
+  "The width of the project name.
+
+If this is a number, a name exceeding it will be truncated."
+  :group 'whale-line-segments
+  :type '(choice (integer :tag "The (padded) width")
+                 (const :tag "Full name" nil)))
+
 ;;;; Utility
 
 (defun whale-line-segments--decorate (_symbol &rest _args)
@@ -845,11 +853,15 @@ Only consider Dired buffers and file buffers."
   (when-let* ((candidate (whale-line-segments--project--display-for-buffer-p))
               (project (project-current))
               (name (project-name project))
+              (truncated (if (and (numberp whale-line-segments-project-width)
+                                  (> (length name) whale-line-segments-project-width))
+                             (truncate-string-to-width name whale-line-segments-project-width 0 nil t)
+                           name))
               (help (whale-line-segments--project--help)))
 
     `(,@(when-let ((decorated (whale-line-segments--decorate 'project)))
           (list decorated (whale-line--spacer)))
-      (:propertize ,name
+      (:propertize ,truncated
                    face whale-line-emphasis
                    mouse-face whale-line-highlight
                    help-echo ,help

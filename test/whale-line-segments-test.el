@@ -685,7 +685,8 @@
       (should (string= "Project (/home/test/project/)\nmouse-1: Open root" (whale-line-segments--project--help)))))
 
 (ert-deftest project--get--for-project ()
-  (let ((whale-line-segments--project--map nil))
+  (let ((whale-line-segments--project--map nil)
+        (whale-line-segments-project-width nil))
 
     (bydi ((:always whale-line-segments--project--display-for-buffer-p)
            (:always project-current)
@@ -695,6 +696,15 @@
            (:mock project-name :return "project"))
 
       (should (equal '("*" " " (:propertize "project"
+                                            face whale-line-emphasis
+                                            mouse-face whale-line-highlight
+                                            help-echo "help"
+                                            local-map nil))
+                     (whale-line-segments--project)))
+
+      (setq whale-line-segments-project-width 3)
+
+      (should (equal `("*" " " (:propertize ,(concat "pr" (truncate-string-ellipsis))
                                             face whale-line-emphasis
                                             mouse-face whale-line-highlight
                                             help-echo "help"
