@@ -17,6 +17,7 @@
 
 ;;; Code:
 
+(require 'mule-util)
 (require 'whale-line)
 
 ;;;; Customization
@@ -48,7 +49,7 @@ frame."
   :group 'whale-line-segments
   :type 'string)
 
-(defcustom whale-line-segments-org-ellipsis "…"
+(defcustom whale-line-segments-org-ellipsis (truncate-string-ellipsis)
   "The string indicating truncation of a heading."
   :group 'whale-line-segments
   :type 'string)

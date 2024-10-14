@@ -576,7 +576,7 @@
                        (whale-line-segments--minions--list)))))))
 
 (ert-deftest org--maybe-truncate--truncates ()
-  (should (string= "test…" (whale-line-segments--org--maybe-truncate "testing" 'success 5))))
+  (should (string= (concat "test" (truncate-string-ellipsis)) (whale-line-segments--org--maybe-truncate "testing" 'success 5))))
 
 (ert-deftest org--maybe-truncate--skips ()
   (should (string= "testing" (whale-line-segments--org--maybe-truncate "testing" 'success 7))))
