@@ -808,7 +808,7 @@ Use FACE for the ellipsis glyph."
 (whale-line-create-stateless-segment org
   :getter whale-line-segments--org
   :condition (derived-mode-p 'org-mode)
-  :priority current)
+  :priority current-low)
 
 ;;;;; Project
 
@@ -948,7 +948,7 @@ Only consider Dired buffers and file buffers."
   :getter whale-line-segments--vc
   :hooks (find-file-hook after-save-hook)
   :after vc-refresh-state
-  :priority current)
+  :priority current-low)
 
 (provide 'whale-line-segments)
 
