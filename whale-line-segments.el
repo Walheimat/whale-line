@@ -96,6 +96,14 @@ If this is a number, a name exceeding it will be truncated."
   :type '(choice (integer :tag "The (padded) width")
                  (const :tag "Full name" nil)))
 
+(defcustom whale-line-segments-tab-bar-width 10
+  "The width of the tab-bar name.
+
+If this is a number, a name exceeding it will be truncated."
+  :group 'whale-line-segments
+  :type '(choice (integer :tag "The (padded) width")
+                 (const :tag "Full name" nil)))
+
 ;;;; Utility
 
 (defun whale-line-segments--decorate (_symbol &rest _args)
@@ -879,7 +887,11 @@ Only consider Dired buffers and file buffers."
   (when-let* ((tab (tab-bar--current-tab))
               (name (alist-get 'name tab)))
 
-    name))
+    (if (numberp whale-line-segments-tab-bar-width)
+        (truncate-string-to-width
+         name whale-line-segments-tab-bar-width nil nil
+         (truncate-string-ellipsis))
+      name)))
 
 (defvar whale-line-segments--tab-bar
   '((tab-bar-mode

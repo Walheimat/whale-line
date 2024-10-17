@@ -712,13 +712,18 @@
                      (whale-line-segments--project))))))
 
 (ert-deftest tab-bar ()
-  (let ((tab '((explicit-name . t) (name . "test-tab")))
-        (tab-bar-mode t))
+  (let ((tab '((explicit-name . t) (name . "test-tab-long-name")))
+        (tab-bar-mode t)
+        (whale-line-segments-tab-bar-width 10))
 
     (bydi ((:mock tab-bar--current-tab :return tab)
            (:risky-mock fboundp :with always))
 
-      (should (string= "test-tab" (whale-line-segments--tab-bar--identifier))))))
+      (should (string= (concat "test-tab-" (truncate-string-ellipsis)) (whale-line-segments--tab-bar--identifier)))
+
+      (setq whale-line-segments-tab-bar-width nil)
+
+      (should (string= "test-tab-long-name" (whale-line-segments--tab-bar--identifier))))))
 
 ;;;; VC
 
