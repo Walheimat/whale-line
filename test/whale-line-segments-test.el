@@ -202,6 +202,25 @@
 
     (should (string= "9" (whale-line-segments--selection--columns)))))
 
+(ert-deftest selection--marked ()
+  (with-temp-buffer
+    (insert-file-contents rectangle)
+    (goto-char (point-min))
+    (shut-up
+      (push-mark))
+    (goto-char (point-max))
+
+    (should (string= "3" (whale-line-segments--selection--marked))))
+
+  (with-temp-buffer
+    (insert-file-contents rectangle)
+    (goto-char (point-min))
+    (shut-up
+      (push-mark))
+    (goto-char (+ 4 (point-min)))
+
+    (should (string= "4" (whale-line-segments--selection--marked)))))
+
 (ert-deftest animation-animate ()
   (bydi (force-mode-line-update)
 

@@ -362,11 +362,24 @@ Project buffers will only show segments deeper than root."
       ((:eval (whale-line--spacer))
        (multiple-cursors-mode
         "mc"
-        (mark-active
+        (rectangle-mark-mode
          ((:eval (whale-line-segments--selection--rows)) "×" (:eval (whale-line-segments--selection--columns)))
-         (:eval (whale-line-segments--selection--rows))))
-       (:eval (whale-line--spacer)))
+         (:eval (whale-line-segments--selection--marked))))
+        (:eval (whale-line--spacer)))
       face region))))
+
+(defun whale-line-segments--selection--marked ()
+  "Get the marked region.
+
+If this spans multiple lines, only show the lines. If it only spans a
+single line show the columns."
+  (let* ((beg (region-beginning))
+         (end (region-end))
+         (line-count (count-lines beg (min end (point-max)))))
+
+    (if (> line-count 1)
+        (whale-line-segments--selection--rows)
+      (whale-line-segments--selection--columns))))
 
 (defun whale-line-segments--selection--columns ()
   "Get the columns for the region."
