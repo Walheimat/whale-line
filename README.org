@@ -119,7 +119,7 @@ the change.
                          animation))
 
   ;; Strategy to use when there's not enough space to render all segments.
-  (whale-line-segment-strategy 'prioritize) ; Other options are `elide' and `ignore'.
+  (whale-line-segment-strategy 'tiered) ; Other options are `prioritize', `elide' and `ignore'.
 
   ;; Animation.
   (whale-line-segments-animation-key-frames [
@@ -164,7 +164,41 @@ the change.
   (whale-line-iconify-disabled nil))
 #+END_SRC
 
+** Customizing Tiers
+
+If you use strategy =tiered= (the default) you may want to customize
+the defaults.
+
+All segments belong to a tier. Segments belonging to a lower tier will
+be removed if space is low. The strategy will always show the lowest
+possible tier. The tiers are
+
+- =critical=
+- =essential=
+- =high=
+- =medium= and
+- =low=
+
+If you're unhappy with the default settings, you can use
+=whale-line-with-tiers= to change them in bulk after loading the
+package.
+
+#+begin_src emacs-lisp
+(whale-line-with-tiers
+  ;; Lower tier of `minor-modes' and `process'.
+  minor-modes
+  process
+  medium
+
+  ;; Make `tab-bar' critical.
+  tab-bar
+  critical)
+#+end_src
+
 ** Customizing Priorities
+
+If you use strategy =prioritize= you may want to customize the
+defaults.
 
 All segments are created with a priority that determines on what
 condition the segment is shown. The possible values are:

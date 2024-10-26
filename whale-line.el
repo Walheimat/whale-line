@@ -215,6 +215,32 @@ formatted."
 (defvar whale-line--tiers '(critical essential high medium low)
   "The tiers a segment can belong to, ordered from high to low.")
 
+(defun whale-line--update-tiers (segments tier)
+  "Update tier to TIER for all SEGMENTS."
+  (dolist (it segments)
+    (when-let ((def (assoc it whale-line--props))
+               (props (cdr def)))
+      (plist-put props :tier tier)
+      (setcdr def props))))
+
+(defmacro whale-line-with-tiers (&rest args)
+  "Set tiers for segments.
+
+ARGS is a list of segments followed by a tier value.."
+  (declare (indent 0))
+
+  (let ((filter (lambda (it) (not (memq it whale-line--tiers))))
+        commands)
+
+    (while args
+      (let ((segments (seq-take-while filter args)))
+
+        (setq args (seq-drop-while filter args))
+        (push `(whale-line--update-tiers ',segments ',(car args)) commands)
+        (setq args (cdr args))))
+
+    (macroexp-progn commands)))
+
 (defvar whale-line--tier-predicates nil)
 
 ;;;;; Caching
