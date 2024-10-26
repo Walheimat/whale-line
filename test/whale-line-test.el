@@ -27,7 +27,7 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -54,7 +54,7 @@
      (whale-line--create-stateful-segment test
        :getter (lambda () t))
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -78,9 +78,10 @@
        :verify (lambda () t)
        :teardown ignore
        :setup ignore
-       :priority low)
+       :priority low
+       :tier high)
      '(progn
-       (whale-line--set-props 'test 'stateful 'low 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'low 'nil 'nil 'high 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter (&rest _)
          "Set `test' segment."
@@ -105,7 +106,7 @@
      (whale-line--create-stateful-segment test
        :port test-port)
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -125,7 +126,7 @@
      (whale-line--create-stateful-segment test
        :hooks change-major-mode-hook)
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -147,7 +148,7 @@
        :getter test-getter
        :after (some-fun))
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -167,7 +168,7 @@
        :getter test-getter
        :advice (:after . (some-fun other-fun)))
      '(progn
-       (whale-line--set-props 'test 'stateful 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateful 'nil 'nil 'nil 'nil 'nil)
        (defvar-local whale-line-test--render 'initial)
        (defun whale-line-test--setter
            (&rest _)
@@ -191,7 +192,7 @@
        :teardown (lambda () t)
        :setup (lambda () t))
      '(progn
-       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateless 'nil 'nil 'nil 'nil 'nil)
        (defun whale-line-test--render ()
          "Render `test' segment."
          (or
@@ -211,7 +212,7 @@
      (whale-line--create-stateless-segment test
        :var test-variable-segment)
      '(progn
-       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateless 'nil 'nil 'nil 'nil 'nil)
        (defun whale-line-test--render ()
          "Render `test' segment."
          (or (when t test-variable-segment) ""))
@@ -225,7 +226,7 @@
        :condition buffer-file-name
        :dense t)
      '(progn
-       (whale-line--set-props 'test 'stateless 't 't 'nil)
+       (whale-line--set-props 'test 'stateless 'nil 't 'nil 'nil 'nil)
        (defun whale-line-test--render ()
          "Render `test' segment."
          (or
@@ -241,7 +242,7 @@
      (whale-line--create-stateless-segment test
        :port test-port)
      '(progn
-       (whale-line--set-props 'test 'stateless 't 'nil 'nil)
+       (whale-line--set-props 'test 'stateless 'nil 'nil 'nil 'nil 'nil)
        (defun whale-line-test--render nil "Render `test' segment."
               (or
                (when t
@@ -410,12 +411,13 @@
       (bydi-was-called propertize))))
 
 (ert-deftest whale-line--format-side ()
-  (bydi (format-mode-line
-         (:mock whale-line--render :return "test"))
-    (whale-line--format-side :left 'filter)
+  (let ((whale-line--segments '(:left (a b c) :right (d e f))))
+    (bydi (format-mode-line
+           (:mock whale-line--render-segments :return "test"))
+      (whale-line--format-side :left (lambda (it) (not (eq 'b it))))
 
-    (bydi-was-called-with whale-line--render '(:left filter))
-    (bydi-was-called-with format-mode-line "test")))
+      (bydi-was-called-with whale-line--render-segments (list '(a c)))
+      (bydi-was-called-with format-mode-line "test"))))
 
 (ert-deftest calculate-space ()
   (bydi ((:always whale-line--enough-space-p))
@@ -441,8 +443,7 @@
       (should (whale-line--enough-space-p))
       (setq width 8)
       (clrhash whale-line--space-cache)
-      (should-not (whale-line--enough-space-p))
-      (bydi-was-called-with whale-line--format-side '(... none)))))
+      (should-not (whale-line--enough-space-p)))))
 
 (ert-deftest whale-line--enough-space--old-calculation ()
   (let ((left "left")
@@ -503,7 +504,7 @@
    (setq space nil)
    (should (equal (whale-line--format-prioritize)
                   '("rendered" "   " "rendered")))
-   (bydi-was-called-with whale-line--format-side '(:right t))))
+   (bydi-was-called-with whale-line--format-side '(:right ...))))
 
 (ert-deftest whale-line--space-between ()
   (should (equal (propertize
@@ -626,19 +627,19 @@
 
     (whale-line--set-props 'one 'stateful)
 
-    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil)
+    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil :tier low :local nil)
                                        (two :priority t :type stateless))))
 
     (whale-line--set-props 'two 'stateful 'low)
 
-    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil)
-                                       (two :type stateful :priority low :dense nil :padded nil))))
+    (should (equal whale-line--props '((one :type stateful :priority t :dense nil :padded nil :tier low :local nil)
+                                       (two :type stateful :priority low :dense nil :padded nil :tier low :local nil))))
 
-    (whale-line--set-props 'three 'stateless nil t t)
+    (whale-line--set-props 'three 'stateless nil t t 'high t)
 
-    (should (equal whale-line--props '((three :type stateless :priority t :dense t :padded t)
-                                       (one :type stateful :priority t :dense nil :padded nil)
-                                       (two :type stateful :priority low :dense nil :padded nil))))))
+    (should (equal whale-line--props '((three :type stateless :priority t :dense t :padded t :tier high :local t)
+                                       (one :type stateful :priority t :dense nil :padded nil :tier low :local nil)
+                                       (two :type stateful :priority low :dense nil :padded nil :tier low :local nil))))))
 
 (ert-deftest whale-line--valid-segment-p ()
   (let ((verifies nil))
@@ -932,7 +933,8 @@
       (bydi-was-called-with run-hooks (list 'whale-line-setup-hook))
       (bydi-was-called-nth-with add-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
       (bydi-was-called-nth-with add-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
-      (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
+      (bydi-was-called-nth-with add-hook (list 'window-configuration-change-hook #'whale-line--rebuild-tier-cache) 2)
+      (bydi-was-called-nth-with add-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 3)
 
       (bydi-was-set-to mode-line-format whale-line-mode-line)
       (bydi-was-set-to whale-line--default-mode-line 'format)
@@ -953,7 +955,8 @@
       (bydi-was-called-with run-hooks (list 'whale-line-teardown-hook))
       (bydi-was-called-nth-with remove-hook (list 'pre-redisplay-functions #'whale-line--set-selected-window) 0)
       (bydi-was-called-nth-with remove-hook (list 'window-configuration-change-hook #'whale-line--calculate-space) 1)
-      (bydi-was-called-nth-with remove-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 2)
+      (bydi-was-called-nth-with remove-hook (list 'window-configuration-change-hook #'whale-line--rebuild-tier-cache) 2)
+      (bydi-was-called-nth-with remove-hook (list 'buffer-list-update-hook #'whale-line--queue-refresh) 3)
       (bydi-was-set-to mode-line-format 'other))))
 
 (ert-deftest whale-line-mode ()

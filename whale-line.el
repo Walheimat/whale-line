@@ -57,17 +57,18 @@ right."
   :group 'whale-line
   :type '(repeat symbol))
 
-(defcustom whale-line-segment-strategy 'prioritize
+(defcustom whale-line-segment-strategy 'tiered
   "Strategy used when lack of space prohibits displaying all segments.
 
-Strategy `prioritize' filters out segments with low priority.
-Strategy `elide' only displays the left side. Strategy `ignore'
-will display both sides unchanged no matter the space
-constraints."
+Strategy `tiered' filters out segments up until the lowest fitting tier.
+Strategy `elide' only displays the left side. Strategy `ignore' will
+display both sides unchanged no matter the space constraints. Deprecated
+strategy `prioritize' filters out segments with low priority."
   :group 'whale-line
-  :type '(choice (const prioritize)
+  :type '(choice (const tiered)
                  (const elide)
-                 (const ignore)))
+                 (const ignore)
+                 (const prioritize)))
 
 (defcustom whale-line-log nil
   "Log level (or whether to log at all).
@@ -156,7 +157,18 @@ formatter to call."
     ('ignore
      (whale-line--format-ignore))
     ('elide
-     (whale-line--format-elide))))
+     (whale-line--format-elide))
+    ('tiered
+     (whale-line--format-tiered))))
+
+(defun whale-line--format-tiered ()
+  "Format mode line, trying to fit the lowest possible tier."
+  (let* ((pred (whale-line--tier-predicate))
+         (lhs (whale-line--render-with-predicate :left pred))
+         (rhs (whale-line--render-with-predicate :right pred))
+         (rlen (whale-line--rhs-width)))
+
+    `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
 
 (defun whale-line--format-prioritize ()
   "Format mode line, prioritizing certain segments if space is lacking."
@@ -166,6 +178,8 @@ formatter to call."
           (rhs (whale-line--render :right t))
           (rlen (whale-line--rlen t)))
       `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
+
+(make-obsolete 'whale-line--format-prioritize 'whale-line--format-tiered "v0.10.0")
 
 (defun whale-line--format-elide ()
   "Format mode line, eliding right side if space is lacking."
@@ -187,11 +201,102 @@ formatter to call."
         (rlen (whale-line--rlen)))
     `(,@lhs ,(whale-line--space-between rlen) ,@rhs)))
 
-(defun whale-line--format-side (side &optional filter)
-  "Get the formatted SIDE.
+(defun whale-line--format-side (side predicate)
+  "Format SIDE.
 
-Optionally FILTER out low priority segments."
-  (format-mode-line (whale-line--render side filter)))
+Only those segments on SIDE satisfying PREDICATE will actually be
+formatted."
+  (let ((eligible (seq-filter predicate (plist-get whale-line--segments side))))
+
+    (format-mode-line (whale-line--render-segments eligible))))
+
+;;;; Tiers
+
+(defvar whale-line--tiers '(critical essential high medium low)
+  "The tiers a segment can belong to, ordered from high to low.")
+
+(defvar whale-line--tier-predicates nil)
+
+;;;;; Caching
+
+(defvar whale-line--tier-cache (make-hash-table)
+  "Hash table that maps windows to a tier predicate.")
+
+(defvar whale-line--tier-rhs-width-cache (make-hash-table)
+  "Hash table that maps renders to their formatted length.")
+
+(defun whale-line--rebuild-tier-cache ()
+  "Rebuild the tier predicate and width cache for all windows."
+  (let ((windows (window-list-1 nil 'never 'visible)))
+
+    (dolist (win windows)
+      (with-selected-window win
+        (whale-line--cache-tier-predicate)
+        (whale-line--cache-rhs-width)))))
+
+(defun whale-line--cache-tier-predicate ()
+  "Cache the tier predicate for the selected window.
+
+This returns the predicate."
+  (let ((pred (car-safe
+               (seq-drop-while
+                (lambda (it)
+                  (unless (> (whale-line--calculate-remaining-space it) 0)
+                    it))
+                whale-line--tier-predicates))))
+
+    (puthash (selected-window) pred whale-line--tier-cache)
+
+    pred))
+
+(defun whale-line--cache-rhs-width ()
+  "Cache the formatted length of the right-hand side."
+  (let* ((pred (whale-line--tier-predicate))
+         (rhs (whale-line--render-with-predicate :right pred))
+         (rlen (length (format-mode-line rhs))))
+
+    (puthash (selected-window) rlen whale-line--tier-rhs-width-cache)
+
+    rlen))
+
+;;;;; Predicates
+
+(defmacro whale-line--create-tier-predicate (tier)
+  "Check if SEGMENT should be shown at TIER.
+
+This is the case if (1) the segment's tier is at or above TIER, (2) this
+is the selected window or the the segment has global visibility."
+  `(progn
+     (add-to-list
+      'whale-line--tier-predicates
+      ',(intern (format "whale-line--included-in-%s-p" tier)))
+     (defun ,(intern (format "whale-line--included-in-%s-p" tier)) (segment)
+       (let ((tier (whale-line--prop segment :tier)))
+
+         (and (<= (seq-position whale-line--tiers tier)
+                  (seq-position whale-line--tiers ',tier))
+              (or (whale-line--is-current-window-p)
+                  (not (whale-line--prop segment :local))))))))
+
+;; NOTE: This needs to be ordered from high to low.
+(whale-line--create-tier-predicate critical)
+(whale-line--create-tier-predicate essential)
+(whale-line--create-tier-predicate high)
+(whale-line--create-tier-predicate medium)
+(whale-line--create-tier-predicate low)
+
+;;;;; Rendering
+
+(defun whale-line--tier-predicate ()
+  "Get the lowest tier that fits all segments."
+  (or (gethash (selected-window) whale-line--tier-cache)
+      (whale-line--cache-tier-predicate)))
+
+(defun whale-line--rhs-width ()
+  "Get the formatting length of the right-hand side."
+  ;; FIXME: Caching this won't work since the lengths may change
+  ;; despite the window configuration not changing.
+  (whale-line--cache-rhs-width))
 
 ;;;; Space calculation
 
@@ -201,7 +306,11 @@ Optionally FILTER out low priority segments."
 Optionally use FILTER."
   ;; FIXME: This is quite expensive. Need to find a way to cache this
   ;;        reliably.
-  (length (whale-line--format-side :right filter)))
+  (let* ((predicate (lambda (segment)
+                      (whale-line--filtered-p segment filter)))
+         (right (whale-line--format-side :right predicate)))
+
+    (length right)))
 
 (defun whale-line--calculate-space ()
   "Calculate space constraints for all visible windows.
@@ -218,34 +327,31 @@ per window configuration change."
   "Cache the width of both sides.
 
 If FORCE is t, do also if a cached value exists."
-  (unless (and (not force) (whale-line--widths))
+  (unless (and (not force) (gethash (selected-window) whale-line--space-cache))
     (puthash (selected-window)
-             (list (cons 'left (whale-line--calculate-width :left))
-                   (cons 'right (whale-line--calculate-width :right)))
+             (whale-line--calculate-remaining-space #'always)
              whale-line--space-cache)))
-
-(defun whale-line--widths ()
-  "Get the widths for the selected window.."
-  (gethash (selected-window) whale-line--space-cache))
-
-(defun whale-line--calculate-width (side)
-  "Calculate the width for SIDE.
-
-This uses `string-pixel-width' for Emacs 29+, otherwise
-`window-font-width'."
-  (let ((formatted (whale-line--format-side side 'none)))
-
-    (if (fboundp 'string-pixel-width)
-        (string-pixel-width formatted)
-      (* (window-font-width) (length formatted)))))
 
 (defun whale-line--enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
   (whale-line--cache-widths)
 
-  (let-alist (whale-line--widths)
+  (> (gethash (selected-window) whale-line--space-cache) 0))
 
-    (> (- (window-pixel-width) (+ .left .right)) 0)))
+(defun whale-line--space ()
+  "Get the remaining space."
+  (gethash (selected-window) whale-line--space-cache))
+
+(defun whale-line--calculate-remaining-space (filter)
+  "Given filter function FILTER, check if both sides fit the window."
+  (let* ((l-render (whale-line--format-side :left filter))
+         (r-render (whale-line--format-side :right filter))
+         (combined (concat l-render r-render)))
+
+    (- (window-pixel-width)
+       (if (fboundp 'string-pixel-width)
+           (string-pixel-width combined)
+         (* (window-font-width) (length combined))))))
 
 (defun whale-line--space-between (length)
   "Get the space between sides aligned using LENGTH."
@@ -279,7 +385,9 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
 (defun whale-line--clear-caches ()
   "Clear all caches."
   (clrhash whale-line--padded-cache)
-  (clrhash whale-line--space-cache))
+  (clrhash whale-line--space-cache)
+  (clrhash whale-line--tier-cache)
+  (clrhash whale-line--tier-rhs-width-cache))
 
 ;;;; Building segments
 
@@ -321,7 +429,7 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
   (and-let* (((memq '| whale-line-segments))
              (break (cl-position '| whale-line-segments))
              (left (seq-filter #'whale-line--valid-segment-p
-                              (cl-subseq whale-line-segments 0 break)))
+                               (cl-subseq whale-line-segments 0 break)))
              (right (seq-filter #'whale-line--valid-segment-p
                                 (cl-subseq whale-line-segments (1+ break))))
              (props (list :left left :right right)))
@@ -350,12 +458,20 @@ Sets up augments. If ARG is t tears them down instead."
 
 ;;;; Props
 
-(defun whale-line--set-props (segment type &optional priority dense padded)
+(defun whale-line--set-props (segment type &optional priority dense padded tier local)
   "Set props for SEGMENT.
 
-These are its TYPE, PRIORITY, as well as whether it is DENSE
-and/or PADDED."
-  (if-let ((props (list :type type :priority (or priority t) :dense dense :padded padded))
+These are its TYPE, PRIORITY, TIER, as well as whether it is LOCAL,
+DENSE and/or PADDED.
+
+PRIORITY will default to t (meaning it is never filtered), TIER will
+default to the lowest tier, and LOCAL will default to nil."
+  (if-let ((props (list :type type
+                        :priority (or priority t)
+                        :dense dense
+                        :padded padded
+                        :tier (or tier (car-safe (last whale-line--tiers)))
+                        :local local))
            (existing (assoc segment whale-line--props)))
       (setcdr existing props)
     (push (cons segment props) whale-line--props)))
@@ -409,9 +525,9 @@ return early."
                                             `(funcall ,setup))))))
 
                   (log (if setups `(whale-line-log ,(format "Setting up `%s' (%%s)" name)
-                                                    (whale-line--prop ',name :type))
+                                                   (whale-line--prop ',name :type))
                          `(whale-line-log ,(format "Segment `%s' (%%s) requires no setup" name)
-                                           (whale-line--prop ',name :type)))))
+                                          (whale-line--prop ',name :type)))))
 
              (if setups
                  `(,log ,@setups)
@@ -440,9 +556,9 @@ return early."
                                        `(funcall ',teardown)
                                      `(funcall ,teardown))))))
                   (log (if teardowns `(whale-line-log ,(format "Tearing down `%s' (%%s)" name)
-                                                       (whale-line--prop ',name :type))
+                                                      (whale-line--prop ',name :type))
                          `(whale-line-log ,(format "Segment `%s' (%%s) requires no teardown" name)
-                                           (whale-line--prop ',name :type)))))
+                                          (whale-line--prop ',name :type)))))
              (if teardowns
                  `(,log ,@teardowns)
                `(,log))))
@@ -496,6 +612,8 @@ nothing for augments."
      setup
      teardown
      priority
+     tier
+     local
      dense
      padded
      port)
@@ -523,6 +641,11 @@ the build.
 
 The segment is added with PRIORITY or t.
 
+The segment belongs to TIER or the lowest tier.
+
+If LOCAL is t, the segment should only be visible on the selected
+window.
+
 If DENSE is t, the segment will not be padded.
 
 PADDED can be either `left', `right' or `all' to document that
@@ -538,7 +661,6 @@ segment. See description of PLUGS-INTO of
          (getter-sym (whale-line--symbol-for-type name 'getter))
          (verify-sym (whale-line--symbol-for-type name 'verify))
          (port-sym (whale-line--symbol-for-type name 'port))
-         (prio (or priority t))
          (normal-hooks (whale-line--normalize-list hooks))
          (normal-after (whale-line--normalize-list after))
          (triggers (append normal-hooks normal-after))
@@ -556,7 +678,7 @@ segment. See description of PLUGS-INTO of
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
-           (whale-line--set-props ',name 'stateful ',prio ',dense ',padded)
+           (whale-line--set-props ',name 'stateful ',priority ',dense ',padded ',tier ',local)
 
            (defvar-local ,segment 'initial)
 
@@ -587,6 +709,8 @@ segment. See description of PLUGS-INTO of
      setup
      teardown
      priority
+     tier
+     local
      dense
      padded
      port)
@@ -610,6 +734,11 @@ the build.
 
 The segment will be added with PRIORITY or t.
 
+The segment belongs to TIER or the lowest tier.
+
+If LOCAL is t, the segment should only be visible on the selected
+window.
+
 If DENSE is t, the segment will not be padded.
 
 PADDED can be either `left', `right' or `all' to document that
@@ -624,12 +753,11 @@ segment. See description of PLUGS-INTO for
         (getter-sym (whale-line--symbol-for-type name 'getter))
         (verify-sym (whale-line--symbol-for-type name 'verify))
         (port-sym (whale-line--symbol-for-type name 'port))
-        (prio (or priority t))
         (con (or condition t)))
 
     (if (not (bound-and-true-p whale-line--testing))
         `(progn
-           (whale-line--set-props ',name 'stateless ',prio ',dense ',padded)
+           (whale-line--set-props ',name 'stateless ',priority ',dense ',padded ',tier ',local)
            (defun ,segment ()
              ,(format "Render `%s' segment." name)
              (or (when ,con
@@ -758,8 +886,11 @@ ARGS is a list of segments followed by a priority value."
 
     (macroexp-progn commands)))
 
+(make-obsolete 'whale-line-with-priorities 'whale-line-with-tiers "v0.10.0")
+
 ;;;; Rendering
 
+;; TODO: Decouple rendering from filtering.
 (defun whale-line--render (side &optional filter)
   "Render SIDE.
 
@@ -769,6 +900,11 @@ Optionally FILTER out low priority segments."
                        segments
                      (whale-line--filter segments filter))))
     (whale-line--render-segments filtered)))
+
+(defun whale-line--render-with-predicate (side predicate)
+  "Render SIDE while applying PREDICATE."
+  (whale-line--render-segments
+   (seq-filter predicate (plist-get whale-line--segments side))))
 
 (defun whale-line--render-segments (segments)
   "Render SEGMENTS."
@@ -879,16 +1015,20 @@ If DENSE is t, add no padding."
 
 ;;;; Filtering
 
+(defun whale-line--filtered-p (segment &optional low-space)
+  "Check if SEGMENT would get filtered considering LOW-SPACE."
+  (let ((priorities (if (whale-line--is-current-window-p)
+                        (whale-line--filter-for-current low-space)
+                      (whale-line--filter-for-other low-space))))
+    (not (memq (whale-line--prop segment :priority) priorities))))
+
 (defun whale-line--filter (segments &optional low-space)
   "Filter SEGMENTS.
 
 This filters differently for current and other window.
 
 If LOW-SPACE is t, additional segments are filtered."
-  (let ((filter (if (whale-line--is-current-window-p)
-                    (whale-line--filter-for-current low-space)
-                  (whale-line--filter-for-other low-space))))
-    (seq-filter (lambda (it) (not (memq (whale-line--prop it :priority) filter))) segments)))
+  (seq-filter (lambda (it) (whale-line--filtered-p it low-space)) segments))
 
 (defun whale-line--filter-for-current (&optional low-space)
   "Build the filter for current window.
@@ -1044,6 +1184,7 @@ If SOFT is t, uses `intern-soft'."
   (run-hooks 'whale-line-setup-hook)
   (add-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
   (add-hook 'window-configuration-change-hook #'whale-line--calculate-space)
+  (add-hook 'window-configuration-change-hook #'whale-line--rebuild-tier-cache)
   (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
   ;; Set the new mode-line-format
@@ -1055,6 +1196,7 @@ If SOFT is t, uses `intern-soft'."
   (run-hooks 'whale-line-teardown-hook)
   (remove-hook 'pre-redisplay-functions #'whale-line--set-selected-window)
   (remove-hook 'window-configuration-change-hook #'whale-line--calculate-space)
+  (remove-hook 'window-configuration-change-hook #'whale-line--rebuild-tier-cache)
   (remove-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
   ;; Restore the original mode-line format

@@ -188,6 +188,7 @@ Project buffers will only show segments deeper than root."
     (concat (string-join (reverse segments) "/") "/")))
 
 (whale-line-create-stateful-segment buffer-identification
+  :tier critical
   :getter whale-line-segments--buffer-identification
   :hooks (find-file-hook after-save-hook clone-indirect-buffer-hook kill-buffer-hook whale-line-segments-buffer-identification-hook)
   :after (not-modified rename-buffer set-visited-file-name pop-to-buffer undo)
@@ -224,6 +225,7 @@ Project buffers will only show segments deeper than root."
       (propertize "@" 'face 'whale-line-contrast)))
 
 (whale-line-create-stateless-segment buffer-status
+  :tier high
   :getter whale-line-segments--buffer-status)
 
 ;;;;; Window status
@@ -287,6 +289,7 @@ Project buffers will only show segments deeper than root."
      whale-line-segments-window-status-separator)))
 
 (whale-line-create-stateless-segment window-status
+  :tier medium
   :getter whale-line-segments--window-status)
 
 ;;;;; Position
@@ -316,12 +319,15 @@ Project buffers will only show segments deeper than root."
     (format-mode-line mode-line-position))))
 
 (whale-line-create-stateless-segment position
+  :tier essential
+  :local t
   :var whale-line-segments--position
   :priority current)
 
 ;;;;; Misc info
 
 (whale-line-create-stateless-segment misc-info
+  :tier high
   :var mode-line-misc-info
   :priority current
   :dense problematic)
@@ -329,6 +335,8 @@ Project buffers will only show segments deeper than root."
 ;;;;; Minor modes
 
 (whale-line-create-stateless-segment minor-modes
+  :tier essential
+  :local t
   :var minor-mode-alist
   :padded left
   :priority current-low)
@@ -336,6 +344,7 @@ Project buffers will only show segments deeper than root."
 ;;;;; Process
 
 (whale-line-create-stateless-segment process
+  :tier high
   :var mode-line-process
   :priority current
   :dense problematic)
@@ -351,6 +360,7 @@ Project buffers will only show segments deeper than root."
   "Segment for client.")
 
 (whale-line-create-stateless-segment client
+  :local t
   :var whale-line-segments--client
   :priority current-low)
 
@@ -399,6 +409,8 @@ single line show the columns."
     (number-to-string (count-lines beg (min end (point-max))))))
 
 (whale-line-create-stateless-segment selection
+  :tier high
+  :local t
   :var whale-line-segments--selection
   :priority current
   :dense (lambda () (not mark-active)))
@@ -440,6 +452,7 @@ Afterwards a mode-line update is forced to display the new frame."
     (setq whale-line-segments--animation-timer nil)))
 
 (whale-line-create-stateless-segment animation
+  :local t
   :var whale-line-segments--animation
   :setup whale-line-segments--animation-start-timer
   :teardown whale-line-segments--animation-stop-timer
@@ -629,6 +642,7 @@ Returns nil if not checking or if no errors were found."
   (or (whale-line-segments--major-mode--decorated) (whale-line-segments--major-mode--text)))
 
 (whale-line-create-stateful-segment major-mode
+  :tier high
   :hooks
   (find-file-hook after-change-major-mode-hook clone-indirect-buffer-hook)
   :getter whale-line-segments--major-mode)
@@ -693,6 +707,7 @@ Returns nil if not checking or if no errors were found."
     `((:propertize (:eval (whale-line-segments--lsp--with-count)) help-echo ,help))))
 
 (whale-line-create-stateful-segment lsp
+  :tier medium
   :getter whale-line-segments--lsp
   :hooks
   (lsp-after-initialize-hook
@@ -727,6 +742,7 @@ Returns nil if not checking or if no errors were found."
     `((:propertize ,(or (whale-line-segments--decorate 'debug) "BUG") help-echo ,help))))
 
 (whale-line-create-stateful-segment debug
+  :tier medium
   :getter whale-line-segments--debug
   :hooks
   (dap-session-created-hook
@@ -836,6 +852,7 @@ Use FACE for the ellipsis glyph."
         (propertize whale-line-segments-org-separator 'face 'whale-line-shadow))))))
 
 (whale-line-create-stateless-segment org
+  :tier medium
   :getter whale-line-segments--org
   :condition (derived-mode-p 'org-mode)
   :priority current-low)
@@ -889,6 +906,7 @@ Only consider Dired buffers and file buffers."
                    local-map ,whale-line-segments--project--map))))
 
 (whale-line-create-stateful-segment project
+  :tier medium
   :getter whale-line-segments--project
   :hooks (find-file-hook)
   :priority low)
@@ -913,6 +931,8 @@ Only consider Dired buffers and file buffers."
   "Get the name of the tab.")
 
 (whale-line-create-stateless-segment tab-bar
+  :tier high
+  :local t
   :var whale-line-segments--tab-bar
   :priority current)
 
@@ -983,6 +1003,7 @@ Only consider Dired buffers and file buffers."
           (:propertize ,(nth 1 specs) face ,(nth 0 specs))))))))
 
 (whale-line-create-stateful-segment vc
+  :tier medium
   :getter whale-line-segments--vc
   :hooks (find-file-hook after-save-hook)
   :after vc-refresh-state
