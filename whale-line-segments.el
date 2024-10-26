@@ -331,7 +331,7 @@ Project buffers will only show segments deeper than root."
 (whale-line-create-stateless-segment minor-modes
   :var minor-mode-alist
   :padded left
-  :priority current)
+  :priority current-low)
 
 ;;;;; Process
 
