@@ -178,7 +178,6 @@ formatter to call."
           (rhs (whale-line--render :right t))
           (rlen (whale-line--rlen t)))
       `(,@lhs ,(whale-line--space-between rlen) ,@rhs))))
-
 (make-obsolete 'whale-line--format-prioritize 'whale-line--format-tiered "v0.10.0")
 
 (defun whale-line--format-elide ()
@@ -1240,9 +1239,6 @@ See underlying macro for the usage of ARGS."
   `(progn
      (whale-line--create-stateful-segment ,name ,@args)))
 
-(defalias 'whale-line-create-static-segment 'whale-line-create-stateful-segment)
-(make-obsolete 'whale-line-create-static-segment 'whale-line-create-stateful-segment "0.7.1")
-
 ;;;###autoload
 (defmacro whale-line-create-stateless-segment (name &rest args)
   "Create a stateless segment called NAME.
@@ -1252,9 +1248,6 @@ See underlying macro for the usage of ARGS."
 
   `(progn
      (whale-line--create-stateless-segment ,name ,@args)))
-
-(defalias 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment)
-(make-obsolete 'whale-line-create-dynamic-segment 'whale-line-create-stateless-segment "0.7.1")
 
 ;;;###autoload
 (defmacro whale-line-create-augment (name &rest args)
