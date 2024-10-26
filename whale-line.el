@@ -218,8 +218,11 @@ formatted."
 
 ;;;; Tiers
 
-(defvar whale-line--tiers '(critical essential high medium low)
+(defvar whale-line--tiers nil
   "The tiers a segment can belong to, ordered from high to low.")
+
+(defvar whale-line--tier-predicates nil
+  "The predicates to check if a formatted tier fits the window.")
 
 (defun whale-line--update-tiers (segments tier)
   "Update tier to TIER for all SEGMENTS."
@@ -246,8 +249,6 @@ ARGS is a list of segments followed by a tier value.."
         (setq args (cdr args))))
 
     (macroexp-progn commands)))
-
-(defvar whale-line--tier-predicates nil)
 
 ;;;;; Caching
 
@@ -311,17 +312,23 @@ If the cached value is older than a second, return nil."
 
 This is the case if (1) the segment's tier is at or above TIER, (2) this
 is the selected window or the the segment has global visibility."
-  `(progn
-     (add-to-list
-      'whale-line--tier-predicates
-      ',(intern (format "whale-line--included-in-%s-p" tier)))
+  `(unless (memq ',tier whale-line--tiers)
+     ;; Add the tier.
+     (setq whale-line--tiers (append whale-line--tiers (list ',tier)))
+
+     ;; Create the function.
      (defun ,(intern (format "whale-line--included-in-%s-p" tier)) (segment)
        (let ((tier (whale-line--prop segment :tier)))
 
          (and (<= (seq-position whale-line--tiers tier)
                   (seq-position whale-line--tiers ',tier))
               (or (whale-line--is-current-window-p)
-                  (not (whale-line--prop segment :local))))))))
+                  (not (whale-line--prop segment :local))))))
+
+     ;; Register the predicate function.
+     (add-to-list
+      'whale-line--tier-predicates
+      ',(intern (format "whale-line--included-in-%s-p" tier)))))
 
 ;; NOTE: This needs to be ordered from high to low.
 (whale-line--create-tier-predicate critical)
