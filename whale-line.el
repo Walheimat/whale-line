@@ -212,9 +212,21 @@ per window configuration change."
 
     (dolist (win windows)
       (with-selected-window win
-        (let* ((remaining (whale-line--calculate-remaining-space)))
+        (whale-line--cache-widths t)))))
 
-          (puthash win remaining whale-line--space-cache))))))
+(defun whale-line--cache-widths (&optional force)
+  "Cache the width of both sides.
+
+If FORCE is t, do also if a cached value exists."
+  (unless (and (not force) (whale-line--widths))
+    (puthash (selected-window)
+             (list (cons 'left (whale-line--calculate-width :left))
+                   (cons 'right (whale-line--calculate-width :right)))
+             whale-line--space-cache)))
+
+(defun whale-line--widths ()
+  "Get the widths for the selected window.."
+  (gethash (selected-window) whale-line--space-cache))
 
 (defun whale-line--calculate-width (side)
   "Calculate the width for SIDE.
@@ -227,26 +239,13 @@ This uses `string-pixel-width' for Emacs 29+, otherwise
         (string-pixel-width formatted)
       (* (window-font-width) (length formatted)))))
 
-(defun whale-line--calculate-remaining-space ()
-  "Calculate the space remaining between left and right side."
-  (let* ((left (whale-line--calculate-width :left))
-         (right (whale-line--calculate-width :right)))
-
-    (- (window-pixel-width) (+ left right))))
-
 (defun whale-line--enough-space-p ()
   "Calculate whether there is enough space to display both sides' segments."
-  (let ((space (whale-line--space)))
+  (whale-line--cache-widths)
 
-    (> space 0)))
+  (let-alist (whale-line--widths)
 
-(defun whale-line--space ()
-  "Get the available space between the sides."
-  (or (gethash (selected-window) whale-line--space-cache)
-      (let* ((remaining (whale-line--calculate-remaining-space)))
-
-        (puthash (selected-window) remaining whale-line--space-cache)
-        remaining)))
+    (> (- (window-pixel-width) (+ .left .right)) 0)))
 
 (defun whale-line--space-between (length)
   "Get the space between sides aligned using LENGTH."
