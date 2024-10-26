@@ -110,7 +110,7 @@ the change.
                          debug
                          window-status
                          process
-                         | ;; Divides into left and right.
+                         | ; Divides into left and right.
                          misc-info
                          minor-modes
                          project
@@ -120,6 +120,7 @@ the change.
 
   ;; Strategy to use when there's not enough space to render all segments.
   (whale-line-segment-strategy 'tiered) ; Other options are `prioritize', `elide' and `ignore'.
+  (whale-line-tier-formatting-cache-max-age 2) ; Time in seconds the right hand side's length is cached.
 
   ;; Animation.
   (whale-line-segments-animation-key-frames [

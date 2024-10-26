@@ -82,6 +82,13 @@ logging."
                  (const :tag "Default logging" 1)
                  (const :tag "Debug logging" 0)))
 
+(defcustom whale-line-tier-formatting-cache-max-age 2
+  "The max age (in seconds) of the tier formatting cache.
+
+Any formatted value older than this will be discarded."
+  :group 'whale-line
+  :type 'integer)
+
 ;;;; Variables
 
 (defvar whale-line-mode-line '("%e" (:eval (whale-line--format))))
@@ -248,7 +255,10 @@ ARGS is a list of segments followed by a tier value.."
   "Hash table that maps windows to a tier predicate.")
 
 (defvar whale-line--tier-rhs-width-cache (make-hash-table)
-  "Hash table that maps renders to their formatted length.")
+  "Hash table that maps renders to their formatted length.
+
+This cache automatically evicts if the cached value is older than a
+second.")
 
 (defun whale-line--rebuild-tier-cache ()
   "Rebuild the tier predicate and width cache for all windows."
@@ -280,9 +290,19 @@ This returns the predicate."
          (rhs (whale-line--render-with-predicate :right pred))
          (rlen (length (format-mode-line rhs))))
 
-    (puthash (selected-window) rlen whale-line--tier-rhs-width-cache)
+    (puthash (selected-window) (list :formatted rlen :timestamp (time-to-seconds)) whale-line--tier-rhs-width-cache)
 
     rlen))
+
+(defun whale-line--get-cached-rhs-width ()
+  "Get the cached width.
+
+If the cached value is older than a second, return nil."
+  (and-let* ((value (gethash (selected-window) whale-line--tier-rhs-width-cache))
+             (ts (plist-get value :timestamp))
+             ((< (time-to-seconds) (+ whale-line-tier-formatting-cache-max-age ts))))
+
+    (plist-get value :formatted)))
 
 ;;;;; Predicates
 
@@ -319,9 +339,8 @@ is the selected window or the the segment has global visibility."
 
 (defun whale-line--rhs-width ()
   "Get the formatting length of the right-hand side."
-  ;; FIXME: Caching this won't work since the lengths may change
-  ;; despite the window configuration not changing.
-  (whale-line--cache-rhs-width))
+  (or (whale-line--get-cached-rhs-width)
+      (whale-line--cache-rhs-width)))
 
 ;;;; Space calculation
 
