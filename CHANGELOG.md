@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.10.0](https://github.com/Walheimat/whale-line/compare/v0.9.1...v0.10.0) (2024-10-26)
+
+
+### Improvements
+
+* **segments,minor-modes:** reduce priority ([70be3c5](https://github.com/Walheimat/whale-line/commit/70be3c5090d8428435437a4cf0393f0181d617ed))
+* **segments,project:** customizable width before truncation ([0b3ddd8](https://github.com/Walheimat/whale-line/commit/0b3ddd8304a12b7666809e249ead161ebe99161f))
+* **segments,selection:** show either lines or columns ([df26895](https://github.com/Walheimat/whale-line/commit/df268952315628de683f09a57830aadc3003c3c2))
+* **segments,tab-bar:** truncate long tab names ([7eb0c29](https://github.com/Walheimat/whale-line/commit/7eb0c297b637fa154c8ccc71cb763558b04eb5f3))
+* **selection:** show columns when mark is active ([5c0893b](https://github.com/Walheimat/whale-line/commit/5c0893b2d5715c67979b7d2df09534ebabba82fd))
+
 ## [0.9.1](https://github.com/Walheimat/whale-line/compare/v0.9.0...v0.9.1) (2024-10-13)
 
 
