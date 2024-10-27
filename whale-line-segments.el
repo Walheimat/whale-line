@@ -387,7 +387,11 @@ single line show the columns."
          (end (region-end))
          (line-count (count-lines beg (min end (point-max)))))
 
-    (if (> line-count 1)
+    (if (or (> line-count 1)
+            (and (= line-count 1)
+                 (= (point) (save-excursion
+                              (beginning-of-line)
+                              (point)))))
         (whale-line-segments--selection--rows)
       (whale-line-segments--selection--columns))))
 
