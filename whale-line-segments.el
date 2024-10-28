@@ -327,7 +327,7 @@ Project buffers will only show segments deeper than root."
 ;;;;; Misc info
 
 (whale-line-create-stateless-segment misc-info
-  :tier high
+  :tier medium
   :var mode-line-misc-info
   :priority current
   :dense problematic)
