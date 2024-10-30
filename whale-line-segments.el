@@ -389,9 +389,11 @@ single line show the columns."
 
     (if (or (> line-count 1)
             (and (= line-count 1)
-                 (= (point) (save-excursion
-                              (beginning-of-line)
-                              (point)))))
+                 (> (point) beg)
+                 (= (point)
+                    (save-excursion
+                      (beginning-of-line)
+                      (point)))))
         (whale-line-segments--selection--rows)
       (whale-line-segments--selection--columns))))
 

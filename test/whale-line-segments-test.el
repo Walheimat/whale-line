@@ -219,6 +219,15 @@
       (push-mark))
     (goto-char (+ 4 (point-min)))
 
+    (should (string= "4" (whale-line-segments--selection--marked))))
+
+  (with-temp-buffer
+    (insert-file-contents rectangle)
+    (goto-char (+ 4 (point-min)))
+    (shut-up
+      (push-mark))
+    (goto-char (point-min))
+
     (should (string= "4" (whale-line-segments--selection--marked)))))
 
 (ert-deftest animation-animate ()
