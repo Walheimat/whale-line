@@ -274,12 +274,12 @@ second.")
   "Cache the tier predicate for the selected window.
 
 This returns the predicate."
-  (let ((pred (car-safe
-               (seq-drop-while
-                (lambda (it)
-                  (unless (> (whale-line--calculate-remaining-space it) 0)
-                    it))
-                whale-line--tier-predicates))))
+  (when-let ((pred (car-safe
+                    (seq-drop-while
+                     (lambda (it)
+                       (unless (> (whale-line--calculate-remaining-space it) 0)
+                         it))
+                     whale-line--tier-predicates))))
 
     (puthash (selected-window) pred whale-line--tier-cache)
 
@@ -287,9 +287,9 @@ This returns the predicate."
 
 (defun whale-line--cache-rhs-width ()
   "Cache the formatted length of the right-hand side."
-  (let* ((pred (whale-line--tier-predicate))
-         (rhs (whale-line--render-with-predicate :right pred))
-         (rlen (length (format-mode-line rhs))))
+  (when-let* ((pred (whale-line--tier-predicate))
+              (rhs (whale-line--render-with-predicate :right pred))
+              (rlen (length (format-mode-line rhs))))
 
     (puthash (selected-window) (list :formatted rlen :timestamp (time-to-seconds)) whale-line--tier-rhs-width-cache)
 
@@ -342,12 +342,14 @@ is the selected window or the the segment has global visibility."
 (defun whale-line--tier-predicate ()
   "Get the lowest tier that fits all segments."
   (or (gethash (selected-window) whale-line--tier-cache)
-      (whale-line--cache-tier-predicate)))
+      (whale-line--cache-tier-predicate)
+      #'always))
 
 (defun whale-line--rhs-width ()
   "Get the formatting length of the right-hand side."
   (or (whale-line--get-cached-rhs-width)
-      (whale-line--cache-rhs-width)))
+      (whale-line--cache-rhs-width)
+      0))
 
 ;;;; Space calculation
 
