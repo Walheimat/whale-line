@@ -375,7 +375,7 @@ Project buffers will only show segments deeper than root."
         (rectangle-mark-mode
          ((:eval (whale-line-segments--selection--rows)) "×" (:eval (whale-line-segments--selection--columns)))
          (:eval (whale-line-segments--selection--marked))))
-        (:eval (whale-line--spacer)))
+       (:eval (whale-line--spacer)))
       face region))))
 
 (defun whale-line-segments--selection--marked ()
@@ -406,7 +406,7 @@ single line show the columns."
                                               (current-column)))))))
 
 (defun whale-line-segments--selection--rows ()
-  "Get the rows for the region.."
+  "Get the rows for the region."
   (let ((beg (region-beginning))
         (end (region-end)))
 
