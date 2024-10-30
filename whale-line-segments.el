@@ -27,10 +27,10 @@
   :group 'whale-line
   :tag "Segments")
 
-(defcustom whale-line-segments-animation-key-frames ["(__.- >{"
-                                                     "(__.' >{"
-                                                     "(__.- >{"
-                                                     "(__., >{"]
+(defcustom whale-line-segments-animation-key-frames ["[   ⹈ -    {"
+                                                     "[   ⹈ '    {"
+                                                     "[   ⹈ -    {"
+                                                     "[   ⹈ ,    {"]
   "Animation key frames."
   :group 'whale-line-segments
   :type '(vector string))
