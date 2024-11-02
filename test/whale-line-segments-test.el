@@ -708,9 +708,10 @@
 
 (ert-deftest project--help ()
   (bydi ((:always project-current)
+         (:mock project-name :return "Test")
          (:mock project-root :return "/home/test/project/"))
 
-      (should (string= "Project (/home/test/project/)\nmouse-1: Open root" (whale-line-segments--project--help)))))
+      (should (string= "Project Test (/home/test/project/)\nmouse-1: Open root" (whale-line-segments--project--help)))))
 
 (ert-deftest project--get--for-project ()
   (let ((whale-line-segments--project--map nil)

@@ -888,9 +888,10 @@ Only consider Dired buffers and file buffers."
 (defun whale-line-segments--project--help ()
   "Get the help text for the project."
   (when-let* ((project (project-current))
+              (name (project-name project))
               (root (project-root project)))
 
-    (format "Project (%s)\nmouse-1: Open root" root)))
+    (format "Project %s (%s)\nmouse-1: Open root" name root)))
 
 (defun whale-line-segments--project ()
   "Get the project segment."
