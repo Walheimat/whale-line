@@ -469,7 +469,14 @@
      (bydi ((:mock whale-line--render :return '("rendered"))
             (:mock whale-line--format-side :return "formatted")
             (:mock whale-line--enough-space-p  :return space)
-            (:mock whale-line--space-between :return "   "))
+            (:mock whale-line--space-between :return "   ")
+            (:always whale-line--tier-predicate)
+            (:mock whale-line--render-with-predicate :with (lambda (side &rest _)
+                                                             (message "side is %s" side)
+                                                             (pcase side
+                                                               (:left '("left"))
+                                                               (:right '("right")))))
+            (:mock whale-line--rhs-width :return 10))
        ,@body)))
 
 (ert-deftest whale-line--format-ignore ()
@@ -506,6 +513,14 @@
                   '("rendered" "   " "rendered")))
    (bydi-was-called-with whale-line--format-side '(:right ...))))
 
+(ert-deftest whale-line--format-tiered ()
+  (with-whale-line
+   (should (equal (whale-line--format-tiered)
+                  '("left"
+                    "   "
+                    "right")))
+   (bydi-was-called-with whale-line--space-between 10)))
+
 (ert-deftest whale-line--space-between ()
   (should (equal (propertize
                   " "
@@ -518,7 +533,8 @@
 
     (bydi (whale-line--format-ignore
            whale-line--format-elide
-           whale-line--format-prioritize)
+           whale-line--format-prioritize
+           whale-line--format-tiered)
 
       (whale-line--format)
       (bydi-was-called whale-line--format-ignore)
@@ -531,7 +547,12 @@
       (bydi-clear-mocks)
       (setq whale-line-segment-strategy 'prioritize)
       (whale-line--format)
-      (bydi-was-called whale-line--format-prioritize))))
+      (bydi-was-called whale-line--format-prioritize)
+
+      (bydi-clear-mocks)
+      (setq whale-line-segment-strategy 'tiered)
+      (whale-line--format)
+      (bydi-was-called whale-line--format-tiered))))
 
 (ert-deftest whale-line--get-current-window ()
   (let ((parent nil)
@@ -998,8 +1019,148 @@
 
   (should-error (whale-line--symbol-for-type 'segment 'something)))
 
+;;; Tiers
+
+(ert-deftest whale-line--update-tiers ()
+  (let ((whale-line--props '((test :type stateful :tier low)
+                             (mock :type stateless :tier medium))))
+
+    (whale-line--update-tiers '(test mock) 'high)
+
+    (should (equal '((test :type stateful :tier high)
+                     (mock :type stateless :tier high))
+                   whale-line--props))))
+
+(ert-deftest whale-line-with-tiers ()
+  (bydi-match-expansion
+   (whale-line-with-tiers
+     test
+     mock
+     high
+     inspect
+     medium)
+   '(progn
+      (whale-line--update-tiers '(inspect) 'medium)
+      (whale-line--update-tiers '(test mock) 'high))))
+
+(ert-deftest whale-line--rebuild-tier-cache ()
+  (bydi (whale-line--cache-tier-predicate
+         whale-line--cache-rhs-width)
+
+    (whale-line--rebuild-tier-cache)
+
+    (let ((wins (window-list-1 nil 'never 'visible)))
+
+      (bydi-was-called-n-times whale-line--cache-tier-predicate (length wins))
+      (bydi-was-called-n-times whale-line--cache-rhs-width (length wins)))))
+
+(ert-deftest whale-line--cache-tier-predicate ()
+
+  (let ((whale-line--tier-cache (make-hash-table))
+        (remaining 0))
+
+    (bydi ((:mock whale-line--calculate-remaining-space :return remaining))
+
+      (whale-line--cache-tier-predicate)
+
+      (should-not (hash-table-keys whale-line--tier-cache))
+
+      (setq remaining 1)
+
+      (whale-line--cache-tier-predicate)
+
+      (should (hash-table-keys whale-line--tier-cache)))))
+
+(ert-deftest whale-line--cache-rhs-width ()
+
+  (bydi ((:always whale-line--tier-predicate)
+         (:mock whale-line--render-with-predicate :return "right")
+         (:mock format-mode-line :with bydi-rf)
+         (:mock time-to-seconds :return 42))
+
+
+    (let ((whale-line--tier-rhs-width-cache (make-hash-table)))
+
+      (whale-line--cache-rhs-width)
+
+      (should (equal '(:formatted 5 :timestamp 42)
+                     (gethash (selected-window) whale-line--tier-rhs-width-cache))))))
+
+(ert-deftest whale-line--get-cached-rhs-width ()
+  (let ((whale-line-tier-formatting-cache-max-age 1)
+        (whale-line--tier-rhs-width-cache (make-hash-table))
+        (tts 1))
+
+    (puthash (selected-window) (list :formatted 11 :timestamp 1) whale-line--tier-rhs-width-cache)
+
+    (bydi ((:mock time-to-seconds :return tts))
+
+      (should (whale-line--get-cached-rhs-width))
+
+      (setq tts 3)
+
+      (should-not (whale-line--get-cached-rhs-width)))))
+
+(ert-deftest whale-line--tier-predicate ()
+  (let ((whale-line--tier-cache (make-hash-table)))
+
+    (bydi ((:othertimes whale-line--cache-tier-predicate))
+
+      (should (eq 'always (whale-line--tier-predicate)))
+
+      (bydi-toggle-volatile 'whale-line--cache-tier-predicate)
+
+      (should (whale-line--tier-predicate))
+
+      (puthash (selected-window) #'ignore whale-line--tier-cache)
+
+      (should (eq 'ignore (whale-line--tier-predicate))))))
+
+(ert-deftest whale-line--rhs-width ()
+
+  (let ((width nil)
+        (cached nil))
+    (bydi ((:mock whale-line--get-cached-rhs-width :return width)
+           (:mock whale-line--cache-rhs-width :return cached))
+
+      (should (eq 0 (whale-line--rhs-width)))
+
+      (setq cached 1)
+
+      (should (eq 1 (whale-line--rhs-width)))
+
+      (setq width 2)
+
+      (should (eq 2 (whale-line--rhs-width))))))
+
+(ert-deftest whale-line--space ()
+
+  (let ((whale-line--space-cache (make-hash-table)))
+
+    (should-not (whale-line--space))
+
+    (puthash (selected-window) 10 whale-line--space-cache)
+
+    (should (eq 10 (whale-line--space)))))
+
+(ert-deftest whale-line--render-with-predicate ()
+
+  (let ((whale-line--segments '(:left (mock testing inspect))))
+    (bydi ((:always whale-line--render-segments))
+
+      (let ((pred (lambda (it) (< 5 (length (symbol-name it))))))
+
+        (whale-line--render-with-predicate :left pred)
+        (bydi-was-called-with whale-line--render-segments '((testing inspect)))))))
+
+(ert-deftest whale-line--rlen ()
+  (bydi ((:mock whale-line--format-side :with (lambda (_ pred) (funcall pred 'test)))
+         (:mock whale-line--filtered-p :with (lambda (_ filter) filter)))
+
+    (should (eq 7 (whale-line--rlen "testing")))))
+
 ;;; whale-line-test.el ends here
 
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
+   ;; Local Variables:
+   ;; no-byte-compile: t
+   ;; End:
