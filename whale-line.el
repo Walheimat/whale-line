@@ -82,7 +82,7 @@ logging."
                  (const :tag "Default logging" 1)
                  (const :tag "Debug logging" 0)))
 
-(defcustom whale-line-tier-formatting-cache-max-age 2
+(defcustom whale-line-tier-formatting-cache-max-age 1
   "The max age (in seconds) of the tier formatting cache.
 
 Any formatted value older than this will be discarded."
@@ -440,6 +440,10 @@ If FORCE is t, do also if a cached value exists."
   (clrhash whale-line--padded-cache)
   (clrhash whale-line--space-cache)
   (clrhash whale-line--tier-cache)
+  (clrhash whale-line--tier-rhs-width-cache))
+
+(defun whale-line--clear-rhs-width-cache (&rest _)
+  "Clear the tier caches."
   (clrhash whale-line--tier-rhs-width-cache))
 
 ;;;; Building segments
@@ -1240,6 +1244,9 @@ If SOFT is t, uses `intern-soft'."
   (add-hook 'window-configuration-change-hook #'whale-line--rebuild-tier-cache)
   (add-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
 
+  ;; Setup for tiered formatting.
+  (advice-add #'select-window :after #'whale-line--clear-rhs-width-cache)
+
   ;; Set the new mode-line-format
   (setq-default mode-line-format whale-line-mode-line))
 
@@ -1251,6 +1258,8 @@ If SOFT is t, uses `intern-soft'."
   (remove-hook 'window-configuration-change-hook #'whale-line--calculate-space)
   (remove-hook 'window-configuration-change-hook #'whale-line--rebuild-tier-cache)
   (remove-hook 'buffer-list-update-hook #'whale-line--queue-refresh)
+
+  (advice-remove #'select-window #'whale-line--clear-rhs-width-cache)
 
   ;; Restore the original mode-line format
   (setq-default mode-line-format whale-line--default-mode-line))

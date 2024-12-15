@@ -1159,6 +1159,15 @@
 
     (should (eq 7 (whale-line--rlen "testing")))))
 
+(ert-deftest whale-line--clear-rhs-width-cache ()
+  (let ((whale-line--tier-rhs-width-cache (make-hash-table)))
+
+    (puthash :test 1 whale-line--tier-rhs-width-cache)
+
+    (whale-line--clear-rhs-width-cache)
+
+    (should (eq 0 (length (hash-table-keys whale-line--tier-rhs-width-cache))))))
+
 ;;; whale-line-test.el ends here
 
    ;; Local Variables:
